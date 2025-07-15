@@ -1,14 +1,12 @@
 import os
-from dotenv import load_dotenv
 
-# Load environment variables from .env file
-load_dotenv()
 
 class Config:
     """Configuration class for the Discord bot."""
     
     # Discord Bot Token (required)
-    DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
+    DISCORD_TOKEN = os.getenv("TOKEN")
+
     
     # Bot Configuration
     COMMAND_PREFIX = os.getenv("COMMAND_PREFIX", "!")
