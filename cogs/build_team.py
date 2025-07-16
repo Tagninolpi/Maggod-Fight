@@ -7,6 +7,7 @@ import logging
 import asyncio
 from utils.game_test_on_discord import gods as all_gods_template
 from join import update_lobby_status_embed
+import asyncio
 
 logger = logging.getLogger(__name__)
 
@@ -113,18 +114,9 @@ class BuildTeam(commands.Cog):
         match.next_picker = random.choice([match.player1_id, match.player2_id])
         match.teams_initialized = True
         match.game_phase = "building"
-        await update_lobby_status_embed(self.bot)
+        asyncio.create_task(update_lobby_status_embed(self.bot))
         
         logger.info(f"Team building started in channel {channel_id}")
-    #change
-        # Update channel name
-        try:
-            from cogs.join import Join
-            join_cog = Join(self.bot)
-            new_name = join_cog.build_channel_name(state="building", original_name=channel.name)
-            await channel.edit(name=new_name)
-        except Exception as e:
-            logger.error(f"Error updating channel name: {e}")
 
         # Get player names
         player1 = interaction.guild.get_member(match.player1_id)
@@ -295,7 +287,7 @@ class BuildTeam(commands.Cog):
         if len(p1_team) == 5 and len(p2_team) == 5:
             # Both teams complete
             match.game_phase = "playing"
-            await update_lobby_status_embed(self.bot)
+            asyncio.create_task(update_lobby_status_embed(self.bot))
             
             # Initialize turn state
             match.turn_state = {
@@ -304,15 +296,6 @@ class BuildTeam(commands.Cog):
             }
             
             logger.info(f"Both teams complete in channel {channel_id}")
-            #change
-            # Update channel name
-            try:
-                from cogs.join import Join
-                join_cog = Join(self.bot)
-                new_name = join_cog.build_channel_name(state="playing", original_name=channel.name)
-                #await channel.edit(name=new_name)
-            except Exception as e:
-                logger.error(f"Error updating channel name: {e}")
             await channel.send("✅ **Both teams are complete! Let the battle begin!**")
             await self.show_teams(channel, match)
             # Prompt the player who just picked to start the game

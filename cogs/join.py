@@ -3,7 +3,7 @@ from discord.ext import commands
 from discord import app_commands
 from bot.config import Config
 import logging
- 
+import asyncio
 logger = logging.getLogger(__name__)
 
 LOBBY_STATUS_CHANNEL_ID = 1394978367287066725
@@ -113,7 +113,7 @@ class Join(commands.Cog):
             if hasattr(self.bot, 'stats'):
                 self.bot.stats.increment_match_started()
             match.game_phase = "Waiting for second player"
-            await update_lobby_status_embed(self.bot)
+            asyncio.create_task(update_lobby_status_embed(self.bot))
 
             
             
@@ -147,14 +147,8 @@ class Join(commands.Cog):
             match.player2_id = interaction.user.id
             match.started = True
             match.game_phase = "ready"
-            await update_lobby_status_embed(self.bot)
+            asyncio.create_task(update_lobby_status_embed(self.bot))
             logger.info(f"Player {interaction.user.id} ({interaction.user.display_name}) joined as Player 2 in channel {channel_id}")
-            #change
-            #new_name = self.build_channel_name(state="ready", original_name=channel.name)
-            #try:
-                #await channel.edit(name=new_name)
-            #except discord.Forbidden:
-                #logger.warning(f"Cannot rename channel {channel.name}")
             
             # Get player names
             player1 = interaction.guild.get_member(match.player1_id)

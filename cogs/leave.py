@@ -3,6 +3,8 @@ from discord.ext import commands
 from discord import app_commands
 from bot.config import Config
 import logging
+from join import update_lobby_status_embed
+import asyncio
 
 
 logger = logging.getLogger(__name__)
@@ -58,15 +60,8 @@ class Leave(commands.Cog):
         # Remove the match
         del matchmaking_dict[channel_id]
         logger.info(f"Player {interaction.user.id} ({interaction.user.display_name}) left match in channel {channel_id}")
- #change
-        # Reset the channel name to default if it's a Maggod Fight Lobby
-        if channel.category and channel.category.name == Config.LOBBY_CATEGORY_NAME:
-            suffix = channel.name[-2:] if channel.name[-2:].isdigit() else "XX"
-            new_name = f"🔘・maggod-fight-lobby-{suffix}"
-            try:
-                await channel.edit(name=new_name)
-            except discord.Forbidden:
-                logger.warning(f"Cannot rename channel {channel.name}")
+        matchmaking_dict.get(discord.Interaction.channel).game_phase = "Waiting for first player"
+        asyncio.create_task(update_lobby_status_embed(self.bot))
 
         # Create response embed
         embed = discord.Embed(

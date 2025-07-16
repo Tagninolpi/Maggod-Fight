@@ -6,6 +6,7 @@ import logging
 from typing import Optional
 from utils.gameplay_tag import God
 from join import update_lobby_status_embed
+import asyncio
 
 
 logger = logging.getLogger(__name__)
@@ -219,15 +220,8 @@ class Turn(commands.Cog):
             # Reset the match
             if channel.id in matchmaking_dict:
                 del matchmaking_dict[channel.id]
-            #change
-            # Reset channel name
-            try:
-                from cogs.join import Join
-                join_cog = Join(self.bot)
-                new_name = join_cog.build_channel_name(state="default", original_name=channel.name)
-                await channel.edit(name=new_name)
-            except Exception as e:
-                logger.error(f"Error resetting channel name: {e}")
+            matchmaking_dict.get(discord.Interaction.channel).game_phase = "Waiting for first player"
+            asyncio.create_task(update_lobby_status_embed(self.bot))
             
             return None
 
@@ -481,20 +475,8 @@ class Turn(commands.Cog):
 
         # Clean up
         match.game_phase = "finished"
-        await update_lobby_status_embed(self.bot)
-        #change
-        # Reset channel after a delay
-        try:
-            from cogs.join import Join
-            join_cog = Join(self.bot)
-            suffix = channel.name[-2:] if channel.name[-2:].isdigit() else "XX"
-            new_name = f"🔘・maggod-fight-lobby-{suffix}"
-            try:
-                await channel.edit(name=new_name)
-            except discord.Forbidden:
-                logger.warning(f"Cannot rename channel {channel.name}")
-        except Exception as e:
-            logger.error(f"Error updating channel name: {e}")
+        asyncio.create_task(update_lobby_status_embed(self.bot))
+
 
     @app_commands.command(name="do_turn", description="Make your turn in the ongoing Maggod Fight battle.")
     async def do_turn_slash(self, interaction: discord.Interaction):
