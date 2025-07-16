@@ -112,6 +112,7 @@ class Join(commands.Cog):
             # Update bot stats
             if hasattr(self.bot, 'stats'):
                 self.bot.stats.increment_match_started()
+            match = matchmaking_dict[channel_id]
             match.game_phase = "Waiting for second player"
             asyncio.create_task(update_lobby_status_embed(self.bot))
 
@@ -147,9 +148,10 @@ class Join(commands.Cog):
             match.player2_id = interaction.user.id
             match.started = True
             match.game_phase = "ready"
-            asyncio.create_task(update_lobby_status_embed(self.bot))
+            match = matchmaking_dict[channel_id]
             logger.info(f"Player {interaction.user.id} ({interaction.user.display_name}) joined as Player 2 in channel {channel_id}")
-            
+            asyncio.create_task(update_lobby_status_embed(self.bot))
+
             # Get player names
             player1 = interaction.guild.get_member(match.player1_id)
             player1_name = player1.display_name if player1 else "Player 1"

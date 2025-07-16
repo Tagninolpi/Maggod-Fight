@@ -220,7 +220,8 @@ class Turn(commands.Cog):
             # Reset the match
             if channel.id in matchmaking_dict:
                 del matchmaking_dict[channel.id]
-            matchmaking_dict.get(discord.Interaction.channel).game_phase = "Waiting for first player"
+            match = matchmaking_dict[channel.id]
+            match.game_phase = "Waiting for first player"
             asyncio.create_task(update_lobby_status_embed(self.bot))
             
             return None

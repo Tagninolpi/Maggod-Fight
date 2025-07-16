@@ -113,6 +113,7 @@ class BuildTeam(commands.Cog):
         }
         match.next_picker = random.choice([match.player1_id, match.player2_id])
         match.teams_initialized = True
+        match = matchmaking_dict[channel.id]
         match.game_phase = "building"
         asyncio.create_task(update_lobby_status_embed(self.bot))
         
@@ -286,6 +287,7 @@ class BuildTeam(commands.Cog):
 
         if len(p1_team) == 5 and len(p2_team) == 5:
             # Both teams complete
+            match = matchmaking_dict[channel.id]
             match.game_phase = "playing"
             asyncio.create_task(update_lobby_status_embed(self.bot))
             

@@ -60,8 +60,10 @@ class Leave(commands.Cog):
         # Remove the match
         del matchmaking_dict[channel_id]
         logger.info(f"Player {interaction.user.id} ({interaction.user.display_name}) left match in channel {channel_id}")
-        matchmaking_dict.get(discord.Interaction.channel).game_phase = "Waiting for first player"
+        match = matchmaking_dict[channel.id]
+        match.game_phase = "Waiting for first player"
         asyncio.create_task(update_lobby_status_embed(self.bot))
+
 
         # Create response embed
         embed = discord.Embed(
