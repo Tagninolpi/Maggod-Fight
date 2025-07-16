@@ -5,7 +5,7 @@ import random
 import logging
 from typing import Optional
 from utils.gameplay_tag import God
-from cogs.join import update_lobby_status_embed
+from .join import update_lobby_status_embed
 import asyncio
 
 
