@@ -216,13 +216,13 @@ class Turn(commands.Cog):
         if view.selected_god is None:
             # Timeout occurred
             await channel.send("⏱️ Selection timed out. Match has been reset.")
-            
-            # Reset the match
-            if channel.id in matchmaking_dict:
-                del matchmaking_dict[channel.id]
             match = matchmaking_dict[channel.id]
             match.game_phase = "Waiting for first player"
             asyncio.create_task(update_lobby_status_embed(self.bot))
+            # Reset the match
+            if channel.id in matchmaking_dict:
+                del matchmaking_dict[channel.id]
+            
             
             return None
 

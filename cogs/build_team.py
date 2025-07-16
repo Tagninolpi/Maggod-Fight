@@ -239,7 +239,9 @@ class BuildTeam(commands.Cog):
                 "⏱️ Selection timed out. Match has been reset.",
                 ephemeral=True
             )
-            
+            match = matchmaking_dict[channel.id]
+            match.game_phase = "Waiting for first player"
+            asyncio.create_task(update_lobby_status_embed(self.bot))
             # Reset the match
             del matchmaking_dict[channel_id]
             logger.info(f"Match timed out in channel {channel_id}")
