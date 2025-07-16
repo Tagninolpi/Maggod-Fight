@@ -6,7 +6,7 @@ import copy
 import logging
 import asyncio
 from utils.game_test_on_discord import gods as all_gods_template
-from join import update_lobby_status_embed
+from cogs.join import update_lobby_status_embed
 import asyncio
 
 logger = logging.getLogger(__name__)
