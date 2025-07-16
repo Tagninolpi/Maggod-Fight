@@ -5,6 +5,7 @@ import random
 import logging
 from typing import Optional
 from utils.gameplay_tag import God
+from join import update_lobby_status_embed
 
 
 logger = logging.getLogger(__name__)
@@ -17,8 +18,8 @@ def create_team_embeds(team1: list, team2: list, player1_name: str, player2_name
         names = [pad(god.name[:6]) for god in team]
         hps = [pad(f"{god.hp}/{god.max_hp}") for god in team]
         dmgs = [pad(str(god.dmg)) for god in team]
-        states = [pad("aliv" if god.alive else "dead") for god in team]
-        visions = [pad("visi" if god.visible else "invi") for god in team]
+        states = [pad("❤️" if god.alive else "💀") for god in team]
+        visions = [pad("👁️" if god.visible else "👻") for god in team]
         effects = [pad(", ".join(god.effects.keys())[:8] or "None") for god in team]
 
         lines = [
@@ -40,7 +41,7 @@ def create_team_embeds(team1: list, team2: list, player1_name: str, player2_name
         title=f"🎯 Select God to {action_text.title()}",
         color=0x00ff00
     )
-    return [action_embed, embed1, embed2]
+    return [action_embed, embed2, embed1]
 
 class GodSelectionView(discord.ui.View):
     def __init__(self, selectable_gods: list[God], allowed_user: discord.Member):
@@ -218,7 +219,7 @@ class Turn(commands.Cog):
             # Reset the match
             if channel.id in matchmaking_dict:
                 del matchmaking_dict[channel.id]
-            
+            #change
             # Reset channel name
             try:
                 from cogs.join import Join
@@ -245,13 +246,14 @@ class Turn(commands.Cog):
 
         # Check if any gods are available to attack
         visible_attackers = get_visible(attack_team)
+        alive_attackers = get_alive(attack_team)
         if not visible_attackers:
             await channel.send("❌ No gods available to attack with. Turn skipped.")
             return
 
         # Select attacker
         attacker = await self.send_god_selection_prompt(
-            channel, attack_team, defend_team, attack_team, "attack with", current_player
+            channel, attack_team, defend_team, alive_attackers, "attack with", current_player
         )
         
         if not attacker:
@@ -479,13 +481,18 @@ class Turn(commands.Cog):
 
         # Clean up
         match.game_phase = "finished"
-        
+        await update_lobby_status_embed(self.bot)
+        #change
         # Reset channel after a delay
         try:
             from cogs.join import Join
             join_cog = Join(self.bot)
-            new_name = join_cog.build_channel_name(state="finished", original_name=channel.name)
-            await channel.edit(name=new_name)
+            suffix = channel.name[-2:] if channel.name[-2:].isdigit() else "XX"
+            new_name = f"🔘・maggod-fight-lobby-{suffix}"
+            try:
+                await channel.edit(name=new_name)
+            except discord.Forbidden:
+                logger.warning(f"Cannot rename channel {channel.name}")
         except Exception as e:
             logger.error(f"Error updating channel name: {e}")
 

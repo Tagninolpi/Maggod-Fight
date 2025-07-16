@@ -4,6 +4,7 @@ from discord import app_commands
 from bot.config import Config
 import logging
 
+
 logger = logging.getLogger(__name__)
 
 class Leave(commands.Cog):
@@ -57,7 +58,7 @@ class Leave(commands.Cog):
         # Remove the match
         del matchmaking_dict[channel_id]
         logger.info(f"Player {interaction.user.id} ({interaction.user.display_name}) left match in channel {channel_id}")
-
+ #change
         # Reset the channel name to default if it's a Maggod Fight Lobby
         if channel.category and channel.category.name == Config.LOBBY_CATEGORY_NAME:
             suffix = channel.name[-2:] if channel.name[-2:].isdigit() else "XX"

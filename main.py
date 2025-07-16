@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 # Global matchmaking dictionary for all matches
 matchmaking_dict = {}
-
+ 
 class Match:
     """Represents a single Maggod Fight match."""
     def __init__(self, player1_id=None, player2_id=None):
@@ -34,7 +34,7 @@ class Match:
         self.current_turn_player = None
         self.turn_number = 0
         self.teams_initialized = False
-        self.game_phase = "waiting"  # waiting, building, playing, finished
+        self.game_phase = "Waiting for first player"  # waiting, building, playing, finished
         
         # Match-specific game state
         self.match_teams = {

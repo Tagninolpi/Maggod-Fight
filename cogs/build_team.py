@@ -6,6 +6,7 @@ import copy
 import logging
 import asyncio
 from utils.game_test_on_discord import gods as all_gods_template
+from join import update_lobby_status_embed
 
 logger = logging.getLogger(__name__)
 
@@ -112,9 +113,10 @@ class BuildTeam(commands.Cog):
         match.next_picker = random.choice([match.player1_id, match.player2_id])
         match.teams_initialized = True
         match.game_phase = "building"
+        await update_lobby_status_embed(self.bot)
         
         logger.info(f"Team building started in channel {channel_id}")
-
+    #change
         # Update channel name
         try:
             from cogs.join import Join
@@ -249,15 +251,6 @@ class BuildTeam(commands.Cog):
             del matchmaking_dict[channel_id]
             logger.info(f"Match timed out in channel {channel_id}")
 
-            # Reset channel name
-            try:
-                from cogs.join import Join
-                join_cog = Join(self.bot)
-                new_name = join_cog.build_channel_name(state="default", original_name=channel.name)
-                #await channel.edit(name=new_name)
-            except Exception as e:
-                logger.error(f"Error resetting channel name: {e}")
-
             await channel.send("❌ Team building timed out. The lobby has been reset.")
             return
 
@@ -302,6 +295,7 @@ class BuildTeam(commands.Cog):
         if len(p1_team) == 5 and len(p2_team) == 5:
             # Both teams complete
             match.game_phase = "playing"
+            await update_lobby_status_embed(self.bot)
             
             # Initialize turn state
             match.turn_state = {
@@ -310,7 +304,7 @@ class BuildTeam(commands.Cog):
             }
             
             logger.info(f"Both teams complete in channel {channel_id}")
-            
+            #change
             # Update channel name
             try:
                 from cogs.join import Join
