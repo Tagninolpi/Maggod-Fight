@@ -26,8 +26,14 @@ def get_lobby_line(index: int, phase: str) -> str:
     suffix = get_lobby_suffix(index)
     if phase == "Waiting for second player":
         name = f"waiting-for-player-2-{suffix}"
-    elif phase in ["ready", "building", "playing", "finished"]:
-        name = f"battle-in-progress-{suffix}"
+    elif phase == "ready":
+        name = f"Ready to start-{suffix}"
+    elif phase == "building":
+        name = f"Team-building-in-progress-{suffix}"
+    elif phase == "playing":
+        name = f"Maggod-fight-in-progress-{suffix}"
+    elif phase == "finished":
+        name = f"Maggod-fight-done-{suffix}"
     else:
         name = f"maggod-fight-lobby-{suffix}"
 
