@@ -3,7 +3,6 @@ from discord.ext import commands
 from discord import app_commands
 from bot.config import Config
 import logging
-from .join import update_lobby_status_embed
 
 
 logger = logging.getLogger(__name__)
@@ -58,7 +57,6 @@ class Leave(commands.Cog):
 
         #remove the match
         del matchmaking_dict[channel_id]
-        await update_lobby_status_embed(self.bot)
         logger.info(f"Player {interaction.user.id} ({interaction.user.display_name}) left match in channel {channel_id}")
         
 
