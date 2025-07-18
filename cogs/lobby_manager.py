@@ -24,7 +24,8 @@ class LobbyManager(commands.Cog):
                              interaction: discord.Interaction,
                              count: int = 10):
         """Create Maggod Fight lobbies."""
-        
+        await interaction.response.defer(ephemeral=False)
+
         # ✅ Restrict to specific channel
         if interaction.channel.id != allowed_channel_id:
             await interaction.followup.send(
@@ -52,8 +53,7 @@ class LobbyManager(commands.Cog):
                 "❌ I don't have permission to manage channels in this server.",
                 ephemeral=True)
             return
-        
-        await interaction.response.defer(ephemeral=False)
+
         try:
             # Create or get the category
             category = discord.utils.get(guild.categories,
@@ -141,7 +141,8 @@ class LobbyManager(commands.Cog):
         "Delete the Maggod Fight Lobbies category and all its channels.")
     async def delete_lobbies(self, interaction: discord.Interaction):
         """Delete all Maggod Fight lobbies."""
-        
+        await interaction.response.defer(ephemeral=False)
+
         # ✅ Restrict to specific channel
         if interaction.channel.id != allowed_channel_id:
             await interaction.followup.send(
@@ -162,8 +163,7 @@ class LobbyManager(commands.Cog):
                 "❌ I don't have permission to manage channels in this server.",
                 ephemeral=True)
             return
-        
-        await interaction.response.defer(ephemeral=False)
+
         try:
             category = discord.utils.get(guild.categories,
                                          name=Config.LOBBY_CATEGORY_NAME)
