@@ -4,7 +4,6 @@ from discord import app_commands
 from bot.config import Config
 import logging
 from .join import update_lobby_status_embed
-import asyncio
 
 
 logger = logging.getLogger(__name__)
@@ -57,12 +56,9 @@ class Leave(commands.Cog):
             other_player = interaction.guild.get_member(other_player_id)
             other_player_name = other_player.display_name if other_player else "the other player"
 
-        # Remove the match
-        match = matchmaking_dict[channel.id]
-        match.game_phase = "Waiting for first player"
-        asyncio.create_task(update_lobby_status_embed(self.bot))
-        asyncio.wait(1)
+        #remove the match
         del matchmaking_dict[channel_id]
+        await update_lobby_status_embed(self.bot)
         logger.info(f"Player {interaction.user.id} ({interaction.user.display_name}) left match in channel {channel_id}")
         
 

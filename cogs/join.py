@@ -118,7 +118,6 @@ class Join(commands.Cog):
             # Update bot stats
             if hasattr(self.bot, 'stats'):
                 self.bot.stats.increment_match_started()
-            match = matchmaking_dict[channel_id]
             match.game_phase = "Waiting for second player"
             asyncio.create_task(update_lobby_status_embed(self.bot))
 
@@ -215,25 +214,6 @@ class Join(commands.Cog):
             )
             
             await interaction.response.send_message(embed=embed, ephemeral=True)
-    #change
-    def build_channel_name(self, state: str, original_name: str) -> str:
-        """Build appropriate channel name based on state."""
-        # Extract the lobby number from the original name
-        suffix = original_name[-2:] if original_name[-2:].isdigit() else "XX"
-        
-        if state == "waiting":
-            return f"🟢・waiting-for-player-2-{suffix}"
-        elif state == "ready":
-            return f"⚔️・battle-in-progress-{suffix}"
-        elif state == "building":
-            return f"⚔️・battle-in-progress-{suffix}"
-        elif state == "playing":
-            return f"⚔️・battle-in-progress-{suffix}"
-        elif state == "finished":
-            return f"⚔️・battle-in-progress-{suffix}"
-        else:
-            return f"🔘・maggod-fight-lobby-{suffix}"
-
 
 
 async def setup(bot):
