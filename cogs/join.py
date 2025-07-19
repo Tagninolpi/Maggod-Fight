@@ -43,6 +43,7 @@ class Join(commands.Cog):
         if not match:
             # First player joins
             matchmaking_dict[channel_id] = Match(player1_id=interaction.user.id)
+            match = matchmaking_dict[channel_id]
             logger.info(f"Player {interaction.user.id} ({interaction.user.display_name}) joined in channel {channel_id}")
 
             # Update bot stats
