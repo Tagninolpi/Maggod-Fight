@@ -29,7 +29,7 @@ class Leave(commands.Cog):
         channel_id = channel.id
 
         # Import here to avoid circular imports
-        from main import matchmaking_dict
+        from bot.utils import matchmaking_dict
 
         match = matchmaking_dict.get(channel_id)
         if not match:

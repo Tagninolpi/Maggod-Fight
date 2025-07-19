@@ -35,7 +35,8 @@ class Join(commands.Cog):
             return
 
         # Import here to avoid circular imports
-        from main import matchmaking_dict, Match
+        from main import  Match
+        from bot.utils import matchmaking_dict
 
         match = matchmaking_dict.get(channel_id)
 

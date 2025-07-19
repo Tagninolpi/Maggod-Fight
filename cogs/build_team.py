@@ -77,7 +77,7 @@ class BuildTeam(commands.Cog):
         channel_id = channel.id
 
         # Import here to avoid circular imports
-        from main import matchmaking_dict
+        from bot.utils import matchmaking_dict
         from utils.game_test_on_discord import gods as all_gods_template
 
         match = matchmaking_dict.get(channel_id)

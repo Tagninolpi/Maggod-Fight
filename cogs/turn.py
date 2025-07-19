@@ -491,7 +491,7 @@ class Turn(commands.Cog):
             ) 
             return
 
-        from main import matchmaking_dict
+        from bot.utils import matchmaking_dict
 
         match = matchmaking_dict.get(channel.id)
         if not match:

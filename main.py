@@ -18,8 +18,7 @@ from keep_alive import keep_alive
 setup_logging()
 logger = logging.getLogger(__name__)
 
-# Global matchmaking dictionary for all matches
-matchmaking_dict = {}
+
  
 class Match:
     """Represents a single Maggod Fight match."""

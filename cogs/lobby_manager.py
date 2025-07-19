@@ -175,7 +175,7 @@ class LobbyManager(commands.Cog):
                 return
 
             # Clean up any active matches in these channels
-            from main import matchmaking_dict
+            from bot.utils import matchmaking_dict
 
             channels_to_cleanup = []
             for channel in category.channels:
