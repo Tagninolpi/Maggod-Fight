@@ -107,15 +107,15 @@ async def update_lobby_status_embed(bot: commands.Bot):
     )
 
     if not matchmaking_dict:
-        embed.description = "*Aucun lobby actif.*"
+        embed.description = "*no actif lobby.*"
     else:
         lines = []
         for i, (channel_id, match) in enumerate(matchmaking_dict.items(), start=1):
             phase = match.game_phase
             lobby_line = get_lobby_line(i, phase)
 
-            player1 = f"<@{match.player1_id}>" if match.player1_id else "👤 Vide"
-            player2 = f"<@{match.player2_id}>" if match.player2_id else "👤 Vide"
+            player1 = f"<@{match.player1_id}>" if match.player1_id else "👤 empty"
+            player2 = f"<@{match.player2_id}>" if match.player2_id else "👤 empty"
             players_text = f"{player1}\n{player2}"
 
             # Chaque lobby en une seule ligne + joueurs en dessous

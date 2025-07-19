@@ -62,104 +62,135 @@ class BuildTeam(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @app_commands.command(name="start", description="Start team building for a Maggod Fight match.")
-    async def start_build(self, interaction: discord.Interaction):
-        """Start the team building phase."""
-        channel = interaction.channel
-        
-        if not isinstance(channel, discord.TextChannel):
+@app_commands.command(name="start", description="Start team building for a Maggod Fight match.")
+async def start_build(self, interaction: discord.Interaction):
+    """Start the team building phase."""
+    DEBUG_SKIP_BUILD = True  # ⬅️ Set to False for normal use
+
+    channel = interaction.channel
+    if not isinstance(channel, discord.TextChannel):
+        await interaction.response.send_message(
+            "❌ This command must be used in a text channel.",
+            ephemeral=True
+        )
+        return
+
+    channel_id = channel.id
+
+    # Import here to avoid circular imports
+    from bot.utils import matchmaking_dict
+    from utils.game_test_on_discord import gods as all_gods_template
+
+    match = matchmaking_dict.get(channel_id)
+
+    if not match or not match.started:
+        await interaction.response.send_message(
+            "❌ No ongoing match in this channel. Use `/join` to start a match.",
+            ephemeral=True
+        )
+        return
+
+    if match.game_phase != "ready":
+        await interaction.response.send_message(
+            "🛑 Team building is complete! The battle has begun.\n"
+            "The first player should use `/do_turn` to start.",
+            ephemeral=True
+        )
+        return
+
+    if hasattr(match, "teams_initialized") and match.teams_initialized:
+        await interaction.response.send_message(
+            "✅ Team building already started.",
+            ephemeral=True
+        )
+        return
+
+    # Common setup for both modes
+    match.gods = copy.deepcopy(all_gods_template)
+    match.available_gods = list(match.gods.values())
+    match.teams = {
+        match.player1_id: [],
+        match.player2_id: []
+    }
+
+    # 🧪 Debug Skip Team Building
+    if DEBUG_SKIP_BUILD:
+        god_names_team1 = ["hephaestuss", "aphrodite", "ares", "hera", "zeus"]
+        god_names_team2 = ["athena", "poseidon", "apollo", "artemis", "hermes"]
+
+        try:
+            match.teams[match.player1_id] = [match.gods[name] for name in god_names_team1]
+            match.teams[match.player2_id] = [match.gods[name] for name in god_names_team2]
+        except KeyError as e:
             await interaction.response.send_message(
-                "❌ This command must be used in a text channel.",
-                ephemeral=True
+                f"❌ Debug skip failed. God not found: `{e}`", ephemeral=True
             )
             return
-            
-        channel_id = channel.id
 
-        # Import here to avoid circular imports
-        from bot.utils import matchmaking_dict
-        from utils.game_test_on_discord import gods as all_gods_template
-
-        match = matchmaking_dict.get(channel_id)
-        
-        if match.game_phase != "ready":
-            await interaction.response.send_message(
-                "🛑 Team building is complete! The battle has begun.\n"
-                "The first player should use `/do_turn` to start.",
-                ephemeral=True
-            )
-            return
-            
-        if not match or not match.started:
-            await interaction.response.send_message(
-                "❌ No ongoing match in this channel. Use `/join` to start a match.",
-                ephemeral=True
-            )
-            return
-
-        if hasattr(match, "teams_initialized") and match.teams_initialized:
-            await interaction.response.send_message(
-                "✅ Team building already started.",
-                ephemeral=True
-            )
-            return
-
-        # Initialize the match for team building
-        match.gods = copy.deepcopy(all_gods_template)
-        match.available_gods = list(match.gods.values())
-        match.teams = {
-            match.player1_id: [],
-            match.player2_id: []
-        }
-        match.next_picker = random.choice([match.player1_id, match.player2_id])
+        match.game_phase = "playing"
         match.teams_initialized = True
-        match = matchmaking_dict[channel.id]
-        match.game_phase = "building"
+
         asyncio.create_task(update_lobby_status_embed(self.bot))
-        
-        logger.info(f"Team building started in channel {channel_id}")
+        logger.info(f"[DEBUG] Team building skipped in channel {channel_id}")
 
-        # Get player names
-        player1 = interaction.guild.get_member(match.player1_id)
-        player2 = interaction.guild.get_member(match.player2_id)
-        first_picker = interaction.guild.get_member(match.next_picker)
-        
-        player1_name = player1.display_name if player1 else "Player 1"
-        player2_name = player2.display_name if player2 else "Player 2"
-        first_picker_name = first_picker.display_name if first_picker else "First Player"
+        await interaction.response.send_message(
+            "⚡️ Debug mode enabled: Team building skipped.\n"
+            "Game phase is now **playing**. Use `/do_turn` to begin.",
+            ephemeral=True
+        )
+        return
 
-        embed = discord.Embed(
-            title="🎮 Team Building Phase",
-            description="The draft begins! Each player will select 5 gods for their team.",
-            color=0x00ff00
-        )
-        embed.add_field(
-            name="⚔️ Players",
-            value=f"**Player 1:** {player1_name}\n**Player 2:** {player2_name}",
-            inline=False
-        )
-        embed.add_field(
-            name="🎯 Draft Rules",
-            value="• Each player picks 5 gods\n• No god can be picked twice\n• First picker is chosen randomly\n• Use `/choose` to select your gods",
-            inline=False
-        )
-        embed.add_field(
-            name="🏛️ Available Gods",
-            value=f"20 unique Greek gods are available\nEach has different HP, damage, and abilities!",
-            inline=False
-        )
-        embed.add_field(
-            name="🎲 First Pick",
-            value=f"**{first_picker_name}** goes first!",
-            inline=False
-        )
+    # 🧑‍🤝‍🧑 Normal team building flow
+    match.next_picker = random.choice([match.player1_id, match.player2_id])
+    match.teams_initialized = True
+    match.game_phase = "building"
+    asyncio.create_task(update_lobby_status_embed(self.bot))
 
-        await interaction.response.send_message(embed=embed)
-        
-        # Send follow-up message for the first picker
-        await interaction.followup.send(
-            f"<@{match.next_picker}>, you're up! Use `/choose` to pick your first god."
-        )
+    logger.info(f"Team building started in channel {channel_id}")
+
+    # Get player names
+    player1 = interaction.guild.get_member(match.player1_id)
+    player2 = interaction.guild.get_member(match.player2_id)
+    first_picker = interaction.guild.get_member(match.next_picker)
+
+    player1_name = player1.display_name if player1 else "Player 1"
+    player2_name = player2.display_name if player2 else "Player 2"
+    first_picker_name = first_picker.display_name if first_picker else "First Player"
+
+    embed = discord.Embed(
+        title="🎮 Team Building Phase",
+        description="The draft begins! Each player will select 5 gods for their team.",
+        color=0x00ff00
+    )
+    embed.add_field(
+        name="⚔️ Players",
+        value=f"**Player 1:** {player1_name}\n**Player 2:** {player2_name}",
+        inline=False
+    )
+    embed.add_field(
+        name="🎯 Draft Rules",
+        value="• Each player picks 5 gods\n• No god can be picked twice\n• First picker is chosen randomly\n• Use `/choose` to select your gods",
+        inline=False
+    )
+    embed.add_field(
+        name="🏛️ Available Gods",
+        value=f"20 unique Greek gods are available\nEach has different HP, damage, and abilities!",
+        inline=False
+    )
+    embed.add_field(
+        name="🎲 First Pick",
+        value=f"**{first_picker_name}** goes first!",
+        inline=False
+    )
+
+    await interaction.response.send_message(embed=embed)
+    await interaction.followup.send(
+        f"<@{match.next_picker}>, you're up! Use `/choose` to pick your first god."
+    )
+    match.turn_state = {
+    "current_player": match.next_picker,
+    "turn_number": 1
+    }
 
     @app_commands.command(name="choose", description="Choose a god for your team.")
     async def choose(self, interaction: discord.Interaction):
