@@ -6,77 +6,6 @@ import logging
 import asyncio
 logger = logging.getLogger(__name__)
 
-LOBBY_STATUS_CHANNEL_ID = 1394978367287066725
-
-STATUS_ICONS = {
-    "Waiting for first player": "🕓",
-    "Waiting for second player": "🟢",
-    "ready": "⏳",
-    "building": "🛠️",
-    "playing": "⚔️",
-    "finished": "✅",
-}
-
-def get_lobby_suffix(index: int) -> str:
-    """Generate a suffix like '03' from index 3."""
-    return f"{index:02}"
-
-def get_lobby_line(index: int, phase: str) -> str:
-    """Return the full lobby title with icon and name."""
-    suffix = get_lobby_suffix(index)
-    if phase == "Waiting for second player":
-        name = f"waiting-for-player-2-{suffix}"
-    elif phase == "ready":
-        name = f"Ready to start-{suffix}"
-    elif phase == "building":
-        name = f"Team-building-in-progress-{suffix}"
-    elif phase == "playing":
-        name = f"Maggod-fight-in-progress-{suffix}"
-    elif phase == "finished":
-        name = f"Maggod-fight-done-{suffix}"
-    else:
-        name = f"maggod-fight-lobby-{suffix}"
-
-    icon = STATUS_ICONS.get(phase, "🔘")
-    return f"{icon}・{name}"
-
-async def update_lobby_status_embed(bot: commands.Bot):
-    from main import matchmaking_dict
-    channel = bot.get_channel(LOBBY_STATUS_CHANNEL_ID)
-    if not channel:
-        print(f"❌ Channel with ID {LOBBY_STATUS_CHANNEL_ID} not found.")
-        return
-
-    try:
-        await channel.purge()
-    except discord.Forbidden:
-        print("❌ Missing permissions to delete messages.")
-        return
-
-    embed = discord.Embed(
-        title="📊 Maggod Fight - Lobby Status",
-        description="",
-        color=0x00ff00
-    )
-
-    if not matchmaking_dict:
-        embed.description = "*Aucun lobby actif.*"
-    else:
-        lines = []
-        for i, (channel_id, match) in enumerate(matchmaking_dict.items(), start=1):
-            phase = match.game_phase
-            lobby_line = get_lobby_line(i, phase)
-
-            player1 = f"<@{match.player1_id}>" if match.player1_id else "👤 Vide"
-            player2 = f"<@{match.player2_id}>" if match.player2_id else "👤 Vide"
-            players_text = f"{player1}\n{player2}"
-
-            # Chaque lobby en une seule ligne + joueurs en dessous
-            lines.append(f"**{lobby_line}**\n{players_text}")
-
-        embed.description = "\n\n".join(lines)
-
-    await channel.send(embed=embed)
 class Join(commands.Cog):
     """Cog for joining Maggod Fight lobbies."""
     
@@ -87,7 +16,7 @@ class Join(commands.Cog):
     async def join_lobby(self, interaction: discord.Interaction):
         """Join a Maggod Fight lobby."""
         channel = interaction.channel
-        
+        from bot.utils import update_lobby_status_embed
         if not isinstance(channel, discord.TextChannel):
             await interaction.response.send_message(
                 "❌ This command must be used in a text channel.",
