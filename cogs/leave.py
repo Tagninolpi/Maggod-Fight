@@ -3,7 +3,7 @@ from discord.ext import commands
 from discord import app_commands
 from bot.config import Config
 import logging
-from .join import update_lobby_status_embed
+from bot.utils import update_lobby_status_embed
 
 
 logger = logging.getLogger(__name__)
