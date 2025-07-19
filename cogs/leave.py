@@ -25,7 +25,7 @@ class Leave(commands.Cog):
                 ephemeral=True
             )
             return
-            
+        await interaction.response.defer(ephemeral=False)
         channel_id = channel.id
 
         # Import here to avoid circular imports
@@ -33,7 +33,7 @@ class Leave(commands.Cog):
 
         match = matchmaking_dict.get(channel_id)
         if not match:
-            await interaction.response.send_message(
+            await interaction.followup.send(
                 "❌ You're not currently in a match.",
                 ephemeral=True
             )
@@ -41,7 +41,7 @@ class Leave(commands.Cog):
 
         # Check if the user is one of the players
         if interaction.user.id not in [match.player1_id, match.player2_id]:
-            await interaction.response.send_message(
+            await interaction.followup.send(
                 "❌ You're not a participant in the current match.",
                 ephemeral=True
             )
@@ -89,7 +89,7 @@ class Leave(commands.Cog):
             )
         
         # Send main response
-        await interaction.response.send_message(embed=embed)
+        await interaction.followup.send(embed=embed)
         
         # Notify the other player if they exist
         if other_player_id:

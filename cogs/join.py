@@ -15,6 +15,7 @@ class Join(commands.Cog):
     @app_commands.command(name="join", description="Join a Maggod Fight Lobby")
     async def join_lobby(self, interaction: discord.Interaction):
         """Join a Maggod Fight lobby."""
+        
         channel = interaction.channel
         from bot.utils import update_lobby_status_embed
         if not isinstance(channel, discord.TextChannel):
@@ -39,7 +40,7 @@ class Join(commands.Cog):
         from bot.utils import matchmaking_dict
 
         match = matchmaking_dict.get(channel_id)
-
+        await interaction.response.defer(ephemeral=False)
         if not match:
             # First player joins
             matchmaking_dict[channel_id] = Match(player1_id=interaction.user.id)
@@ -70,11 +71,11 @@ class Join(commands.Cog):
                 inline=False
             )
             
-            await interaction.response.send_message(embed=embed)
+            await interaction.followup.send(embed=embed)
 
         elif match and not match.player2_id:
             if interaction.user.id == match.player1_id:
-                await interaction.response.send_message(
+                await interaction.followup.send(
                     "⚠️ You already joined this lobby. Waiting for another player!",
                     ephemeral=True
                 )
@@ -113,7 +114,7 @@ class Join(commands.Cog):
                 inline=False
             )
             
-            await interaction.response.send_message(embed=embed)
+            await interaction.followup.send(embed=embed)
 
         elif match.started:
             # Get player names for spectator message
@@ -144,7 +145,7 @@ class Join(commands.Cog):
                 inline=False
             )
             
-            await interaction.response.send_message(embed=embed, ephemeral=True)
+            await interaction.followup.send(embed=embed, ephemeral=True)
 
 
 async def setup(bot):
