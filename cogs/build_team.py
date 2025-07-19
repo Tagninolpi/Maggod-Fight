@@ -115,7 +115,7 @@ class BuildTeam(commands.Cog):
 
         # 🧪 Debug Skip Team Building
         if DEBUG_SKIP_BUILD:
-            god_names_team1 = ["hephaestuss", "aphrodite", "ares", "hera", "zeus"]
+            god_names_team1 = ["hephaestus", "aphrodite", "ares", "hera", "zeus"]
             god_names_team2 = ["athena", "poseidon", "apollo", "artemis", "hermes"]
 
             try:
