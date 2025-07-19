@@ -66,10 +66,10 @@ class BuildTeam(commands.Cog):
     async def start_build(self, interaction: discord.Interaction):
         """Start the team building phase."""
         DEBUG_SKIP_BUILD = True  # ⬅️ Set to False for normal use
-
+        await interaction.response.defer(ephemeral=False)
         channel = interaction.channel
         if not isinstance(channel, discord.TextChannel):
-            await interaction.response.send_message(
+            await interaction.followup.send(
                 "❌ This command must be used in a text channel.",
                 ephemeral=True
             )
@@ -84,14 +84,14 @@ class BuildTeam(commands.Cog):
         match = matchmaking_dict.get(channel_id)
 
         if not match or not match.started:
-            await interaction.response.send_message(
+            await interaction.followup.send(
                 "❌ No ongoing match in this channel. Use `/join` to start a match.",
                 ephemeral=True
             )
             return
 
         if match.game_phase != "ready":
-            await interaction.response.send_message(
+            await interaction.followup.send(
                 "🛑 Team building is complete! The battle has begun.\n"
                 "The first player should use `/do_turn` to start.",
                 ephemeral=True
@@ -99,7 +99,7 @@ class BuildTeam(commands.Cog):
             return
 
         if hasattr(match, "teams_initialized") and match.teams_initialized:
-            await interaction.response.send_message(
+            await interaction.followup.send(
                 "✅ Team building already started.",
                 ephemeral=True
             )
@@ -122,7 +122,7 @@ class BuildTeam(commands.Cog):
                 match.teams[match.player1_id] = [match.gods[name] for name in god_names_team1]
                 match.teams[match.player2_id] = [match.gods[name] for name in god_names_team2]
             except KeyError as e:
-                await interaction.response.send_message(
+                await interaction.followup.send(
                     f"❌ Debug skip failed. God not found: `{e}`", ephemeral=True
                 )
                 return
@@ -133,7 +133,7 @@ class BuildTeam(commands.Cog):
             asyncio.create_task(update_lobby_status_embed(self.bot))
             logger.info(f"[DEBUG] Team building skipped in channel {channel_id}")
 
-            await interaction.response.send_message(
+            await interaction.followup.send(
                 "⚡️ Debug mode enabled: Team building skipped.\n"
                 "Game phase is now **playing**. Use `/do_turn` to begin.",
                 ephemeral=True
@@ -183,7 +183,7 @@ class BuildTeam(commands.Cog):
             inline=False
         )
 
-        await interaction.response.send_message(embed=embed)
+        await interaction.followup.send(embed=embed)
         await interaction.followup.send(
             f"<@{match.next_picker}>, you're up! Use `/choose` to pick your first god."
         )
@@ -198,9 +198,9 @@ class BuildTeam(commands.Cog):
     async def choose(self, interaction: discord.Interaction):
         """Choose a god for the team."""
         channel = interaction.channel
-        
+        await interaction.response.defer(ephemeral=False)
         if not isinstance(channel, discord.TextChannel):
-            await interaction.response.send_message(
+            await interaction.followup.send(
                 "❌ This command must be used in a text channel.",
                 ephemeral=True
             )
@@ -214,21 +214,21 @@ class BuildTeam(commands.Cog):
         match = matchmaking_dict.get(channel_id)
         
         if match.game_phase != "building":
-            await interaction.response.send_message(
+            await interaction.followup.send(
                 "🛑 Team building is complete! The battle has begun.\n"
                 "The first player should use `/do_turn` to start.",
                 ephemeral=True
             )
             return
         if not match or not hasattr(match, "teams"):
-            await interaction.response.send_message(
+            await interaction.followup.send(
                 "❌ Team building hasn't started yet. Use `/start` to begin.",
                 ephemeral=True
             )
             return
 
         if interaction.user.id != match.next_picker:
-            await interaction.response.send_message(
+            await interaction.followup.send(
                 "⏳ Please wait for your turn.",
                 ephemeral=True
             )
@@ -256,7 +256,7 @@ class BuildTeam(commands.Cog):
         for i, god in enumerate(match.available_gods[:10]):  # Show first 10
             god_preview.append(f"• **{god.name}** - HP: {god.hp}, DMG: {god.dmg}")
 
-        await interaction.response.send_message(
+        await interaction.followup.send(
             f"<@{interaction.user.id}>, select your god:",
             embed=embed,
             view=view,

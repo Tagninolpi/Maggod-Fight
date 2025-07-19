@@ -18,14 +18,14 @@ class Leave(commands.Cog):
     async def leave_lobby(self, interaction: discord.Interaction):
         """Leave the current lobby."""
         channel = interaction.channel
-        
+        await interaction.response.defer(ephemeral=False)
         if not isinstance(channel, discord.TextChannel):
-            await interaction.response.send_message(
+            await interaction.followup.send(
                 "❌ This command must be used in a text channel.",
                 ephemeral=True
             )
             return
-        await interaction.response.defer(ephemeral=False)
+        
         channel_id = channel.id
 
         # Import here to avoid circular imports

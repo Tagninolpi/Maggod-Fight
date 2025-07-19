@@ -15,11 +15,11 @@ class Join(commands.Cog):
     @app_commands.command(name="join", description="Join a Maggod Fight Lobby")
     async def join_lobby(self, interaction: discord.Interaction):
         """Join a Maggod Fight lobby."""
-        
+        await interaction.response.defer(ephemeral=False)
         channel = interaction.channel
         from bot.utils import update_lobby_status_embed
         if not isinstance(channel, discord.TextChannel):
-            await interaction.response.send_message(
+            await interaction.followup.send(
                 "❌ This command must be used in a text channel.",
                 ephemeral=True
             )
@@ -29,7 +29,7 @@ class Join(commands.Cog):
 
         # Validate location
         if not channel.category or channel.category.name != Config.LOBBY_CATEGORY_NAME:
-            await interaction.response.send_message(
+            await interaction.followup.send(
                 f"❌ You must use this command in a `{Config.LOBBY_CATEGORY_NAME}` channel.",
                 ephemeral=True
             )
