@@ -40,7 +40,6 @@ class Join(commands.Cog):
         from bot.utils import matchmaking_dict
 
         match = matchmaking_dict.get(channel_id)
-        await interaction.response.defer(ephemeral=False)
         if not match:
             # First player joins
             matchmaking_dict[channel_id] = Match(player1_id=interaction.user.id)
