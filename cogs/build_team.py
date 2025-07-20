@@ -112,7 +112,7 @@ class BuildTeam(commands.Cog):
             match.player1_id: [],
             match.player2_id: []
         }
-
+        DEBUG_SKIP_BUILD = True
         # 🧪 Debug Skip Team Building
         if DEBUG_SKIP_BUILD:
             god_names_team1 = ["hephaestus", "aphrodite", "ares", "hera", "zeus"]
