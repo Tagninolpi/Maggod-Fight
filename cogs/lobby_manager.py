@@ -24,7 +24,12 @@ class LobbyManager(commands.Cog):
                              interaction: discord.Interaction,
                              count: int = 10):
         """Create Maggod Fight lobbies."""
-        await interaction.response.defer(ephemeral=False)
+
+        if not interaction.response.is_done():
+            try:
+                await interaction.response.defer(ephemeral=False)
+            except discord.NotFound:
+                logger.warning("Interaction expired before defer in /create_maggod_lobbies")
 
         # ✅ Restrict to specific channel
         if interaction.channel.id != allowed_channel_id:
@@ -33,7 +38,6 @@ class LobbyManager(commands.Cog):
                 ephemeral=True
             )
             return
-        
 
         # Validate count
         if count < 1 or count > 20:
@@ -141,7 +145,12 @@ class LobbyManager(commands.Cog):
         "Delete the Maggod Fight Lobbies category and all its channels.")
     async def delete_lobbies(self, interaction: discord.Interaction):
         """Delete all Maggod Fight lobbies."""
-        await interaction.response.defer(ephemeral=False)
+
+        if not interaction.response.is_done():
+            try:
+                await interaction.response.defer(ephemeral=False)
+            except discord.NotFound:
+                logger.warning("Interaction expired before defer in /delete_maggod_lobbies")
 
         # ✅ Restrict to specific channel
         if interaction.channel.id != allowed_channel_id:
@@ -160,7 +169,7 @@ class LobbyManager(commands.Cog):
         # Check permissions
         if not guild.me.guild_permissions.manage_channels:
             await interaction.followup.send(
-                "❌ I don't have permission to manage channels in this server.",
+                "❌ I don't have permission to delete channels in this server.",
                 ephemeral=True)
             return
 
@@ -174,7 +183,6 @@ class LobbyManager(commands.Cog):
                     ephemeral=True)
                 return
 
-            # Clean up any active matches in these channels
             from bot.utils import matchmaking_dict
 
             channels_to_cleanup = []
@@ -186,14 +194,12 @@ class LobbyManager(commands.Cog):
                 del matchmaking_dict[channel_id]
                 logger.info(f"Cleaned up match data for channel {channel_id}")
 
-            # Delete all channels in the category
             deleted_channels = 0
             for channel in category.channels:
                 await channel.delete()
                 deleted_channels += 1
                 logger.info(f"Deleted channel: {channel.name}")
 
-            # Delete the category
             await category.delete()
             logger.info(f"Deleted category: {Config.LOBBY_CATEGORY_NAME}")
 
