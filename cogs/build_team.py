@@ -113,52 +113,31 @@ class BuildTeam(commands.Cog):
             match.player2_id: []
         }
         DEBUG_SKIP_BUILD = True
-        # 🧪 Debug Skip Team Building
         if DEBUG_SKIP_BUILD:
-            god_names_team1 = ["hephaestus", "aphrodite", "ares", "hera", "zeus"]
-            god_names_team2 = ["athena", "poseidon", "apollo", "artemis", "hermes"]
+            # Assign 5 gods per player (random or predefined)
+            gods_list = list(match.gods.values())
+            random.shuffle(gods_list)
 
-            try:
-                # Check match.gods contents before assignment
-                for name in god_names_team1 + god_names_team2:
-                    god_obj = match.gods.get(name)
-                    if god_obj is None:
-                        await interaction.followup.send(
-                            f"❌ Debug skip failed. God not found: `{name}`", ephemeral=True
-                        )
-                        return
-                    if isinstance(god_obj, list):
-                        await interaction.followup.send(
-                            f"❌ Debug skip failed. `match.gods[{name}]` is a list, expected a God instance", ephemeral=True
-                        )
-                        return
+            match.teams = {
+                match.player1_id: gods_list[:5],
+                match.player2_id: gods_list[5:10]
+            }
+            match.available_gods = gods_list[10:]  # remaining gods
 
-                # Assign teams
-                match.teams[match.player1_id] = [match.gods[name] for name in god_names_team1]
-                match.teams[match.player2_id] = [match.gods[name] for name in god_names_team2]
+            match.teams_initialized = True
+            match.game_phase = "playing"
 
-                # Check teams after assignment for nested lists
-                for player_id in (match.player1_id, match.player2_id):
-                    for god in match.teams[player_id]:
-                        if isinstance(god, list):
-                            await interaction.followup.send(
-                                f"❌ Debug skip failed. Nested list found in `match.teams[{player_id}]`", ephemeral=True
-                            )
-                            return
+            match.turn_state = {
+                "current_player": random.choice([match.player1_id, match.player2_id]),
+                "turn_number": 1
+            }
 
-                match.available_gods = [
-                    god for name, god in match.gods.items()
-                    if name not in god_names_team1 and name not in god_names_team2
-                ]
-
-            except KeyError as e:
-                await interaction.followup.send(
-                    f"❌ Debug skip failed. God not found: `{e}`", ephemeral=True
-                )
-                return
-
-    # rest of your code here...
-
+            # Send confirmation message
+            await interaction.followup.send(
+                "✅ Debug: Teams auto-assigned. The battle begins now! Use `/do_turn` to play."
+            )
+            await self.show_teams(interaction.channel, match)
+            return  # skip the rest of /start normal flow
 
         
         # 🧑‍🤝‍🧑 Normal team building flow
