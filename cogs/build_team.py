@@ -121,6 +121,10 @@ class BuildTeam(commands.Cog):
             try:
                 match.teams[match.player1_id] = [match.gods[name] for name in god_names_team1]
                 match.teams[match.player2_id] = [match.gods[name] for name in god_names_team2]
+                match.available_gods = [
+                    god for name, god in match.gods.items()
+                    if name not in god_names_team1 and name not in god_names_team2
+                ]
             except KeyError as e:
                 await interaction.followup.send(
                     f"❌ Debug skip failed. God not found: `{e}`", ephemeral=True
@@ -129,14 +133,19 @@ class BuildTeam(commands.Cog):
 
             match.game_phase = "playing"
             match.teams_initialized = True
-            # Set current player to start
+
+            # Optional: randomly pick who starts (just like /choose)
             match.turn_state = {
-                "current_player": match.player1_id,
+                "current_player": random.choice([match.player1_id, match.player2_id]),
                 "turn_number": 1
-                }
+            }
 
             asyncio.create_task(update_lobby_status_embed(self.bot))
             logger.info(f"[DEBUG] Team building skipped in channel {channel_id}")
+
+            # Show teams like at the end of /choose
+            await self.show_teams(channel, match)
+
             await interaction.followup.send(
                 "⚡️ Debug mode enabled: Team building skipped.\n"
                 f"Game phase is now **playing**. Use `/do_turn` to begin.",
@@ -144,6 +153,7 @@ class BuildTeam(commands.Cog):
             )
             return
 
+        
         # 🧑‍🤝‍🧑 Normal team building flow
         match.next_picker = random.choice([match.player1_id, match.player2_id])
         match.teams_initialized = True
