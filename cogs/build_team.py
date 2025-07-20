@@ -137,10 +137,11 @@ class BuildTeam(commands.Cog):
 
             asyncio.create_task(update_lobby_status_embed(self.bot))
             logger.info(f"[DEBUG] Team building skipped in channel {channel_id}")
-
+            player1 = interaction.guild.get_member(match.player1_id)
+            player1_name = player1.display_name
             await interaction.followup.send(
                 "⚡️ Debug mode enabled: Team building skipped.\n"
-                f"Game phase is now **playing**. {match.player1_id} use `/do_turn` to begin.",
+                f"Game phase is now **playing**. {player1_name} use `/do_turn` to begin.",
                 ephemeral=True
             )
             return

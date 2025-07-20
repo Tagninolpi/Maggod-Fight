@@ -19,15 +19,15 @@ def create_team_embeds(team1: list, team2: list, player1_name: str, player2_name
         names = [pad(god.name[:6]) for god in team]
         hps = [pad(f"{god.hp}/{god.max_hp}") for god in team]
         dmgs = [pad(str(god.dmg)) for god in team]
-        states = [pad("❤️" if god.alive else "💀") for god in team]
-        visions = [pad("👁️" if god.visible else "👻") for god in team]
+        states = [pad("❤️" if god.alive else "💀",6) for god in team]
+        visions = [pad("👁️" if god.visible else "👻",7) for god in team]
         effects = [pad(", ".join(god.effects.keys())[:8] or "None") for god in team]
 
         lines = [
             "name " + "".join(names),
             "hp : " + "".join(hps),
             "dmg: " + "".join(dmgs),
-            "aliv " + "".join(states),
+            "aliv " + " ".join(states),
             "visi " + "".join(visions),
             "efec " + "".join(effects),
         ]
@@ -67,106 +67,11 @@ class GodSelectionView(discord.ui.View):
         button.callback = callback
         return button
 
-#class GodSelectionView(discord.ui.View):
-#    """View for selecting gods during battle turns."""
-#    
-#    def __init__(self, selectable_gods: list, allowed_user: discord.Member, action_type: str = "select"):
-#        super().__init__(timeout=300)
-#        self.allowed_user = allowed_user
-#        self.selected_god = None
-#        self.action_type = action_type
-
-        # Create buttons for each god
-#        for i, god in enumerate(selectable_gods[:25]):  # Discord limit
-#            row = i // 5
-#            self.add_item(self.make_button(god, row))
-
-#    def make_button(self, god, row: int):
-        """Create a button for a god."""
-        # Show god status in button
-#        if not god.alive:
-#            status = "💀"
-#            style = discord.ButtonStyle.secondary
-#            disabled = True
-#        elif god.visible:
-#            status = "👁️"
-#            style = discord.ButtonStyle.success
-#            disabled = False
-#        else:
-#            status = "👻"
-#            style = discord.ButtonStyle.primary
-#            disabled = False
-#        
-#        label = f"{status} {god.name}"
-#        if len(label) > 80:
-#            label = f"{status} {god.name[:75]}"
-#        
-#        button = discord.ui.Button(
-#            label=label,
-#            style=style,
-#            row=row,
-#            disabled=disabled
-#        )
-
-#        async def callback(interaction: discord.Interaction):
-#            if interaction.user != self.allowed_user:
-#                await interaction.response.send_message(
-#                    "⚠️ You're not allowed to select this god.",
-#                    ephemeral=True
-#                )
-#                return
-            
-#            self.selected_god = god
-#            self.stop()
-#            await interaction.response.send_message(
-#                f"✅ You selected **{god.name}** to {self.action_type}!",
-#                ephemeral=True
-#            )
-
-#        button.callback = callback
-#        return button
-
 class Turn(commands.Cog):
     """Cog for handling battle turns in Maggod Fight."""
     
     def __init__(self, bot):
         self.bot = bot
-
-    #def create_team_embeds(
-    #    self,
-    #    team1: list,
-    #    team2: list,
-    #    player1_name: str,
-    #    player2_name: str,
-    #    action_text: str
-    #) -> list[discord.Embed]:
-    #    """Create embeds showing both teams' status and the action prompt."""
-    #    from bot.utils import format_god_status
-
-    #    def format_team(team: list) -> str:
-    #        if not team:
-    #           return "No gods in team"
-    #        return "\n".join(format_god_status(god) for god in team)
-
-    #    embed1 = discord.Embed(
-    #        title=f"🔵 {player1_name}'s Team",
-    #        description=format_team(team1),
-    #        color=discord.Color.blue()
-    #    )
-
-    #    embed2 = discord.Embed(
-    #        title=f"🔴 {player2_name}'s Team",
-    #        description=format_team(team2),
-    #        color=discord.Color.red()
-    #    )
-
-    #    action_embed = discord.Embed(
-    #        title=f"🎯 Select God to {action_text.title()}",
-    #        description=f"Choose which god you want to {action_text}.",
-    #        color=0x00ff00
-    #    )
-
-    #    return [action_embed, embed1, embed2]
 
     async def send_god_selection_prompt(
         self,
