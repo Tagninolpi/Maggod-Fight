@@ -21,7 +21,6 @@ def create_team_embeds(team1: list, team2: list, player1_name: str, player2_name
         dmgs = [pad(str(god.dmg)) for god in team]
         states = [pad("❤️" if god.alive else "💀",6) for god in team]
         visions = [pad("👁️" if god.visible else "👻",7) for god in team]
-        effects = [pad(", ".join(god.effects.keys())[:8] or "None") for god in team]
 
         lines = [
             names,
@@ -29,7 +28,6 @@ def create_team_embeds(team1: list, team2: list, player1_name: str, player2_name
             dmgs,
             "aliv " + " ".join(states),
             "visi " + "".join(visions),
-            "efec " + "".join(effects),
         ]
         return "```\n" + "\n".join(lines) + "\n```"
 
