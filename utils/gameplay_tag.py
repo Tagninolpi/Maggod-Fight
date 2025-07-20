@@ -30,7 +30,7 @@ class Effect:
     def is_expired(self):
         """Check if the effect has expired."""
         return self.duration <= 0
-
+#used ?
     def __str__(self):
         """String representation of the effect."""
         return f"Effect(value={self.value}, duration={self.duration})"
@@ -49,79 +49,79 @@ class God:
         self.alive = True
 
     def add_effect(self, effect_name: str, value: int, duration: int):
-        """Add an effect to this god."""
+        """Add an effect only if it doesn't already exist."""
         if effect_name not in self.effects:
-            self.effects[effect_name] = []
-        self.effects[effect_name].append(Effect(value, duration + 1))
+            self.effects[effect_name] = Effect(value, duration + 1)
+
 
     def update_effects(self):
         """Update all effects, removing expired ones."""
-        for name in list(self.effects.keys()):
-            updated_effects = []
-            for effect in self.effects[name]:
-                effect.update()
-                if not effect.is_expired():
-                    updated_effects.append(effect)
-            
-            if updated_effects:
-                self.effects[name] = updated_effects
-            else:
-                del self.effects[name]
+        to_remove = []
+        for name, effect in self.effects.items():
+            effect.update()
+            if effect.is_expired():
+                to_remove.append(name)
+        for name in to_remove:
+            del self.effects[name]
+
 
     def get_dmg(self, value: int):
-        """Apply damage to this god, accounting for shields and damage boosts."""
-        original_value = value
-        
-        # Apply damage boosts to incoming damage
-        for dmg_boost in ["alecto_get_more_dmg"]:
-            if dmg_boost in self.effects:
-                for effect in self.effects[dmg_boost]:
-                    value += effect.value
+        """Apply damage to this god, prioritizing shield effects with the lowest duration left."""
 
-        # Apply shields
-        for shield_type in ["posi_shield", "hep_shield", "hades_uw_shield"]:
-            if shield_type in self.effects:
-                for shield in self.effects[shield_type]:
-                    if value <= 0:
-                        return  # All damage blocked
-                    
-                    if shield.value >= value:
-                        shield.value -= value
-                        return  # All damage absorbed
-                    else:
-                        value -= shield.value
-                        shield.value = 0
-        
-        # Apply remaining damage
+        # Apply damage boosts to incoming damage
+        if "alecto_get_more_dmg" in self.effects:
+            value += self.effects["alecto_get_more_dmg"].value
+
+        # Gather all active shields
+        shield_types = ["posi_shield", "hep_shield", "hades_uw_shield"]
+        shields = [
+            (shield_type, self.effects[shield_type])
+            for shield_type in shield_types
+            if shield_type in self.effects
+        ]
+
+        # Sort shields by duration (ascending)
+        shields.sort(key=lambda pair: pair[1].duration)
+
+        # Apply shields in that order
+        for _, shield in shields:
+            if value <= 0:
+                return  # All damage blocked
+
+            if shield.value >= value:
+                shield.value -= value
+                return  # All damage absorbed
+            else:
+                value -= shield.value
+                shield.value = 0
+
+        # Apply remaining damage to HP
         self.hp -= value
-        
-        # Ensure HP doesn't go below 0
         if self.hp < 0:
             self.hp = 0
+
 
     def do_damage(self):
         """Calculate and return damage output."""
         dmg = self.dmg
-        
+
         # Apply damage boosts
         if "ares_do_more_dmg" in self.effects:
-            for effect in self.effects["ares_do_more_dmg"]:
-                dmg += effect.value
-        
+            dmg += self.effects["ares_do_more_dmg"].value
+
         if "hades_ow_do_more_dmg" in self.effects:
-            for effect in self.effects["hades_ow_do_more_dmg"]:
-                dmg += effect.value
-        
+            dmg += self.effects["hades_ow_do_more_dmg"].value
+
         # Apply damage reductions
         if "mega_do_less_dmg" in self.effects:
-            for effect in self.effects["mega_do_less_dmg"]:
-                dmg -= effect.value
-        
+            dmg -= self.effects["mega_do_less_dmg"].value
+
         # Make god visible when attacking
         self.visible = True
-        
+
         return max(0, dmg)  # Prevent negative damage
 
+#used ?
     def __str__(self):
         """String representation of the god."""
         status = "💀" if not self.alive else "👁️" if self.visible else "👻"

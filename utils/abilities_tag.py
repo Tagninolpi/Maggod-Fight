@@ -1,7 +1,7 @@
 from utils.gameplay_tag import God, Effect, EffectType
 import random as r
 import math
-
+ 
 def poseidon(kwargs):
     """Poseidon's shield ability - Provides protective shields to allies."""
     visible_gods = kwargs.get("visible_gods", [])
@@ -53,11 +53,7 @@ def ares(kwargs):
     else:
         # Permanent boost if not already active
         for god in visible_gods:
-            if "ares_do_more_dmg" not in god.effects or (
-                len(god.effects["ares_do_more_dmg"]) == 1 and 
-                all(effect.duration < 5 for effect in god.effects["ares_do_more_dmg"])
-            ):
-                god.add_effect("ares_do_more_dmg", value=1, duration=100)
+            god.add_effect("ares_do_more_dmg", value=1, duration=100)
 
 def hera(kwargs):
     """Hera's death curse - Damages all enemies when she dies."""
@@ -94,10 +90,7 @@ def athena(kwargs):
     else:
         # Permanent HP boost if not already active
         for god in visible_gods:
-            if "athena_more_max_hp" not in god.effects or (
-                len(god.effects["athena_more_max_hp"]) == 1 and 
-                all(effect.duration < 5 for effect in god.effects["athena_more_max_hp"])
-            ):
+            if "athena_more_max_hp" not in god.effects:
                 god.add_effect("athena_more_max_hp", value=2, duration=100)
                 god.max_hp += 2
                 god.hp += 2

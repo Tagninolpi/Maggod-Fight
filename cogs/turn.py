@@ -12,11 +12,11 @@ import asyncio
 logger = logging.getLogger(__name__)
 
 def create_team_embeds(team1: list, team2: list, player1_name: str, player2_name: str,action_text: str) -> list[discord.Embed]:
-    def pad(value: str, width: int = 8) -> str:
+    def pad(value: str, width: int = 11) -> str:
         return value.ljust(width)
 
     def format_team(team: list) -> str:
-        names = [pad(god.name[:6]) for god in team]
+        names = [pad(god.name[:10]) for god in team]
         hps = [pad(f"{god.hp}/{god.max_hp}") for god in team]
         dmgs = [pad(str(god.dmg)) for god in team]
         states = [pad("❤️" if god.alive else "💀",6) for god in team]
@@ -24,9 +24,9 @@ def create_team_embeds(team1: list, team2: list, player1_name: str, player2_name
         effects = [pad(", ".join(god.effects.keys())[:8] or "None") for god in team]
 
         lines = [
-            "name " + "".join(names),
-            "hp : " + "".join(hps),
-            "dmg: " + "".join(dmgs),
+            names,
+            hps,
+            dmgs,
             "aliv " + " ".join(states),
             "visi " + "".join(visions),
             "efec " + "".join(effects),

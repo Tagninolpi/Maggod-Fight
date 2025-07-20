@@ -1,7 +1,7 @@
 from utils.gameplay_tag import God, Effect, EffectType
 import utils.abilities_tag as abilities
 import random as r
-
+ 
 # God abilities mapping
 abilities_ = {
     "poseidon": abilities.poseidon,
@@ -113,18 +113,18 @@ def delete_effect(team, effect_name):
     """Delete a specific effect from all gods in a team."""
     for god in team:
         if effect_name in god.effects:
-            for effect in god.effects[effect_name]:
-                effect.duration = 0
-                
-                # Handle special effect removals
-                if effect_name == "athena_more_max_hp":
-                    god.max_hp -= effect.value
-                elif effect_name == "cerebus_more_max_hp_per_visible_ally":
-                    # Find cerebus and reduce its max HP
-                    for cerebus in team:
-                        if cerebus.name == "cerebus":
-                            cerebus.max_hp -= effect.value
-                            break
+            effect = god.effects[effect_name]
+            effect.duration = 0
+
+            # Handle special effect removals
+            if effect_name == "athena_more_max_hp":
+                god.max_hp -= effect.value
+            elif effect_name == "cerebus_more_max_hp_per_visible_ally":
+                # Find cerebus and reduce its max HP
+                for cerebus in team:
+                    if cerebus.name == "cerebus":
+                        cerebus.max_hp -= effect.value
+                        break
         
         # Ensure HP doesn't exceed max HP
         if god.max_hp < god.hp:
@@ -162,7 +162,7 @@ def action_befor_die(defend_team, attack_team):
     for god in defend_team:
         if "charon_invisible_duration" in god.effects:
             # Charon's protection restores HP
-            god.hp = god.effects["charon_invisible_duration"][0].value
+            god.hp = god.effects["charon_invisible_duration"].value
         
         if god.hp < 1 and god.alive:
             god.alive = False
