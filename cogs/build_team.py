@@ -140,7 +140,7 @@ class BuildTeam(commands.Cog):
 
             await interaction.followup.send(
                 "⚡️ Debug mode enabled: Team building skipped.\n"
-                "Game phase is now **playing**. Use `/do_turn` to begin.",
+                f"Game phase is now **playing**. {match.player1_id} use `/do_turn` to begin.",
                 ephemeral=True
             )
             return

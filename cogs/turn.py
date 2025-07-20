@@ -178,7 +178,7 @@ class Turn(commands.Cog):
         allowed_user: discord.Member
     ) -> Optional[God]:
         """Send a god selection prompt and return the selected god."""
-        from main import matchmaking_dict
+        from bot.utils import matchmaking_dict
 
         match = matchmaking_dict.get(channel.id)
         if not match:
