@@ -129,6 +129,11 @@ class BuildTeam(commands.Cog):
 
             match.game_phase = "playing"
             match.teams_initialized = True
+            # Set current player to start
+            match.turn_state = {
+                "current_player": match.player1_id,
+                "turn_number": 1
+                }
 
             asyncio.create_task(update_lobby_status_embed(self.bot))
             logger.info(f"[DEBUG] Team building skipped in channel {channel_id}")
