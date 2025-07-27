@@ -107,7 +107,7 @@ class Turn(commands.Cog):
         embeds = create_team_embeds(team1, team2, player1_name, player2_name,action_text)
         
         # Create selection view
-        view = GodSelectionView(selectable_gods=selectable_gods, allowed_user=allowed_user)
+        view = GodSelectionView(all_gods=list[God],selectable_gods=selectable_gods, allowed_user=allowed_user)
 
         msg = await channel.send(
             f"{allowed_user.mention}, select a god to {action_text}:",
