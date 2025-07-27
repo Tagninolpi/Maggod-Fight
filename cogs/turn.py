@@ -126,7 +126,7 @@ class GodSelectionView(discord.ui.View):
 
     def make_placeholder(self):
         # A blank label that still takes up space
-        return discord.ui.Button(label=" " * 11, style=discord.ButtonStyle.secondary, disabled=True)
+        return discord.ui.Button(label="-" * 11, style=discord.ButtonStyle.secondary, disabled=True)
 
 class Turn(commands.Cog):
     """Cog for handling battle turns in Maggod Fight."""
