@@ -15,12 +15,63 @@ def create_team_embeds(team1: list, team2: list, player1_name: str, player2_name
     def pad(value: str, width: int = 11) -> str:
         return value.ljust(width)
 
+    def get_shield(god) -> str:
+        if "posi_shield" in god.effects:
+            return f"{god.effects['posi_shield'].value}🔱"
+        elif "hep_shield" in god.effects:
+            return f"{god.effects['hep_shield'].value}🛡️"
+        elif "hades_uw_shield" in god.effects:
+            return f"{god.effects['hades_uw_shield'].value}☠️"
+        return ""
+
+    def get_dmg_boost(god) -> str:
+        if "ares_do_more_dmg" in god.effects:
+            val = god.effects["ares_do_more_dmg"].value
+            return f"+{val}🔥"
+        elif "hades_ow_do_more_dmg" in god.effects:
+            val = god.effects["hades_ow_do_more_dmg"].value
+            return f"+{val}💥"
+        elif "mega_do_less_dmg" in god.effects:
+            val = god.effects["mega_do_less_dmg"].value
+            return f"-{val}💚"
+        return ""
+
+    def get_hp_boost_icon(god) -> str:
+        if "athena_more_max_hp" in god.effects:
+            return "📯"
+        elif "cerebus_more_max_hp_per_visible_ally" in god.effects:
+            return "⛑️"
+        return ""
+
+    def get_misc_effects_icons(god) -> str:
+        icons = []
+        if "zeus_stun" in god.effects:
+            icons.append("💫")
+        if "aphro_charm" in god.effects:
+            icons.append("💘")
+        if "charon_invisible_duration" in god.effects:
+            icons.append("🧿")
+        if "tisi_freeze_timer" in god.effects:
+            icons.append("❄️")
+        return " ".join(icons)
+
     def format_team(team: list) -> str:
         names = [pad(god.name[:10]) for god in team]
-        hps = [pad(f"{god.hp}/{god.max_hp}") for god in team]
-        dmgs = [pad(str(god.dmg)) for god in team]
-        states = [pad("❤️" if god.alive else "💀",6) for god in team]
-        visions = [pad("👁️" if god.visible else "👻",7) for god in team]
+
+        hps = []
+        for god in team:
+            hp_str = f"{god.hp}/"
+            is_hp_boosted = "athena_more_max_hp" in god.effects or "cerebus_more_max_hp_per_visible_ally" in god.effects
+            max_hp_str = f"**{god.max_hp}**" if is_hp_boosted else f"{god.max_hp}"
+            boost_icon = get_hp_boost_icon(god)
+            shield = get_shield(god)
+            hps.append(pad(hp_str + max_hp_str + boost_icon + shield))
+
+        dmgs = [pad(str(god.dmg) + get_dmg_boost(god)) for god in team]
+        states = [pad("❤️" if god.alive else "💀", 9) for god in team]
+        visions = [pad("👁️" if god.visible else "👻", 9) for god in team]
+
+        misc_effects_line = " ".join(pad(get_misc_effects_icons(god)) for god in team)
 
         lines = [
             " ".join(names),
@@ -29,6 +80,10 @@ def create_team_embeds(team1: list, team2: list, player1_name: str, player2_name
             " ".join(states),
             "".join(visions),
         ]
+
+        if any(get_misc_effects_icons(god) for god in team):
+            lines.append(misc_effects_line)
+
         return "```\n" + "\n".join(lines) + "\n```"
 
     embed1 = discord.Embed(title=f"{player1_name}'s Team", color=discord.Color.green())
@@ -107,7 +162,7 @@ class Turn(commands.Cog):
         embeds = create_team_embeds(team1, team2, player1_name, player2_name,action_text)
         
         # Create selection view
-        view = GodSelectionView(all_gods=list[God],selectable_gods=selectable_gods, allowed_user=allowed_user)
+        view = GodSelectionView(all_gods= team1 + team2,selectable_gods=selectable_gods, allowed_user=allowed_user)
 
         msg = await channel.send(
             f"{allowed_user.mention}, select a god to {action_text}:",
