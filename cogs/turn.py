@@ -43,16 +43,20 @@ def create_team_embeds(team1: list, team2: list, player1_name: str, player2_name
     return [action_embed, embed2, embed1]
 
 class GodSelectionView(discord.ui.View):
-    def __init__(self, selectable_gods: list[God], allowed_user: discord.Member):
+    def __init__(self, all_gods: list[God], selectable_gods: list[God], allowed_user: discord.Member):
         super().__init__(timeout=300)
         self.allowed_user = allowed_user
         self.selected_god = None
 
-        for god in selectable_gods:
-            self.add_item(self.make_button(god))
+        for god in all_gods:
+            if god in selectable_gods:
+                self.add_item(self.make_button(god))
+            else:
+                self.add_item(self.make_placeholder())
 
     def make_button(self, god: God):
-        button = discord.ui.Button(label=f"{god.name}", style=discord.ButtonStyle.primary)
+        label = god.name[:10].center(11)  # Centered name
+        button = discord.ui.Button(label=label, style=discord.ButtonStyle.primary)
 
         async def callback(interaction: discord.Interaction):
             if interaction.user != self.allowed_user:
@@ -64,6 +68,10 @@ class GodSelectionView(discord.ui.View):
 
         button.callback = callback
         return button
+
+    def make_placeholder(self):
+        # A blank label that still takes up space
+        return discord.ui.Button(label=" " * 11, style=discord.ButtonStyle.secondary, disabled=True)
 
 class Turn(commands.Cog):
     """Cog for handling battle turns in Maggod Fight."""
