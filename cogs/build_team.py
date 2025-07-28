@@ -11,6 +11,15 @@ import asyncio
 
 logger = logging.getLogger(__name__)
 
+def update_turn(match):
+    """Toggle the turn to the other player and update next_picker accordingly."""
+    if match.current_turn_side == "player1":
+        match.current_turn_side = "player2"
+        match.next_picker = match.player2_id
+    else:
+        match.current_turn_side = "player1"
+        match.next_picker = match.player1_id
+
 class GodSelectionView(discord.ui.View):
     """View for selecting gods during team building."""
     
@@ -141,7 +150,9 @@ class BuildTeam(commands.Cog):
 
         
         # 🧑‍🤝‍🧑 Normal team building flow
-        match.next_picker = random.choice([match.player1_id, match.player2_id])
+        match.current_turn_side = random.choice(["player1", "player2"])
+        update_turn(match)
+
         match.teams_initialized = True
         match.game_phase = "building"
         asyncio.create_task(update_lobby_status_embed(self.bot))
@@ -228,8 +239,7 @@ class BuildTeam(commands.Cog):
             return
 
         
-        
-        if match.solo_mode and interaction.user.id == match.player2_id:
+        if match.solo_mode and match.current_turn_side == "player2":
             # Bot turn in solo mode: pick randomly from available gods
             chosen = random.choice(match.available_gods)
         else:
@@ -319,6 +329,7 @@ class BuildTeam(commands.Cog):
         match.next_picker = (
             match.player1_id if interaction.user.id == match.player2_id else match.player2_id
         )
+        update_turn(match)
 
         # Check if both teams are complete
         p1_team = match.teams[match.player1_id]
@@ -346,6 +357,7 @@ class BuildTeam(commands.Cog):
         else:
             # Continue team building
             next_player = interaction.guild.get_member(match.next_picker)
+            update_turn(match)
             next_player_name = next_player.display_name if next_player else "Next Player"
             
             await channel.send(f"<@{match.next_picker}>, it's your turn! **{next_player_name}** use `/choose` to pick your next god.")

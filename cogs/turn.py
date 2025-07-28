@@ -159,7 +159,7 @@ class Turn(commands.Cog):
         player2_name = player2.display_name if player2 else "Player 2"
 
         # Auto-select if in solo mode and it's the bot's turn
-        if match.solo_mode and allowed_user.id == match.player2_id:
+        if match.solo_mode and match.current_turn_side == "player2":
             selected = random.choice(selectable_gods)
             await channel.send(f"🤖 Bot selected **{selected.name}** to {action_text}.")
             return selected
