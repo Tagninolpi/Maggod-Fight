@@ -112,7 +112,7 @@ class BuildTeam(commands.Cog):
             match.player1_id: [],
             match.player2_id: []
         }
-        DEBUG_SKIP_BUILD = True
+        DEBUG_SKIP_BUILD = False
         if DEBUG_SKIP_BUILD:
             # Assign 5 gods per player (random or predefined)
             gods_list = list(match.gods.values())
@@ -227,66 +227,71 @@ class BuildTeam(commands.Cog):
             )
             return
 
-        if interaction.user.id != match.next_picker:
+        
+        
+        if match.solo_mode and interaction.user.id == match.player2_id:
+            # Bot turn in solo mode: pick randomly from available gods
+            chosen = random.choice(match.available_gods)
+        else:
+            if interaction.user.id != match.next_picker:
+                await interaction.followup.send(
+                    "⏳ Please wait for your turn.",
+                    ephemeral=True
+                )
+                return
+            # Show god selection UI
+            view = GodSelectionView(match.available_gods, interaction.user)
+        
+            # Create embed showing available gods
+            embed = discord.Embed(
+                title="🏛️ Choose Your God",
+                description=f"Select a god for your team from the available options.",
+                color=0x00ff00
+            )
+
+            embed.add_field(
+                name="📊 Current Status",
+                value=f"**Available Gods:** {len(match.available_gods)}\n"
+                      f"**Your Team:** {len(match.teams[interaction.user.id])}/5 gods",
+                inline=False
+            )
+
+            # Show some god options in the embed
+            god_preview = []
+            for i, god in enumerate(match.available_gods[:10]):  # Show first 10
+                god_preview.append(f"• **{god.name}** - HP: {god.hp}, DMG: {god.dmg}")
+
             await interaction.followup.send(
-                "⏳ Please wait for your turn.",
+                f"<@{interaction.user.id}>, select your god:",
+                embed=embed,
+                view=view,
                 ephemeral=True
             )
-            return
-            
-        # Show god selection UI
-        view = GodSelectionView(match.available_gods, interaction.user)
-        
-        # Create embed showing available gods
-        embed = discord.Embed(
-            title="🏛️ Choose Your God",
-            description=f"Select a god for your team from the available options.",
-            color=0x00ff00
-        )
-        
-        embed.add_field(
-            name="📊 Current Status",
-            value=f"**Available Gods:** {len(match.available_gods)}\n"
-                  f"**Your Team:** {len(match.teams[interaction.user.id])}/5 gods",
-            inline=False
-        )
-        
-        # Show some god options in the embed
-        god_preview = []
-        for i, god in enumerate(match.available_gods[:10]):  # Show first 10
-            god_preview.append(f"• **{god.name}** - HP: {god.hp}, DMG: {god.dmg}")
 
-        await interaction.followup.send(
-            f"<@{interaction.user.id}>, select your god:",
-            embed=embed,
-            view=view,
-            ephemeral=True
-        )
+            # Wait for selection
+            await view.wait()
 
-        # Wait for selection
-        await view.wait()
+            if view.selected_god is None:
+                # Timeout occurred
+                await interaction.followup.send(
+                    "⏱️ Selection timed out. Match has been reset.",
+                    ephemeral=True
+                )
+                match = matchmaking_dict[channel.id]
+                match.game_phase = "Waiting for first player"
+                asyncio.create_task(update_lobby_status_embed(self.bot))
+                # Reset the match
+                del matchmaking_dict[channel_id]
+                logger.info(f"Match timed out in channel {channel_id}")
 
-        if view.selected_god is None:
-            # Timeout occurred
-            await interaction.followup.send(
-                "⏱️ Selection timed out. Match has been reset.",
-                ephemeral=True
-            )
-            match = matchmaking_dict[channel.id]
-            match.game_phase = "Waiting for first player"
-            asyncio.create_task(update_lobby_status_embed(self.bot))
-            # Reset the match
-            del matchmaking_dict[channel_id]
-            logger.info(f"Match timed out in channel {channel_id}")
+                await channel.send("❌ Team building timed out. The lobby has been reset.")
+                return
 
-            await channel.send("❌ Team building timed out. The lobby has been reset.")
-            return
-
-        # Process the selection
-        chosen = view.selected_god
+            # Process the selection
+            chosen = view.selected_god
         match.teams[interaction.user.id].append(chosen)
         match.available_gods.remove(chosen)
-        
+
         logger.info(f"Player {interaction.user.id} chose {chosen.name} in channel {channel_id}")
 
         # Create selection announcement

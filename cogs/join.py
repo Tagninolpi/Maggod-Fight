@@ -74,10 +74,37 @@ class Join(commands.Cog):
 
         elif match and not match.player2_id:
             if interaction.user.id == match.player1_id:
-                await interaction.followup.send(
-                    "⚠️ You already joined this lobby. Waiting for another player!",
-                    ephemeral=True
+                # Same user joins again to play both sides
+                match.player2_id = interaction.user.id
+                match.started = True
+                match.game_phase = "ready"
+                match.solo_mode = True
+
+                logger.info(f"Player {interaction.user.id} ({interaction.user.display_name}) joined as both players in channel {channel_id}")
+                asyncio.create_task(update_lobby_status_embed(self.bot))
+
+                embed = discord.Embed(
+                    title="🧠 Solo Match Ready!",
+                    description="You're controlling both teams. Prepare for a mental battle!",
+                    color=0x9932CC
                 )
+                embed.add_field(
+                    name="⚔️ Warriors",
+                    value=f"**Player 1 & 2:** {interaction.user.display_name}",
+                    inline=False
+                )
+                embed.add_field(
+                    name="🎯 Next Step",
+                    value="Use `/start` to begin building both teams yourself.",
+                    inline=False
+                )
+                embed.add_field(
+                    name="🤖 Bot Simulation Mode",
+                    value="You'll pick gods for both teams. The bot will skip your second UI and auto-pick.",
+                    inline=False
+                )
+
+                await interaction.followup.send(embed=embed)
                 return
 
             # Second player joins

@@ -98,12 +98,12 @@ def create_team_embeds(team1: list, team2: list, player1_name: str, player2_name
     return [action_embed, embed2, embed1]
 
 class GodSelectionView(discord.ui.View):
-    def __init__(self, all_gods: list[God], selectable_gods: list[God], allowed_user: discord.Member):
+    def __init__(self, all_gods: list[God], selectable_gods: list[God], allowed_user: discord.Member,team_1):
         super().__init__(timeout=300)
         self.allowed_user = allowed_user
         self.selected_god = None
 
-        for god in all_gods:
+        for god in team_1:
             if god in selectable_gods:
                 self.add_item(self.make_button(god))
             else:
@@ -158,11 +158,17 @@ class Turn(commands.Cog):
         player1_name = player1.display_name if player1 else "Player 1"
         player2_name = player2.display_name if player2 else "Player 2"
 
+        # Auto-select if in solo mode and it's the bot's turn
+        if match.solo_mode and allowed_user.id == match.player2_id:
+            selected = random.choice(selectable_gods)
+            await channel.send(f"🤖 Bot selected **{selected.name}** to {action_text}.")
+            return selected
+        
         # Create embeds showing team status
         embeds = create_team_embeds(team1, team2, player1_name, player2_name,action_text)
         
         # Create selection view
-        view = GodSelectionView(all_gods= team1 + team2,selectable_gods=selectable_gods, allowed_user=allowed_user)
+        view = GodSelectionView(all_gods= team1 + team2,selectable_gods=selectable_gods, allowed_user=allowed_user,team_1=team1)
 
         msg = await channel.send(
             f"{allowed_user.mention}, select a god to {action_text}:",
