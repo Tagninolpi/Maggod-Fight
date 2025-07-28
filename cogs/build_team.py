@@ -339,7 +339,7 @@ class BuildTeam(commands.Cog):
         match.next_picker = (
             match.player1_id if interaction.user.id == match.player2_id else match.player2_id
         )
-        update_turn(match)
+        #update_turn(match) change
 
         # Check if both teams are complete
         p1_team = match.teams[match.player1_id]
