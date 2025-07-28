@@ -16,8 +16,10 @@ def update_turn(match):
     if match.current_turn_side == "player1":
         match.current_turn_side = "player2"
         match.next_picker = match.player2_id
+        logger.warning(match.current_turn_side)
     else:
         match.current_turn_side = "player1"
+        logger.warning(match.current_turn_side)
         match.next_picker = match.player1_id
 
 class GodSelectionView(discord.ui.View):
