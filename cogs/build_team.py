@@ -75,7 +75,11 @@ class BuildTeam(commands.Cog):
     async def start_build(self, interaction: discord.Interaction):
         """Start the team building phase."""
         DEBUG_SKIP_BUILD = True  # ⬅️ Set to False for normal use
-        await interaction.response.defer(ephemeral=False)
+        if not interaction.response.is_done():
+            try:
+                await interaction.response.defer(ephemeral=False)  # or ephemeral=True if needed
+            except discord.NotFound:
+                logger.warning("Interaction expired before defer in /choose")
         channel = interaction.channel
         if not isinstance(channel, discord.TextChannel):
             await interaction.followup.send(
@@ -209,7 +213,11 @@ class BuildTeam(commands.Cog):
     async def choose(self, interaction: discord.Interaction):
         """Choose a god for the team."""
         channel = interaction.channel
-        await interaction.response.defer(ephemeral=False)
+        if not interaction.response.is_done():
+            try:
+                await interaction.response.defer(ephemeral=False)  # or ephemeral=True if needed
+            except discord.NotFound:
+                logger.warning("Interaction expired before defer in /choose")
         if not isinstance(channel, discord.TextChannel):
             await interaction.followup.send(
                 "❌ This command must be used in a text channel.",
@@ -352,8 +360,7 @@ class BuildTeam(commands.Cog):
             await channel.send("✅ **Both teams are complete! Let the battle begin!**")
             await self.show_teams(channel, match)
             # Prompt the player who just picked to start the game
-            await channel.send(f"<@{interaction.user.id}>, use `/do_turn` to take the first move."
-        )
+            await channel.send(f"<@{interaction.user.id}>, use `/do_turn` to take the first move.")
         else:
             # Continue team building
             next_player = interaction.guild.get_member(match.next_picker)
