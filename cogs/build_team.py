@@ -241,7 +241,7 @@ class BuildTeam(commands.Cog):
             return
 
         
-        if match.solo_mode:
+        if match.solo_mode and match.next_picker == "bot":
             # Bot turn in solo mode: pick randomly from available gods
             chosen = random.choice(match.available_gods)
         else:
@@ -301,13 +301,8 @@ class BuildTeam(commands.Cog):
 
             # Process the selection
             chosen = view.selected_god
-        if match.solo_mode:  # assuming you have a flag indicating bot mode
-            if "bot" in match.teams:
-                # Bot's turn, add to team_2
-                match.teams["bot"].append(chosen)
-            else:
-                # Human player's turn, add to team_1
-                match.teams[interaction.user.id].append(chosen)
+        if match.solo_mode and match.next_picker == "bot":  # assuming you have a flag indicating bot mode
+            match.teams["bot"].append(chosen)
         else:
             # Multiplayer mode - assign based on user id (or your previous logic)
             match.teams[interaction.user.id].append(chosen)
