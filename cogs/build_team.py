@@ -161,7 +161,7 @@ class BuildTeam(commands.Cog):
 
         # Get player names
         player1 = interaction.guild.get_member(match.player1_id)
-        player1_name = player1.display_name
+        player1_name = player1.display_name if player1 else "Player 1"
         if match.solo_mode:
             player2 = "bot"
             player2_name = "bot"
