@@ -152,7 +152,7 @@ class BuildTeam(commands.Cog):
 
         
         # 🧑‍🤝‍🧑 Normal team building flow
-        match.next_picker = random.choice(["player1", "player2"])
+        match.next_picker = random.choice([match.player1_id, match.player2_id])
         match.teams_initialized = True
         match.game_phase = "building"
         asyncio.create_task(update_lobby_status_embed(self.bot))
@@ -161,16 +161,14 @@ class BuildTeam(commands.Cog):
 
         # Get player names
         player1 = interaction.guild.get_member(match.player1_id)
-        player1_name = player1.display_name if player1 else "Player 1"
+        player1_name = player1.display_name
         if match.solo_mode:
             player2 = "bot"
-            first_picker = "bot"
             player2_name = "bot"
         else:
             player2 = interaction.guild.get_member(match.player2_id)
-            first_picker = interaction.guild.get_member(match.next_picker)
             player2_name = player2.display_name if player2 else "Player 2"
-        first_picker_name = first_picker.display_name
+        first_picker_name = match.next_picker
 
         embed = discord.Embed(
             title="🎮 Team Building Phase",
@@ -192,16 +190,12 @@ class BuildTeam(commands.Cog):
             value=f"20 unique Greek gods are available\nEach has different HP, damage, and abilities!",
             inline=False
         )
-        embed.add_field(
-            name="🎲 First Pick",
-            value=f"**{first_picker_name}** goes first!",
-            inline=False
-        )
 
         await interaction.followup.send(embed=embed)
-        await interaction.followup.send(
-            f"<@{match.next_picker}>, you're up! Use `/choose` to pick your first god."
-        )
+        if match.next_picker == "bot":
+            await interaction.followup.send(f"<@{match.player1_id}>, you're up! Use `/choose` to pick your first god.")
+        else:
+            await interaction.followup.send(f"<@{match.next_picker}>, you're up! Use `/choose` to pick your first god.")
         match.turn_state = {
         "current_player": match.next_picker,
         "turn_number": 1
