@@ -17,11 +17,11 @@ def create_team_embeds(team1: list, team2: list, player1_name: str, player2_name
 
     def get_shield(god) -> str:
         if "posi_shield" in god.effects:
-            return f"{god.effects['posi_shield'].value}🔱"
+            return f"🔱{god.effects['posi_shield'].value}"
         elif "hep_shield" in god.effects:
-            return f"{god.effects['hep_shield'].value}🛡️"
+            return f"🛡️{god.effects['hep_shield'].value}"
         elif "hades_uw_shield" in god.effects:
-            return f"{god.effects['hades_uw_shield'].value}☠️"
+            return f"☠️{god.effects['hades_uw_shield'].value}"
         return ""
 
     def get_dmg_boost(god) -> str:
@@ -59,16 +59,25 @@ def create_team_embeds(team1: list, team2: list, player1_name: str, player2_name
         names = [pad(god.name[:10]) for god in team]
 
         hps = []
+        def bold_digits(s: str) -> str:
+            # Converts digits 0–9 to bold unicode equivalents
+            return s.translate(str.maketrans("0123456789", "𝟬𝟭𝟮𝟯𝟰𝟱𝟲𝟳𝟴𝟵"))
+
         for god in team:
             hp_str = f"{god.hp}/"
-            is_hp_boosted = "athena_more_max_hp" in god.effects or "cerebus_more_max_hp_per_visible_ally" in god.effects
-            max_hp_str = f"**{god.max_hp}**" if is_hp_boosted else f"{god.max_hp}"
+            is_hp_boosted = (
+                "athena_more_max_hp" in god.effects
+                or "cerebus_more_max_hp_per_visible_ally" in god.effects
+            )
+            raw_max_hp = str(god.max_hp)
+            max_hp_str = bold_digits(raw_max_hp) if is_hp_boosted else raw_max_hp
             boost_icon = get_hp_boost_icon(god)
             shield = get_shield(god)
             hps.append(pad(hp_str + max_hp_str + boost_icon + shield))
 
+
         dmgs = [pad(str(god.dmg) + get_dmg_boost(god)) for god in team]
-        states = [pad("❤️" if god.alive else "💀", 10) for god in team]
+        states = [pad("❤️" if god.alive else "💀", 11) for god in team]
         visions = [pad("👁️" if god.visible else "👻", 11) for god in team]
 
         misc_effects_line = " ".join(pad(get_misc_effects_icons(god)) for god in team)
