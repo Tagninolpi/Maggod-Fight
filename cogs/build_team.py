@@ -193,7 +193,7 @@ class BuildTeam(commands.Cog):
 
         await interaction.followup.send(embed=embed)
         if match.next_picker == "bot":
-            await interaction.followup.send(f"<@{match.player1_id}>, you're up! Use `/choose` to pick your first god.")
+            await interaction.followup.send(f"<@{match.player1_id}>, Use `/choose` so the bot can pick it's first god.")
         else:
             await interaction.followup.send(f"<@{match.next_picker}>, you're up! Use `/choose` to pick your first god.")
         match.turn_state = {
