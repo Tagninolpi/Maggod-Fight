@@ -11,16 +11,6 @@ import asyncio
 
 logger = logging.getLogger(__name__)
 
-def update_turn(match):
-    """Toggle the turn to the other player and update next_picker accordingly."""
-    if match.current_turn_side == "player1":
-        match.current_turn_side = "player2"
-        match.next_picker = match.player2_id
-        logger.warning(match.current_turn_side)
-    else:
-        match.current_turn_side = "player1"
-        logger.warning(match.current_turn_side)
-        match.next_picker = match.player1_id
 
 class GodSelectionView(discord.ui.View):
     """View for selecting gods during team building."""
@@ -123,10 +113,16 @@ class BuildTeam(commands.Cog):
         # Common setup for both modes
         match.gods = copy.deepcopy(all_gods_template)
         match.available_gods = list(match.gods.values())
-        match.teams = {
-            match.player1_id: [],
-            match.player2_id: []
-        }
+        if match.solo_mode:
+            match.teams = {
+                match.player1_id: [],
+                "bot": []
+                }
+        else:
+            match.teams = {
+                match.player1_id: [],
+                match.player2_id: []
+                }
         DEBUG_SKIP_BUILD = False
         if DEBUG_SKIP_BUILD:
             # Assign 5 gods per player (random or predefined)
@@ -156,9 +152,7 @@ class BuildTeam(commands.Cog):
 
         
         # 🧑‍🤝‍🧑 Normal team building flow
-        match.current_turn_side = random.choice(["player1", "player2"])
-        update_turn(match)
-
+        match.next_picker = random.choice(["player1", "player2"])
         match.teams_initialized = True
         match.game_phase = "building"
         asyncio.create_task(update_lobby_status_embed(self.bot))
@@ -167,12 +161,16 @@ class BuildTeam(commands.Cog):
 
         # Get player names
         player1 = interaction.guild.get_member(match.player1_id)
-        player2 = interaction.guild.get_member(match.player2_id)
-        first_picker = interaction.guild.get_member(match.next_picker)
-
         player1_name = player1.display_name if player1 else "Player 1"
-        player2_name = player2.display_name if player2 else "Player 2"
-        first_picker_name = first_picker.display_name if first_picker else "First Player"
+        if match.solo_mode:
+            player2 = "bot"
+            first_picker = "bot"
+            player2_name = "bot"
+        else:
+            player2 = interaction.guild.get_member(match.player2_id)
+            first_picker = interaction.guild.get_member(match.next_picker)
+            player2_name = player2.display_name if player2 else "Player 2"
+        first_picker_name = first_picker.display_name
 
         embed = discord.Embed(
             title="🎮 Team Building Phase",
@@ -249,7 +247,7 @@ class BuildTeam(commands.Cog):
             return
 
         
-        if match.solo_mode and match.current_turn_side == "player2":
+        if match.solo_mode:
             # Bot turn in solo mode: pick randomly from available gods
             chosen = random.choice(match.available_gods)
         else:
@@ -310,12 +308,12 @@ class BuildTeam(commands.Cog):
             # Process the selection
             chosen = view.selected_god
         if match.solo_mode:  # assuming you have a flag indicating bot mode
-            if match.current_turn_side == "player2":
+            if "bot" in match.teams:
                 # Bot's turn, add to team_2
-                match.teams["team_2"].append(chosen)
+                match.teams["bot"].append(chosen)
             else:
                 # Human player's turn, add to team_1
-                match.teams["team_1"].append(chosen)
+                match.teams[interaction.user.id].append(chosen)
         else:
             # Multiplayer mode - assign based on user id (or your previous logic)
             match.teams[interaction.user.id].append(chosen)
@@ -375,7 +373,6 @@ class BuildTeam(commands.Cog):
         else:
             # Continue team building
             next_player = interaction.guild.get_member(match.next_picker)
-            update_turn(match)
             next_player_name = next_player.display_name if next_player else "Next Player"
             
             await channel.send(f"<@{match.next_picker}>, it's your turn! **{next_player_name}** use `/choose` to pick your next god.")

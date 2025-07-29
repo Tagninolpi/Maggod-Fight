@@ -34,19 +34,13 @@ class Match:
         self.turn_number = 0
         self.teams_initialized = False
         self.game_phase = "Waiting for first player"  # waiting, building, playing, finished
-        
-        # Match-specific game state
-        self.match_teams = {
-            "team_1": [],
-            "team_2": []
-        }
+
         self.current_attacking_team = None
         self.turn_state = {
             "current_player": None,
             "turn_number": 1
         }
         self.solo_mode = False
-        self.current_turn_side = "player1"
 
 class MaggodFightBot(commands.Bot):
     """Main bot class for Maggod Fight."""

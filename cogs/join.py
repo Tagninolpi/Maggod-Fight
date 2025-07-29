@@ -39,6 +39,7 @@ class Join(commands.Cog):
         from main import  Match
         from bot.utils import matchmaking_dict
 
+        #start
         match = matchmaking_dict.get(channel_id)
         if not match:
             # First player joins
@@ -75,7 +76,7 @@ class Join(commands.Cog):
         elif match and not match.player2_id:
             if interaction.user.id == match.player1_id:
                 # Same user joins again to play both sides
-                match.player2_id = interaction.user.id
+                match.player2_id = "bot"
                 match.started = True
                 match.game_phase = "ready"
                 match.solo_mode = True
