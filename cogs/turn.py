@@ -159,7 +159,7 @@ class Turn(commands.Cog):
         player2_name = player2.display_name if player2 else "Player 2"
 
         # Auto-select if in solo mode and it's the bot's turn
-        if match.solo_mode and match.current_turn_side == "player2":
+        if match.solo_mode and  match.turn_state["current_player"] == "bot":
             selected = random.choice(selectable_gods)
             await channel.send(f"🤖 Bot selected **{selected.name}** to {action_text}.")
             return selected
@@ -489,7 +489,7 @@ class Turn(commands.Cog):
 
         # Check if it's the player's turn
         current_player_id = match.turn_state["current_player"]
-        if interaction.user.id != current_player_id:
+        if interaction.user.id != current_player_id and not(match.solo_mode):
             await interaction.response.send_message(
                 "⏳ It is not your turn yet. Please wait for your opponent.",
                 ephemeral=True
@@ -518,9 +518,17 @@ class Turn(commands.Cog):
                 match.turn_state["turn_number"] += 1
                 
                 # Announce next turn
-                next_player = channel.guild.get_member(match.turn_state["current_player"])
-                next_player_name = next_player.display_name if next_player else "Next Player"
-                
+                if match.solo_mode:
+                    if match.turn_state["current_player"] =="bot":
+                        next_player = channel.guild.get_member(match.turn_state["current_player"])
+                        next_player_name = next_player.display_name if next_player else "Next Player"
+                    else:
+                        next_player ="bot"
+                        next_player_name = "bot"               
+                else:
+                    next_player = channel.guild.get_member(match.turn_state["current_player"])
+                    next_player_name = next_player.display_name if next_player else "Next Player"
+                    
                 embed = discord.Embed(
                     title="🔄 Next Turn",
                     description=f"Turn {match.turn_state['turn_number']}: **{next_player_name}**'s turn!",
