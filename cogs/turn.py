@@ -68,8 +68,8 @@ def create_team_embeds(team1: list, team2: list, player1_name: str, player2_name
             hps.append(pad(hp_str + max_hp_str + boost_icon + shield))
 
         dmgs = [pad(str(god.dmg) + get_dmg_boost(god)) for god in team]
-        states = [pad("❤️" if god.alive else "💀", 9) for god in team]
-        visions = [pad("👁️" if god.visible else "👻", 9) for god in team]
+        states = [pad("❤️" if god.alive else "💀", 10) for god in team]
+        visions = [pad("👁️" if god.visible else "👻", 11) for god in team]
 
         misc_effects_line = " ".join(pad(get_misc_effects_icons(god)) for god in team)
 
@@ -98,7 +98,7 @@ def create_team_embeds(team1: list, team2: list, player1_name: str, player2_name
     return [action_embed, embed2, embed1]
 
 class GodSelectionView(discord.ui.View):
-    def __init__(self, all_gods: list[God], selectable_gods: list[God], allowed_user: discord.Member,team_1):
+    def __init__(self, all_gods: list[God], selectable_gods: list[God], allowed_user: discord.Member, team_1):
         super().__init__(timeout=300)
         self.allowed_user = allowed_user
         self.selected_god = None
@@ -110,7 +110,8 @@ class GodSelectionView(discord.ui.View):
                 self.add_item(self.make_placeholder())
 
     def make_button(self, god: God):
-        label = god.name[:10].center(11)  # Centered name
+        # Truncate and pad name to exactly 11 characters
+        label = god.name[:11].ljust(11, " ")
         button = discord.ui.Button(label=label, style=discord.ButtonStyle.primary)
 
         async def callback(interaction: discord.Interaction):
@@ -125,8 +126,10 @@ class GodSelectionView(discord.ui.View):
         return button
 
     def make_placeholder(self):
-        # A blank label that still takes up space
-        return discord.ui.Button(label="-" * 11, style=discord.ButtonStyle.secondary, disabled=True)
+        # Create placeholder with same width as buttons
+        label = "-" * 11
+        return discord.ui.Button(label=label, style=discord.ButtonStyle.secondary, disabled=True)
+
 
 class Turn(commands.Cog):
     """Cog for handling battle turns in Maggod Fight."""
@@ -513,7 +516,7 @@ class Turn(commands.Cog):
             if not game_ended:
                 # Switch turns
                 match.turn_state["current_player"] = (
-                    match.player2_id if interaction.user.id == match.player1_id else match.player1_id
+                    match.player2_id if match.turn_state["current_player"] == match.player1_id else match.player1_id
                 )
                 match.turn_state["turn_number"] += 1
                 
