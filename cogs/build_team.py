@@ -312,10 +312,10 @@ class BuildTeam(commands.Cog):
         if match.solo_mode:  # assuming you have a flag indicating bot mode
             if match.current_turn_side == "player2":
                 # Bot's turn, add to team_2
-                match.match_teams["team_2"].append(chosen)
+                match.teams["team_2"].append(chosen)
             else:
                 # Human player's turn, add to team_1
-                self.match_teams["team_1"].append(chosen)
+                self.teams["team_1"].append(chosen)
         else:
             # Multiplayer mode - assign based on user id (or your previous logic)
             match.teams[interaction.user.id].append(chosen)
