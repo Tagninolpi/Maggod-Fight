@@ -512,7 +512,7 @@ class Turn(commands.Cog):
 
         try:
             # Determine which team is attacking
-            if interaction.user.id == match.player1_id:
+            if interaction.user.id == match.player1_id or match.turn_state["current_player"] == "bot":
                 attack_team = match.teams[match.player1_id]
                 defend_team = match.teams[match.player2_id]
             else:
