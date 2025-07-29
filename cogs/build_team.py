@@ -315,7 +315,7 @@ class BuildTeam(commands.Cog):
                 match.teams["team_2"].append(chosen)
             else:
                 # Human player's turn, add to team_1
-                self.teams["team_1"].append(chosen)
+                match.teams["team_1"].append(chosen)
         else:
             # Multiplayer mode - assign based on user id (or your previous logic)
             match.teams[interaction.user.id].append(chosen)
