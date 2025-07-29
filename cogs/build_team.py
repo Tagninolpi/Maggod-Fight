@@ -332,10 +332,12 @@ class BuildTeam(commands.Cog):
         await channel.send(embed=embed)
 
         # Switch to the other player
-        match.next_picker = (
-            match.player1_id if interaction.user.id == match.player2_id else match.player2_id
-        )
-        #update_turn(match) change
+        if match.solo_mode and match.next_picker == "bot":
+            match.next_picker = (match.player1_id)
+        else:
+            match.next_picker = (
+                match.player1_id if interaction.user.id == match.player2_id else match.player2_id
+                )
 
         # Check if both teams are complete
         p1_team = match.teams[match.player1_id]
