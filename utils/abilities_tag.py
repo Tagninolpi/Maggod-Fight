@@ -13,9 +13,11 @@ def poseidon(kwargs):
             god.add_effect("posi_shield", value=2, duration=1)
     else:
         # Strong permanent shield if no shields exist
-        if not any("posi_shield" in god.effects for god in visible_gods):
-            target = kwargs["target"]
-            if target.name != "poseidon":
+        
+        if any(not ("posi_shield" in god.effects) for god in visible_gods):
+            eligible = [g for g in visible_gods if g.name.lower() != "poseidon" and "posi_shield" not in g.effects]
+            if eligible:
+                target = r.choice(eligible)
                 target.add_effect("posi_shield", value=5, duration=100)
 
 def hephaestus(kwargs):
@@ -171,6 +173,7 @@ def cerebus(kwargs):
         for god in visible_gods:
             if "cerebus_more_max_hp_per_visible_ally" not in god.effects:
                 self = kwargs["self"]
+                god.add_effect("cerebus_more_max_hp_per_visible_ally", value=1, duration=100)
                 self.add_effect("cerebus_more_max_hp_per_visible_ally", value=1, duration=100)
                 self.max_hp += 1
                 self.hp += 1

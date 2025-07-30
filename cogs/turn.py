@@ -7,13 +7,30 @@ from typing import Optional
 from utils.gameplay_tag import God
 from bot.utils import update_lobby_status_embed
 import asyncio
-
+import re
+import unicodedata
 
 logger = logging.getLogger(__name__)
 
 def create_team_embeds(team1: list, team2: list, player1_name: str, player2_name: str,action_text: str) -> list[discord.Embed]:
-    def pad(value: str, width: int = 11) -> str:
-        return value.ljust(width)
+
+
+    def visual_len(s: str) -> int:
+        """Estimate visual width of a string."""
+        width = 0
+        for c in s:
+            # Double-width for emojis and wide chars
+            if unicodedata.east_asian_width(c) in "WF":
+                width += 2
+            else:
+                width += 1
+        return width
+
+    def pad(s: str, width: int = 11) -> str:
+        """Pad string visually to match width, accounting for emoji width."""
+        vis_length = visual_len(s)
+        padding = max(0, width - vis_length)
+        return s + " " * padding
 
     def get_shield(god) -> str:
         if "posi_shield" in god.effects:
