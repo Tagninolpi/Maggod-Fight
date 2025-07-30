@@ -14,7 +14,7 @@ def poseidon(kwargs):
     else:
         # Strong permanent shield if no shields exist
         
-        if any(not ("posi_shield" in god.effects) for god in visible_gods):
+        if not any("posi_shield" in god.effects for god in visible_gods):
             eligible = [g for g in visible_gods if g.name.lower() != "poseidon" and "posi_shield" not in g.effects]
             if eligible:
                 target = r.choice(eligible)
