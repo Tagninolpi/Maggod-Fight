@@ -112,15 +112,15 @@ def create_team_embeds(team1: list, team2: list, player1_name: str, player2_name
             states.append(pad("❤️" if god.alive else "💀", 11))
             visions.append(pad("👁️" if god.visible else "👻", 11))
 
-        misc_effects_line = " ".join(pad(get_misc_effects_icons(god)) for god in team)
+        misc_effects_line = "".join(pad(get_misc_effects_icons(god)) for god in team)
 
         lines = [
-            " ".join(names),
-            " ".join(hp_numbers),
-            " ".join(hp_icons),
-            " ".join(dmg_numbers),
-            " ".join(dmg_icons),
-            " ".join(states),
+            "".join(names),
+            "".join(hp_numbers),
+            "".join(hp_icons),
+            "".join(dmg_numbers),
+            "".join(dmg_icons),
+            "".join(states),
             "".join(visions),
         ]
 
