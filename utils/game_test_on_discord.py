@@ -60,7 +60,7 @@ team_2 = [
 
 def set_first_god_visible(team):
     """Make the first alive god visible if no gods are visible."""
-    visible_gods = [god for god in team if god.alive and god.visible]
+    visible_gods = get_visible(team,True)
     if not visible_gods:
         for god in team:
             if god.alive:
@@ -97,13 +97,20 @@ def became_visible_gain_effect(team, target):
             except Exception as e:
                 print(f"Error in passive ability for {god.name}: {e}")
 
-def get_visible(team):
-    """Get all visible and alive gods from a team."""
-    return [god for god in team if god.visible and god.alive]
 
-def get_alive(team):
-    """Get all alive gods from a team."""
-    return [god for god in team if god.alive]
+def get_visible(team,stunned = False):
+    if stunned:
+        return [god for god in team if god.visible and god.alive and not any(e in god.effects for e in {"zeus_stun","tisi_freeze_timer"})]
+    else:
+        """Get all visible and alive gods from a team."""
+        return [god for god in team if god.visible and god.alive]
+
+def get_alive(team,stunned = False):
+    if stunned:
+        return [god for god in team if god.alive and not any(e in god.effects for e in {"zeus_stun","tisi_freeze_timer"})]
+    else:
+        """Get all alive gods from a team."""
+        return [god for god in team if god.alive]
 
 def get_dead(team):
     """Get all dead gods from a team."""

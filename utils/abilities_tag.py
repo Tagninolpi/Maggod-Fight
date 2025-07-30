@@ -39,7 +39,7 @@ def aphrodite(kwargs):
     else:
         # Charm hidden enemies at a cost
         self.hp -= 1
-        target.add_effect("aphro_charm", value=0, duration=2)
+        target.add_effect("aphro_charm", value=0, duration=2) #under charm heal opponent by 1
 
 def ares(kwargs):
     """Ares's battle fury - Provides permanent damage boosts to allies."""
@@ -67,11 +67,14 @@ def zeus(kwargs):
     target = kwargs["target"]
     attacking_with_hermes = kwargs.get("attacking_with_hermes", False)
     visible_gods = kwargs["visible_gods"]
-    
+    alive_ennemy = kwargs["ennemy_team"]
     duration = 1 if attacking_with_hermes else 2
     self.hp -= 2  # Zeus damages himself
-    target.add_effect("zeus_stun", value=0, duration=duration)
-    
+    if len(alive_ennemy) > 2:
+        target.add_effect("zeus_stun", value=0, duration=duration)
+    else:
+        for god in alive_ennemy:
+            god.hp -= 1    
     # Lightning damages all visible allies
     for god in visible_gods:
         god.hp -= 1
@@ -217,15 +220,16 @@ def hades_uw(kwargs):
 
 def tisiphone(kwargs):
     """Tisiphone's fury - Freezes enemies with a chance."""
-    ennemy_team = kwargs["ennemy_team"]
+    target = kwargs["target"]
     self = kwargs["self"]
-    
-    if kwargs.get("attacking_with_hermes", False):
-        # Random freeze when used with Hermes
-        for god in ennemy_team:
-            if r.randint(0, 1) == 0:
-                god.add_effect("tisi_freeze_timer", value=1, duration=1)
-        self.add_effect("tisi_freeze_timer", value=1, duration=2)
+    if len(kwargs["ennemy_team"]) > 2 and len(kwargs["ally_team"]) > 2:
+        if r.randint(0, 1) == 0:
+            target.add_effect("tisi_freeze_timer", value=1, duration=2)
+            self.add_effect("tisi_freeze_timer", value=1, duration=2)
+    else:
+        if self.hp == self.max_hp:
+            target.hp -= 2
+        else: self.hp += 1
 
 def alecto(kwargs):
     """Alecto's curse - Makes target take more damage."""

@@ -225,7 +225,7 @@ class Turn(commands.Cog):
 
         # Check if any gods are available to attack
         visible_attackers = get_visible(attack_team)
-        alive_attackers = get_alive(attack_team)
+        alive_attackers = get_alive(attack_team,True)
         if not visible_attackers:
             await channel.send("❌ No gods available to attack with. Turn skipped.")
             return
@@ -242,7 +242,7 @@ class Turn(commands.Cog):
         visible_defenders = get_visible(defend_team)
         
         # Check for Cerberus special targeting
-        cerebus_present = any(god.name == "cerebus" and god.visible for god in defend_team)
+        cerebus_present = any((god.name == "cerebus") and god.visible and god.alive for god in defend_team)
         if cerebus_present:
             # Cerberus forces all attacks to target it
             attacked = next(god for god in defend_team if god.name == "cerebus")
@@ -313,7 +313,7 @@ class Turn(commands.Cog):
                 )
 
         elif attacker.name == "hermes":
-            visible_allies = get_visible(attack_team)
+            visible_allies = get_visible(attack_team,True)
             if len(visible_allies) > 1:
                 # Hermes can attack with other gods
                 other_gods = [g for g in visible_allies if g.name != "hermes"]
@@ -512,7 +512,7 @@ class Turn(commands.Cog):
 
         try:
             # Determine which team is attacking
-            if interaction.user.id == match.player1_id or match.turn_state["current_player"] == "bot":
+            if interaction.user.id == match.player1_id and not(match.turn_state["current_player"] == "bot"):
                 attack_team = match.teams[match.player1_id]
                 defend_team = match.teams[match.player2_id]
             else:

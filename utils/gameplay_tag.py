@@ -115,11 +115,14 @@ class God:
         # Apply damage reductions
         if "mega_do_less_dmg" in self.effects:
             dmg -= self.effects["mega_do_less_dmg"].value
+            
+        if "aphro_charm" in self.effects:
+            dmg = -1
 
         # Make god visible when attacking
         self.visible = True
 
-        return max(0, dmg)  # Prevent negative damage
+        return dmg
 
 #used ?
     def __str__(self):
