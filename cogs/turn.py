@@ -53,6 +53,11 @@ def create_team_embeds(team1: list, team2: list, player1_name: str, player2_name
             icons.append("🧿")
         if "tisi_freeze_timer" in god.effects:
             icons.append("❄️")
+        if "cerebus_more_max_hp_per_visible_ally" in god.effects:
+            icons.append("🐶")
+        if "alecto_get_more_dmg" in god.effects:
+            icons.append("💢")
+
         return " ".join(icons)
 
     def format_team(team: list) -> str:

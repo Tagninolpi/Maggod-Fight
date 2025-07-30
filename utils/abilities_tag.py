@@ -215,8 +215,6 @@ def hades_uw(kwargs):
         for god in visible_gods:
             god.add_effect("hades_uw_shield", value=dead_ally_nb, 
                           duration=1 + math.floor((4 - dead_ally_nb) / 2))
-        
-        kwargs["self"].hp -= math.floor(dead_ally_nb / 2)
 
 def tisiphone(kwargs):
     """Tisiphone's fury - Freezes enemies with a chance."""
