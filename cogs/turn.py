@@ -80,34 +80,46 @@ def create_team_embeds(team1: list, team2: list, player1_name: str, player2_name
     def format_team(team: list) -> str:
         names = [pad(god.name[:10]) for god in team]
 
-        hps = []
         def bold_digits(s: str) -> str:
-            # Converts digits 0–9 to bold unicode equivalents
             return s.translate(str.maketrans("0123456789", "𝟬𝟭𝟮𝟯𝟰𝟱𝟲𝟳𝟴𝟵"))
 
+        hp_numbers = []
+        hp_icons = []
+
+        dmg_numbers = []
+        dmg_icons = []
+
+        states = []
+        visions = []
+
         for god in team:
+            # HP line
             hp_str = f"{god.hp}/"
             is_hp_boosted = (
-                "athena_more_max_hp" in god.effects
-                or "cerebus_more_max_hp_per_visible_ally" in god.effects
+                "athena_more_max_hp" in god.effects or
+                "cerebus_more_max_hp_per_visible_ally" in god.effects
             )
             raw_max_hp = str(god.max_hp)
             max_hp_str = bold_digits(raw_max_hp) if is_hp_boosted else raw_max_hp
-            boost_icon = get_hp_boost_icon(god)
-            shield = get_shield(god)
-            hps.append(pad(hp_str + max_hp_str + boost_icon + shield))
+            hp_numbers.append(pad(hp_str + max_hp_str))
+            hp_icons.append(pad(get_hp_boost_icon(god) + get_shield(god)))
 
+            # DMG line
+            dmg_numbers.append(pad(str(god.dmg)))
+            dmg_icons.append(pad(get_dmg_boost(god)))
 
-        dmgs = [pad(str(god.dmg) + get_dmg_boost(god)) for god in team]
-        states = [pad("❤️" if god.alive else "💀", 11) for god in team]
-        visions = [pad("👁️" if god.visible else "👻", 11) for god in team]
+            # Status lines
+            states.append(pad("❤️" if god.alive else "💀", 11))
+            visions.append(pad("👁️" if god.visible else "👻", 11))
 
         misc_effects_line = " ".join(pad(get_misc_effects_icons(god)) for god in team)
 
         lines = [
             " ".join(names),
-            " ".join(hps),
-            " ".join(dmgs),
+            " ".join(hp_numbers),
+            " ".join(hp_icons),
+            " ".join(dmg_numbers),
+            " ".join(dmg_icons),
             " ".join(states),
             "".join(visions),
         ]
@@ -116,6 +128,7 @@ def create_team_embeds(team1: list, team2: list, player1_name: str, player2_name
             lines.append(misc_effects_line)
 
         return "```\n" + "\n".join(lines) + "\n```"
+
 
     embed1 = discord.Embed(title=f"{player1_name}'s Team", color=discord.Color.green())
     embed1.description = format_team(team1)
@@ -480,8 +493,7 @@ class Turn(commands.Cog):
 
         await channel.send(embed=embed)
 
-        # Clean up
-        match.game_phase = "finished"
+        del matchmaking_dict[channel.id]
         asyncio.create_task(update_lobby_status_embed(self.bot))
 
 
