@@ -385,7 +385,7 @@ class Turn(commands.Cog):
 
     async def end_game(self, channel: discord.TextChannel, team1_alive: bool, team2_alive: bool):
         """End the game and declare winner."""
-        from main import matchmaking_dict
+        from bot.utils import matchmaking_dict
 
         match = matchmaking_dict.get(channel.id)
         if not match:
