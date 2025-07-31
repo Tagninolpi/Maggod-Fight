@@ -369,13 +369,12 @@ class Turn(commands.Cog):
             # Store HP before attack
             attacked_hp_before = attacked.hp
             
-            # Basic damage if not Hades (Overworld)
-            if attacker.name != "hades_ow":
-                damage = attacker.do_damage()
-                attacked.get_dmg(value=damage)
+            # Basic damage
+            damage = attacker.do_damage()
+            attacked.get_dmg(value=damage)
                 
-                damage_dealt = attacked_hp_before - attacked.hp
-                await channel.send(f"💥 **{attacker.name}** deals {damage_dealt} damage to **{attacked.name}**! (HP: {attacked.hp}/{attacked.max_hp})")
+            damage_dealt = attacked_hp_before - attacked.hp
+            await channel.send(f"💥 **{attacker.name}** deals {damage_dealt} damage to **{attacked.name}**! (HP: {attacked.hp}/{attacked.max_hp})")
 
             # Execute god ability
             ability_params = {

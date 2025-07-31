@@ -40,7 +40,7 @@ gods = {
     "hermes": God("hermes", 7, 1, abilities_["hermes"]),
     "hades_ow": God("hades_ow", 8, 3, abilities_["hades_ow"]),
     "thanatos": God("thanatos", 11, 2, abilities_["thanatos"]),
-    "cerebus": God("cerebus", 15, 2, abilities_["cerebus"]),
+    "cerebus": God("cerebus", 9, 3, abilities_["cerebus"]),
     "charon": God("charon", 10, 5, abilities_["charon"]),
     "persephone": God("persephone", 8, 3, abilities_["persephone"]),
     "hades_uw": God("hades_uw", 6, 3, abilities_["hades_uw"]),

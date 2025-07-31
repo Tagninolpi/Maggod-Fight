@@ -136,8 +136,7 @@ def hermes(kwargs):
             "attacking_with_hermes": True,
             "self": attacker_1
         })
-        if attacker_1.name != "hades_ow":
-            target.get_dmg(value=attacker_1.do_damage())
+        target.get_dmg(value=attacker_1.do_damage())
     
     if attacker_2:
         attacker_2.ability({
@@ -145,8 +144,7 @@ def hermes(kwargs):
             "attacking_with_hermes": True,
             "self": attacker_2
         })
-        if attacker_2.name != "hades_ow":
-            target.get_dmg(value=attacker_2.do_damage())
+        target.get_dmg(value=attacker_2.do_damage())
 
 def hades_ow(kwargs):
     """Hades (Overworld) - Gains power from dead allies."""
@@ -154,10 +152,10 @@ def hades_ow(kwargs):
         dead_ally_nb = len(kwargs["dead_ally"])
         target = kwargs["target"]
         self = kwargs["self"]
-        
-        self.add_effect("hades_ow_do_more_dmg", value=dead_ally_nb, duration=1)
-        target.get_dmg(value=self.do_damage() + dead_ally_nb)
-
+        visible_gods = kwargs["visible_gods"]
+        for god in visible_gods:
+            god.add_effect("hades_ow_do_more_dmg", value= math.floor(0.5 + dead_ally_nb/2), duration=2)
+ 
 def thanatos(kwargs):
     """Thanatos's death touch - 50% chance to instantly kill target."""
     if r.randint(0, 1):
