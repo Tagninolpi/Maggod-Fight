@@ -88,7 +88,7 @@ class MaggodFightBot(commands.Bot):
         
         # Setup events and commands
         setup_events(self)
-        await setup_commands(self)
+        #await setup_commands(self)
         
         logger.info("Event handlers loaded successfully")
         logger.info("Commands loaded successfully")

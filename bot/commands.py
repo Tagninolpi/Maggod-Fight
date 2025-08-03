@@ -75,7 +75,7 @@ async def setup_commands(bot):
             memory = psutil.virtual_memory()
             
             # Get match statistics
-            from main import matchmaking_dict
+            from utils import matchmaking_dict
             active_matches = len(matchmaking_dict)
             
             embed = discord.Embed(

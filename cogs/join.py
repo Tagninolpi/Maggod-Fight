@@ -68,7 +68,7 @@ class Join(commands.Cog):
             )
             embed.add_field(
                 name="🎯 Next Step",
-                value=f"""Another player can do `/join` to join this lobby or **{interaction.user.display_name}** can do `/join` to play against the bot.""",
+                value=f"""Another player can do `/join` to join this lobby or <@{interaction.user.display_name}> can do `/join` to play against the bot.""",
                 inline=False
             )
             
@@ -98,7 +98,7 @@ class Join(commands.Cog):
                 )
                 embed.add_field(
                     name="🎯 Next Step",
-                    value="Use `/start` to begin team building.",
+                    value=f"<@{interaction.user.display_name}> do `/start` to begin team building.",
                     inline=False
                 )
 
