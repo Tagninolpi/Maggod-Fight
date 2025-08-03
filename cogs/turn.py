@@ -292,27 +292,6 @@ class Turn(commands.Cog):
             attacker.visible = True
             became_visible_gain_effect(attack_team, attacker)
 
-        # Execute the attack
-        embed = discord.Embed(
-            title="⚔️ Battle Action!",
-            description=f"**{attacker.name}** attacks **{attacked.name}**!",
-            color=0xff6b6b
-        )
-        
-        embed.add_field(
-            name="🗡️ Attacker",
-            value=f"**{attacker.name}** (HP: {attacker.hp}/{attacker.max_hp}, DMG: {attacker.dmg})",
-            inline=True
-        )
-        
-        embed.add_field(
-            name="🛡️ Defender",
-            value=f"**{attacked.name}** (HP: {attacked.hp}/{attacked.max_hp})",
-            inline=True
-        )
-
-        await channel.send(embed=embed)
-
         # Handle special abilities and targeting
         target = attacked
         attacker_1 = None
@@ -558,27 +537,16 @@ class Turn(commands.Cog):
                 
                 # Announce next turn
                 if match.solo_mode:
-                    if match.turn_state["current_player"] =="bot":
-                        next_player = channel.guild.get_member(match.turn_state["current_player"])
-                        next_player_name = next_player.display_name if next_player else "Next Player"
-                    else:
-                        next_player ="bot"
-                        next_player_name = "bot"               
+                    next_player_id = interaction.user.id
                 else:
-                    next_player = channel.guild.get_member(match.turn_state["current_player"])
-                    next_player_name = next_player.display_name if next_player else "Next Player"
-                    
+                    next_player_id = match.turn_state['current_player']
+                
                 embed = discord.Embed(
                     title="🔄 Next Turn",
-                    description=f"Turn {match.turn_state['turn_number']}: **{next_player_name}**'s turn!",
+                    description=f"Turn {match.turn_state['turn_number']}: <@{next_player_id}>, use `/do_turn`!",
                     color=0x00bfff
                 )
-                embed.add_field(
-                    name="🎯 Action Required",
-                    value=f"<@{match.turn_state['current_player']}>, use `/do_turn` to make your move!",
-                    inline=False
-                )
-                
+
                 await channel.send(embed=embed)
 
         except Exception as e:
