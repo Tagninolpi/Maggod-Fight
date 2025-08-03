@@ -17,8 +17,6 @@ from keep_alive import keep_alive
 # Initialize logging
 setup_logging()
 logger = logging.getLogger(__name__)
-
-
  
 class Match:
     """Represents a single Maggod Fight match."""
@@ -102,7 +100,17 @@ class MaggodFightBot(commands.Bot):
         # Set bot status
         activity = discord.Game(name="Maggod Fight | /help")
         await self.change_presence(activity=activity)
-        
+        # Announce bot online
+        try:
+            channel = self.get_channel(Config.ANNOUNCE_CHANNEL_ID)
+            if channel:
+                await channel.send(f"<@{Config.OWNER_ID}>✅ **Maggod Fight Bot is now online!**")
+            else:
+                logger.warning("Announcement channel not found.")
+        except Exception as e:
+            logger.error(f"Failed to send online message: {e}")
+
+
         # Sync commands globally first (this fixes the unknown integration error)
         try:
             synced = await self.tree.sync()

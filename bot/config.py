@@ -27,6 +27,8 @@ class Config:
     LOBBY_CATEGORY_NAME = "Maggod Fight Lobbies"
     TEAM_SIZE = 5
     SELECTION_TIMEOUT = 300  # 5 minutes
+    ANNOUNCE_CHANNEL_ID = 1393219828080185374
+    OWNER_ID = 1360749637299998870
     
     # God Selection Settings
     MAX_GODS_PER_BUTTON_VIEW = 25  # Discord limit
