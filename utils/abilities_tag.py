@@ -26,9 +26,11 @@ def hephaestus(kwargs):
     attacking_with_hermes = kwargs.get("attacking_with_hermes", False)
     value = 2 if attacking_with_hermes else 3
     duration = 1 if attacking_with_hermes else 2
-    
+    msg = f"Hephaestus gives {value} HP {duration}-turn shield to:\nHephaestus "
     for god in visible_gods:
         god.add_effect("hep_shield", value=value, duration=duration)
+        msg += f",{god.name} "
+    return msg
 
 def aphrodite(kwargs):
     """Aphrodite's charm - Damages visible enemies or charms hidden ones."""

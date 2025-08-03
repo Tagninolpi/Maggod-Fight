@@ -202,7 +202,6 @@ class Turn(commands.Cog):
         # Auto-select if in solo mode and it's the bot's turn
         if match.solo_mode and  match.turn_state["current_player"] == "bot":
             selected = random.choice(selectable_gods)
-            await channel.send(f"🤖 Bot selected **{selected.name}** to {action_text}.")
             return selected
         
         # Create embeds showing team status
@@ -275,7 +274,7 @@ class Turn(commands.Cog):
         if cerebus_present:
             # Cerberus forces all attacks to target it
             attacked = next(god for god in defend_team if god.name == "cerebus")
-            await channel.send(f"🐕 **Cerberus** forces the attack to target it!")
+            await channel.send(f"🐕 **Cerberus** forces the attacker to target it!")
         else:
             if not visible_defenders:
                 await channel.send("❌ No visible targets available. Turn skipped.")
@@ -383,10 +382,10 @@ class Turn(commands.Cog):
                 "dead_ally": get_dead(attack_team),
             }
             
-            attacker.ability(ability_params)
-            
-            # Show ability effect
-            await channel.send(f"✨ **{attacker.name}** uses their special ability!")
+            ability_message = attacker.ability(ability_params)
+            if ability_message:
+                # Show ability effect
+                await channel.send(ability_message)
             
         except Exception as e:
             logger.error(f"Error executing ability for {attacker.name}: {e}")
