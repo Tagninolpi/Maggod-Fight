@@ -20,7 +20,7 @@ class Join(commands.Cog):
         from bot.utils import update_lobby_status_embed
         if not isinstance(channel, discord.TextChannel):
             await interaction.followup.send(
-                "❌ This command must be used in a text channel.",
+            "❌ This command must be used in a Mggod fight lobby channel.",
                 ephemeral=True
             )
             return
@@ -67,7 +67,8 @@ class Join(commands.Cog):
             )
             embed.add_field(
                 name="🎯 Next Step",
-                value="Another player needs to use `/join` to start the match.",
+                value=f"""Another player can do `/join` to join this lobby or 
+                **{interaction.user.display_name}** can do `/join` to play against the bot.""",
                 inline=False
             )
             
@@ -85,23 +86,18 @@ class Join(commands.Cog):
                 asyncio.create_task(update_lobby_status_embed(self.bot))
 
                 embed = discord.Embed(
-                    title="🧠 Solo Match Ready!",
-                    description="You're controlling both teams. Prepare for a mental battle!",
+                    title="🤖 Solo Match Ready!",
+                    description="You do the /commands for the bot. But it desides on it's own.",
                     color=0x9932CC
                 )
                 embed.add_field(
                     name="⚔️ Warriors",
-                    value=f"**Player 1 & 2:** {interaction.user.display_name}",
+                    value=f"**{interaction.user.display_name}** and Maggod bot",
                     inline=False
                 )
                 embed.add_field(
                     name="🎯 Next Step",
-                    value="Use `/start` to begin building both teams yourself.",
-                    inline=False
-                )
-                embed.add_field(
-                    name="🤖 Bot Simulation Mode",
-                    value="You'll pick gods for both teams. The bot will skip your second UI and auto-pick.",
+                    value="Use `/start` to begin team building.",
                     inline=False
                 )
 
@@ -118,7 +114,7 @@ class Join(commands.Cog):
 
             # Get player names
             player1 = interaction.guild.get_member(match.player1_id)
-            player1_name = player1.display_name if player1 else "Player 1"
+            player1_name = player1.display_name if player1 else "Unknown Maggod"
             
             embed = discord.Embed(
                 title="🔴 Match Ready!",

@@ -160,11 +160,11 @@ class GodSelectionView(discord.ui.View):
 
         async def callback(interaction: discord.Interaction):
             if interaction.user != self.allowed_user:
-                await interaction.response.send_message("You're not allowed to select this god.", ephemeral=True)
+                await interaction.response.send_message("You're not allowed to select a god.")
                 return
             self.selected_god = god
             self.stop()
-            await interaction.response.send_message(f"You selected {god.name}", ephemeral=True)
+            await interaction.response.send_message(f"**{interaction.user.display_name}** selected {god.name}", ephemeral=True)
 
         button.callback = callback
         return button
@@ -262,7 +262,7 @@ class Turn(commands.Cog):
         visible_attackers = get_visible(attack_team)
         alive_attackers = get_alive(attack_team,True)
         if not visible_attackers:
-            await channel.send("❌ No gods available to attack with. Turn skipped.")
+            await channel.send("❌ No gods available to attack with. This issue is not normal please repport it")
             return
 
         # Select attacker
@@ -540,6 +540,13 @@ class Turn(commands.Cog):
                 ephemeral=True
             )
             return
+        
+        #update
+        if match.turn_in_progress:
+            await channel.send("⏳ A turn is already in progress. Please wait.")
+            return
+
+        match.turn_in_progress = True
 
         await interaction.response.defer()
 
@@ -593,6 +600,9 @@ class Turn(commands.Cog):
                 "❌ An error occurred during your turn. Please try again.",
                 ephemeral=True
             )
+
+        finally:
+            match.turn_in_progress = False
 
 async def setup(bot):
     """Setup function for the cog."""

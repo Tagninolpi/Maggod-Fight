@@ -21,7 +21,7 @@ class Leave(commands.Cog):
         await interaction.response.defer(ephemeral=False)
         if not isinstance(channel, discord.TextChannel):
             await interaction.followup.send(
-                "❌ This command must be used in a text channel.",
+                "❌ This command must be used in a Maggod fight lobby channel.",
                 ephemeral=True
             )
             return

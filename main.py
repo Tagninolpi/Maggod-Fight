@@ -41,6 +41,7 @@ class Match:
             "turn_number": 1
         }
         self.solo_mode = False
+        self.turn_in_progress = False
 
 class MaggodFightBot(commands.Bot):
     """Main bot class for Maggod Fight."""

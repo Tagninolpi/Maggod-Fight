@@ -42,7 +42,7 @@ class GodSelectionView(discord.ui.View):
         async def callback(interaction: discord.Interaction):
             if interaction.user != self.allowed_user:
                 await interaction.response.send_message(
-                    "⚠️ You're not allowed to pick right now.",
+                    "⚠️ You're not allowed to pick right now. \n Either it is not your turn or you are or not a participant ",
                     ephemeral=True
                 )
                 return
@@ -50,7 +50,7 @@ class GodSelectionView(discord.ui.View):
             self.selected_god = god
             self.stop()
             await interaction.response.send_message(
-                f"✅ You selected **{god.name}**! (HP: {god.hp}, DMG: {god.dmg})",
+                f"✅ **{interaction.user.display_name}** selected **{god.name}**! (HP: {god.hp}, DMG: {god.dmg})",
                 ephemeral=True
             )
 
@@ -75,7 +75,7 @@ class BuildTeam(commands.Cog):
         channel = interaction.channel
         if not isinstance(channel, discord.TextChannel):
             await interaction.followup.send(
-                "❌ This command must be used in a text channel.",
+                "❌ This command must be used in a Maggod fight lobby channel.",
                 ephemeral=True
             )
             return
@@ -214,7 +214,7 @@ class BuildTeam(commands.Cog):
                 logger.warning("Interaction expired before defer in /choose")
         if not isinstance(channel, discord.TextChannel):
             await interaction.followup.send(
-                "❌ This command must be used in a text channel.",
+                "❌ This command must be used in a Maggod fight lobby channel.",
                 ephemeral=True
             )
             return
