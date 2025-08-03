@@ -76,7 +76,7 @@ class BuildTeam(commands.Cog):
         if not isinstance(channel, discord.TextChannel):
             await interaction.followup.send(
                 "❌ This command must be used in a Maggod fight lobby channel.",
-                ephemeral=True
+                ephemeral=False
             )
             return
 
@@ -91,7 +91,7 @@ class BuildTeam(commands.Cog):
         if not match or not match.started:
             await interaction.followup.send(
                 "❌ No ongoing match in this channel. Use `/join` to start a match.",
-                ephemeral=True
+                ephemeral=False
             )
             return
 
@@ -99,14 +99,14 @@ class BuildTeam(commands.Cog):
             await interaction.followup.send(
                 "🛑 Team building is complete! The battle has begun.\n"
                 "The first player should use `/do_turn` to start.",
-                ephemeral=True
+                ephemeral=False
             )
             return
 
         if hasattr(match, "teams_initialized") and match.teams_initialized:
             await interaction.followup.send(
                 "✅ Team building already started.",
-                ephemeral=True
+                ephemeral=False
             )
             return
 
@@ -204,7 +204,7 @@ class BuildTeam(commands.Cog):
         if not isinstance(channel, discord.TextChannel):
             await interaction.followup.send(
                 "❌ This command must be used in a Maggod fight lobby channel.",
-                ephemeral=True
+                ephemeral=False
             )
             return
             
@@ -219,13 +219,13 @@ class BuildTeam(commands.Cog):
             await interaction.followup.send(
                 "🛑 Team building is complete! The battle has begun.\n"
                 "The first player should use `/do_turn` to start.",
-                ephemeral=True
+                ephemeral=False
             )
             return
         if not match or not hasattr(match, "teams"):
             await interaction.followup.send(
                 "❌ Team building hasn't started yet. Use `/start` to begin.",
-                ephemeral=True
+                ephemeral=False
             )
             return
 
@@ -237,7 +237,7 @@ class BuildTeam(commands.Cog):
             if interaction.user.id != match.next_picker:
                 await interaction.followup.send(
                     "⏳ Please wait for your turn.",
-                    ephemeral=True
+                    ephemeral=False
                 )
                 return
             # Show god selection UI
@@ -285,7 +285,7 @@ class BuildTeam(commands.Cog):
                 del matchmaking_dict[channel_id]
                 logger.info(f"Match timed out in channel {channel_id}")
 
-                await channel.send("❌ Team building timed out. The lobby has been reset.")
+                await channel.send("❌ Team building timed out. The lobby has been reset.",ephemeral = True)
                 return
 
             # Process the selection
@@ -315,7 +315,7 @@ class BuildTeam(commands.Cog):
         
         embed.add_field(
             name="📊 Team Progress",
-            value=f"{len(match.teams[interaction.user.id])}/5 gods chosen",
+            value=f"{len(match.teams[interaction.user.id])}/5 gods chosen" if match.solo_mode else f"{len(match.teams["bot"])}/5 gods chosen",
             inline=True
         )
         await channel.send(embed=embed)
