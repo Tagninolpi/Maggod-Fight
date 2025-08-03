@@ -24,7 +24,9 @@ class Match:
     """Represents a single Maggod Fight match."""
     def __init__(self, player1_id=None, player2_id=None):
         self.player1_id = player1_id
+        self.player1_name = "Player 1"
         self.player2_id = player2_id
+        self.player2_name = "Player 2"
         self.started = False
         self.teams = {}
         self.gods = {}

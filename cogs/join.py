@@ -45,6 +45,7 @@ class Join(commands.Cog):
             # First player joins
             matchmaking_dict[channel_id] = Match(player1_id=interaction.user.id)
             match = matchmaking_dict[channel_id]
+            match.player1_name = interaction.user.display_name
             logger.info(f"Player {interaction.user.id} ({interaction.user.display_name}) joined in channel {channel_id}")
 
             # Update bot stats
@@ -67,8 +68,7 @@ class Join(commands.Cog):
             )
             embed.add_field(
                 name="🎯 Next Step",
-                value=f"""Another player can do `/join` to join this lobby or 
-                **{interaction.user.display_name}** can do `/join` to play against the bot.""",
+                value=f"""Another player can do `/join` to join this lobby or **{interaction.user.display_name}** can do `/join` to play against the bot.""",
                 inline=False
             )
             
@@ -78,6 +78,7 @@ class Join(commands.Cog):
             if interaction.user.id == match.player1_id:
                 # Same user joins again to play both sides
                 match.player2_id = "bot"
+                match.player2_name = "bot"
                 match.started = True
                 match.game_phase = "ready"
                 match.solo_mode = True
@@ -87,7 +88,7 @@ class Join(commands.Cog):
 
                 embed = discord.Embed(
                     title="🤖 Solo Match Ready!",
-                    description="You do the /commands for the bot. But it desides on it's own.",
+                    description="You do the /commands for the bot. But it decides on it's own.",
                     color=0x9932CC
                 )
                 embed.add_field(
@@ -109,12 +110,9 @@ class Join(commands.Cog):
             match.started = True
             match.game_phase = "ready"
             match = matchmaking_dict[channel_id]
+            match.player2_name = interaction.user.display_name
             logger.info(f"Player {interaction.user.id} ({interaction.user.display_name}) joined as Player 2 in channel {channel_id}")
             asyncio.create_task(update_lobby_status_embed(self.bot))
-
-            # Get player names
-            player1 = interaction.guild.get_member(match.player1_id)
-            player1_name = player1.display_name if player1 else "Unknown Maggod"
             
             embed = discord.Embed(
                 title="🔴 Match Ready!",
@@ -123,7 +121,7 @@ class Join(commands.Cog):
             )
             embed.add_field(
                 name="⚔️ Warriors",
-                value=f"**Player 1:** {player1_name}\n**Player 2:** {interaction.user.display_name}",
+                value=f"**Player 1:** {match.player1_name}\n**Player 2:** {match.player2_name}",
                 inline=False
             )
             embed.add_field(
@@ -140,12 +138,6 @@ class Join(commands.Cog):
             await interaction.followup.send(embed=embed)
 
         elif match.started:
-            # Get player names for spectator message
-            player1 = interaction.guild.get_member(match.player1_id) if match.player1_id else None
-            player2 = interaction.guild.get_member(match.player2_id) if match.player2_id else None
-            
-            player1_name = player1.display_name if player1 else "Player 1"
-            player2_name = player2.display_name if player2 else "Player 2"
             
             embed = discord.Embed(
                 title="👥 Match in Progress",
@@ -154,7 +146,7 @@ class Join(commands.Cog):
             )
             embed.add_field(
                 name="🥊 Current Match",
-                value=f"**{player1_name}** vs **{player2_name}**",
+                value=f"**{match.player1_name}** vs **{match.player2_name}**",
                 inline=False
             )
             embed.add_field(

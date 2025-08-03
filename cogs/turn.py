@@ -198,12 +198,6 @@ class Turn(commands.Cog):
             await channel.send("❌ No ongoing match.")
             return None 
 
-        # Get player names
-        player1 = channel.guild.get_member(match.player1_id)
-        player2 = channel.guild.get_member(match.player2_id)
-        
-        player1_name = player1.display_name if player1 else "Player 1"
-        player2_name = player2.display_name if player2 else "Player 2"
 
         # Auto-select if in solo mode and it's the bot's turn
         if match.solo_mode and  match.turn_state["current_player"] == "bot":
@@ -212,7 +206,7 @@ class Turn(commands.Cog):
             return selected
         
         # Create embeds showing team status
-        embeds = create_team_embeds(team1, team2, player1_name, player2_name,action_text)
+        embeds = create_team_embeds(team1, team2, match.player1_name, match.player2_name,action_text)
         
         # Create selection view
         view = GodSelectionView(all_gods= team1 + team2,selectable_gods=selectable_gods, allowed_user=allowed_user,team_1=team1)
@@ -432,10 +426,10 @@ class Turn(commands.Cog):
         # Determine winner
         if team1_alive and not team2_alive:
             winner_id = match.player1_id
-            winner_name = "Player 1"
+            winner_name = match.player1_name
         elif team2_alive and not team1_alive:
             winner_id = match.player2_id
-            winner_name = "Player 2"
+            winner_name = match.player2_name
         else:
             winner_id = None
             winner_name = "Nobody"
@@ -466,19 +460,13 @@ class Turn(commands.Cog):
             )
 
         # Show final team status
-        try:
-            player1 = channel.guild.get_member(match.player1_id)
-            player2 = channel.guild.get_member(match.player2_id)
-            
-            player1_name = player1.display_name if player1 else "Player 1"
-            player2_name = player2.display_name if player2 else "Player 2"
-            
+        try:            
             team1_survivors = sum(1 for god in match.teams[match.player1_id] if god.alive)
             team2_survivors = sum(1 for god in match.teams[match.player2_id] if god.alive)
             
             embed.add_field(
                 name="📊 Final Score",
-                value=f"**{player1_name}:** {team1_survivors} gods remaining\n**{player2_name}:** {team2_survivors} gods remaining",
+                value=f"**{match.player1_name}:** {team1_survivors} gods remaining\n**{match.player2_name}:** {team2_survivors} gods remaining",
                 inline=False
             )
         except Exception as e:

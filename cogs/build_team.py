@@ -159,17 +159,6 @@ class BuildTeam(commands.Cog):
 
         logger.info(f"Team building started in channel {channel_id}")
 
-        # Get player names
-        player1 = interaction.guild.get_member(match.player1_id)
-        player1_name = player1.display_name if player1 else "Player 1"
-        if match.solo_mode:
-            player2 = "bot"
-            player2_name = "bot"
-        else:
-            player2 = interaction.guild.get_member(match.player2_id)
-            player2_name = player2.display_name if player2 else "Player 2"
-        first_picker_name = match.next_picker
-
         embed = discord.Embed(
             title="🎮 Team Building Phase",
             description="The draft begins! Each player will select 5 gods for their team.",
@@ -177,7 +166,7 @@ class BuildTeam(commands.Cog):
         )
         embed.add_field(
             name="⚔️ Players",
-            value=f"**Player 1:** {player1_name}\n**Player 2:** {player2_name}",
+            value=f"**Player 1:** {match.player1_name}\n**Player 2:** {match.player2_name}",
             inline=False
         )
         embed.add_field(
@@ -371,15 +360,6 @@ class BuildTeam(commands.Cog):
     async def show_teams(self, channel, match):
         """Show the final teams."""
         try:
-            # Get player names
-            player1 = channel.guild.get_member(match.player1_id)
-            player2 = channel.guild.get_member(match.player2_id)
-            first_turn_player = channel.guild.get_member(match.turn_state["current_player"])
-            
-            player1_name = player1.display_name if player1 else "Player 1"
-            player2_name = player2.display_name if player2 else "Player 2"
-            first_turn_name = first_turn_player.display_name if first_turn_player else "First Player"
-            
             embed = discord.Embed(
                 title="⚔️ Battle Ready!",
                 description="Both armies are assembled. The epic battle begins now!",
@@ -392,7 +372,7 @@ class BuildTeam(commands.Cog):
                 p1_gods.append(f"• **{god.name}** - HP: {god.hp}, DMG: {god.dmg}")
             
             embed.add_field(
-                name=f"🔵 {player1_name}'s Army",
+                name=f"🔵 {match.player1_name}'s Army",
                 value="\n".join(p1_gods),
                 inline=True
             )
@@ -403,7 +383,7 @@ class BuildTeam(commands.Cog):
                 p2_gods.append(f"• **{god.name}** - HP: {god.hp}, DMG: {god.dmg}")
             
             embed.add_field(
-                name=f"🔴 {player2_name}'s Army",
+                name=f"🔴 {match.player2_name}'s Army",
                 value="\n".join(p2_gods),
                 inline=True
             )
