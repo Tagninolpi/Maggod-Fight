@@ -98,7 +98,7 @@ class Join(commands.Cog):
                 )
                 embed.add_field(
                     name="🎯 Next Step",
-                    value=f"<@{interaction.user.display_name}> do `/start` to begin team building.",
+                    value=f"<@{interaction.user.id}> do `/start` to begin team building.",
                     inline=False
                 )
 
