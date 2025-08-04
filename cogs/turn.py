@@ -129,12 +129,18 @@ def create_team_embeds(team1: list, team2: list, player1_name: str, player2_name
 
         return "```\n" + "\n".join(lines) + "\n```"
 
+    if not(action_text == "attack"):
+        embed1 = discord.Embed(title=f"{player1_name}'s Team", color=discord.Color.green())
+        embed1.description = format_team(team1)
 
-    embed1 = discord.Embed(title=f"{player1_name}'s Team", color=discord.Color.green())
-    embed1.description = format_team(team1)
+        embed2 = discord.Embed(title=f"{player2_name}'s Team", color=discord.Color.red())
+        embed2.description = format_team(team2)
+    else:
+        embed1 = discord.Embed(title=f"{player2_name}'s Team", color=discord.Color.red())
+        embed1.description = format_team(team1)
 
-    embed2 = discord.Embed(title=f"{player2_name}'s Team", color=discord.Color.red())
-    embed2.description = format_team(team2)
+        embed2 = discord.Embed(title=f"{player1_name}'s Team", color=discord.Color.green())
+        embed2.description = format_team(team2)
     action_embed = discord.Embed(
         title=f"🎯 Select God to {action_text.title()}",
         color=0x00ff00

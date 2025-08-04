@@ -191,8 +191,8 @@ def hades_ow(kwargs):
  
 def thanatos(kwargs):
     """Thanatos's death touch - 50% chance to instantly kill target."""
+    target = kwargs["target"]
     if r.randint(0, 1):
-        target = kwargs["target"]
         target.hp = 0
         self = kwargs["self"]
         self.hp -= 5  # High cost for instant kill
@@ -306,9 +306,11 @@ def megaera(kwargs):
 def hecate(kwargs):
     """Hecate's magic - Makes self and target invisible."""
     kwargs["self"].visible = False
-    msg = "Hecate goes into hiding"
     if not kwargs.get("attacking_with_hermes", False):
         target = kwargs["target"]
         target.visible = False
-        msg += f"{target.name.capitalize()} follows Hecate into hiding"
+        if target.name == "hecate":
+            msg = "Hecate goes into hiding"
+        else:
+            msg = f"Hecate forces {target.name.capitalize()} into hiding"
     return msg
