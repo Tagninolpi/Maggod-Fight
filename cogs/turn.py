@@ -512,7 +512,7 @@ class Turn(commands.Cog):
         
         #update
         if match.turn_in_progress:
-            await channel.send("⏳ A turn is already in progress. Please wait.")
+            await channel.send("⏳ A turn is already in progress. Please choose a god.")
             return
 
         match.turn_in_progress = True

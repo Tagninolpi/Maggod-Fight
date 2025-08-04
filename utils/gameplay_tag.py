@@ -26,7 +26,6 @@ class Effect:
     def update(self):
         """Decrease duration by 1."""
         self.duration -= 1
-        self.reload -= 1
 
     def is_expired(self):
         """Check if the effect has expired."""
@@ -60,6 +59,7 @@ class God:
 
     def update_effects(self):
         """Update all effects, removing expired ones."""
+        self.reload -= 1
         to_remove = []
         for name, effect in self.effects.items():
             effect.update()

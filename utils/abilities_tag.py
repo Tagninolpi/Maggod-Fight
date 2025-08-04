@@ -138,7 +138,7 @@ def apollo(kwargs):
 def artemis(kwargs):
     """Artemis's hunting arrows - Damages all enemies."""
     ennemy_team = kwargs["ennemy_team"]
-    msg += "Artemis does 1 dmg to ✨gods : "
+    msg = "Artemis does 1 dmg to ✨gods : "
     for god in ennemy_team:
         god.hp -= 1
         msg += f"{god.name.capitalize()}, "
@@ -196,6 +196,8 @@ def thanatos(kwargs):
         self = kwargs["self"]
         self.hp -= 5  # High cost for instant kill
         return (f"Thanatos instakills {target.name.capitalize()}, but takes 5 dmg.")
+    else:
+        return(f"Thanatos failed to instakill {target.name.capitalize()}")
 
 def cerebus(kwargs):
     """Cerberus's guard - Gains HP for each visible ally."""

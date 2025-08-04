@@ -229,6 +229,11 @@ class BuildTeam(commands.Cog):
             )
             return
 
+        if match.turn_in_progress:
+            await channel.send("⏳ A turn is already in progress. Please choose a god.")
+            return
+        
+        match.turn_in_progress = True
         
         if match.solo_mode and match.next_picker == "bot":
             # Bot turn in solo mode: pick randomly from available gods
@@ -350,12 +355,14 @@ class BuildTeam(commands.Cog):
             await self.show_teams(channel, match)
             # Prompt the player who just picked to start the game
             await channel.send(f"<@{interaction.user.id}>, use `/do_turn` to take the first move.")
+            match.turn_in_progress = False
         else:
             # Continue team building
             next_player = interaction.guild.get_member(match.next_picker)
             next_player_name = next_player.display_name if next_player else "Next Player"
             
             await channel.send(f"<@{match.next_picker}>, it's your turn! **{next_player_name}** use `/choose` to pick your next god.")
+            match.turn_in_progress = False
 
     async def show_teams(self, channel, match):
         """Show the final teams."""
