@@ -62,8 +62,11 @@ def ares(kwargs):
 def hera(kwargs):
     """Hera's death curse - Damages all enemies when she dies."""
     if not kwargs["self"].alive:
+        msg = "Hera died, she does 3 dmg to : "
         for god in kwargs["ennemy_team"]:
             god.hp -= 3
+            msg += f"{god.name.capitalize()}, "
+        return msg
 
 def zeus(kwargs):
     """Zeus's lightning - Stuns target and damages all visible allies."""
@@ -72,16 +75,24 @@ def zeus(kwargs):
     attacking_with_hermes = kwargs.get("attacking_with_hermes", False)
     visible_gods = kwargs["visible_gods"]
     alive_ennemy = kwargs["ennemy_team"]
-    duration = 1 if attacking_with_hermes else 2
-    self.hp -= 2  # Zeus damages himself
+    duration = 2 if attacking_with_hermes else 3
+    msg = "Zeus "
     if len(alive_ennemy) > 2:
         target.add_effect("zeus_stun", value=0, duration=duration)
+        msg += f"stuns 💫 {target.name.capitalize()} for {duration} turns,"
+            # Lightning damages all visible allies
+        msg += "and does 1 dmg (friendly dmg) to :"
+        for god in visible_gods:
+            god.hp -= 1
+            msg += f"{god.name.capitalize()}, "
     else:
+        msg += "takes 2 dmg and does 2 dmg to : "
         for god in alive_ennemy:
-            god.hp -= 1    
-    # Lightning damages all visible allies
-    for god in visible_gods:
-        god.hp -= 1
+            god.hp -= 2
+            msg += f"{god.name.capitalize()}, "
+        self.hp -= 2    
+    return msg
+
 
 def athena(kwargs):
     """Athena's wisdom - Increases max HP of visible allies."""
@@ -106,12 +117,13 @@ def apollo(kwargs):
     """Apollo's healing light - Heals self and all allies."""
     ally_team = kwargs["ally_team"]
     self = kwargs["self"]
-    
+    msg = "Apollo heals by 1 hp : "
     # Heal self
     if self.hp + 1 > self.max_hp:
         self.hp = self.max_hp
     else:
         self.hp += 1
+        msg += "Apollo"
     
     # Heal all allies
     for god in ally_team:
@@ -119,12 +131,17 @@ def apollo(kwargs):
             god.hp = god.max_hp
         else:
             god.hp += 1
+            msg += f"{god.name.capitalize()}, "
+    return msg
 
 def artemis(kwargs):
     """Artemis's hunting arrows - Damages all enemies."""
     ennemy_team = kwargs["ennemy_team"]
+    msg += "Artemis does 1 dmg to : "
     for god in ennemy_team:
         god.hp -= 1
+        msg += f"{god.name.capitalize()}, "
+    return msg
 
 def hermes(kwargs):
     """Hermes's speed - Allows other gods to attack multiple times."""
@@ -155,8 +172,11 @@ def hades_ow(kwargs):
         target = kwargs["target"]
         self = kwargs["self"]
         visible_gods = kwargs["visible_gods"]
+        msg = "Hades_ow gives 💥 dmg boost to : "
         for god in visible_gods:
             god.add_effect("hades_ow_do_more_dmg", value= math.floor(0.5 + dead_ally_nb/2), duration=2)
+            msg += f"{god.name.capitalize(), }"
+        return msg
  
 def thanatos(kwargs):
     """Thanatos's death touch - 50% chance to instantly kill target."""
@@ -165,6 +185,7 @@ def thanatos(kwargs):
         target.hp = 0
         self = kwargs["self"]
         self.hp -= 5  # High cost for instant kill
+        return (f"Thanatos instakills {target.name.capitalize()}, but takes 5 dmg.")
 
 def cerebus(kwargs):
     """Cerberus's guard - Gains HP for each visible ally."""
