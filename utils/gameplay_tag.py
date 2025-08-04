@@ -26,10 +26,18 @@ class Effect:
     def update(self):
         """Decrease duration by 1."""
         self.duration -= 1
+        self.reload -= 1
 
     def is_expired(self):
         """Check if the effect has expired."""
         return self.duration <= 0
+    
+    def check_abillity(self):
+        if self.reload <= 0:
+            self.reload = self.reload_max
+            return True
+        else:
+            return False
 #used ?
     def __str__(self):
         """String representation of the effect."""
@@ -38,7 +46,7 @@ class Effect:
 class God:
     """Represents a god in the game."""
     
-    def __init__(self, name: str, hp: int, dmg: int, ability_func):
+    def __init__(self, name: str, hp: int, dmg: int, ability_func,reload):
         self.name = name
         self.hp = hp
         self.max_hp = hp
@@ -47,6 +55,8 @@ class God:
         self.effects = {}
         self.visible = False
         self.alive = True
+        self.reload = 0
+        self.reload_max = reload
 
     def add_effect(self, effect_name: str, value: int, duration: int):
         """Add an effect only if it doesn't already exist."""

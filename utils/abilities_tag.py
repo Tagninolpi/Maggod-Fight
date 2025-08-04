@@ -36,14 +36,15 @@ def aphrodite(kwargs):
     """Aphrodite's charm - Damages visible enemies or charms hidden ones."""
     target = kwargs["target"]
     msg = "Aphrodite "
-    if kwargs.get("attacking_with_hermes", False) or target.visible:
+    if target.visible:
         # Direct damage if target is visible
         target.hp -= 2
-        msg += f"does 2 more dmg to {target.name.capitalize()}"
+        msg += f"does 2 dmg to {target.name.capitalize()}"
     else:
         # Charm hidden enemies at a cost
         msg += f"gives charm 💘 to {target.name.capitalize()} for 2 turns"
         target.add_effect("aphro_charm", value=0, duration=2) #under charm heal opponent by 1
+    return msg
 
 def ares(kwargs):
     """Ares's battle fury - Provides permanent damage boosts to allies."""
@@ -81,12 +82,12 @@ def zeus(kwargs):
         target.add_effect("zeus_stun", value=0, duration=duration)
         msg += f"stuns 💫 {target.name.capitalize()} for {duration} turns,"
             # Lightning damages all visible allies
-        msg += "and does 1 dmg (friendly dmg) to :"
+        msg += "and does 1 dmg (friendly dmg) to ✨gods : "
         for god in visible_gods:
             god.hp -= 1
             msg += f"{god.name.capitalize()}, "
     else:
-        msg += "takes 2 dmg and does 2 dmg to : "
+        msg += "takes 2 dmg and does 2 dmg to ✨gods : "
         for god in alive_ennemy:
             god.hp -= 2
             msg += f"{god.name.capitalize()}, "
@@ -117,13 +118,13 @@ def apollo(kwargs):
     """Apollo's healing light - Heals self and all allies."""
     ally_team = kwargs["ally_team"]
     self = kwargs["self"]
-    msg = "Apollo heals by 1 hp : "
+    msg = "Apollo heals by 1 hp ✨gods : "
     # Heal self
     if self.hp + 1 > self.max_hp:
         self.hp = self.max_hp
     else:
         self.hp += 1
-        msg += "Apollo"
+        msg += "Apollo, "
     
     # Heal all allies
     for god in ally_team:
@@ -137,7 +138,7 @@ def apollo(kwargs):
 def artemis(kwargs):
     """Artemis's hunting arrows - Damages all enemies."""
     ennemy_team = kwargs["ennemy_team"]
-    msg += "Artemis does 1 dmg to : "
+    msg += "Artemis does 1 dmg to ✨gods : "
     for god in ennemy_team:
         god.hp -= 1
         msg += f"{god.name.capitalize()}, "
@@ -146,24 +147,33 @@ def artemis(kwargs):
 def hermes(kwargs):
     """Hermes's speed - Allows other gods to attack multiple times."""
     target = kwargs["target"]
+    self = kwargs["self"]
     attacker_1 = kwargs.get("attacker_1")
     attacker_2 = kwargs.get("attacker_2")
-    
+    msg = ""
     if attacker_1:
-        attacker_1.ability({
-            **kwargs,
-            "attacking_with_hermes": True,
-            "self": attacker_1
-        })
-        target.get_dmg(value=attacker_1.do_damage())
+        if self.check_abillity():
+            msg = attacker_1.ability({
+                **kwargs,
+                "attacking_with_hermes": True,
+                "self": attacker_1
+                })
+        dmg = attacker_1.do_damage()
+        msg+= f"{attacker_1.name.capitalize()} does {dmg} dmg to {target.name.capitalize()}"
+        target.get_dmg(value=dmg)
     
     if attacker_2:
-        attacker_2.ability({
-            **kwargs,
-            "attacking_with_hermes": True,
-            "self": attacker_2
-        })
-        target.get_dmg(value=attacker_2.do_damage())
+        if self.check_abillity():
+            msg += attacker_2.ability({
+                **kwargs,
+                "attacking_with_hermes": True,
+                "self": attacker_2
+            })
+        dmg = attacker_2.do_damage()
+        msg+= f"{attacker_1.name.capitalize()} does {dmg} dmg to {target.name.capitalize()}"
+        target.get_dmg(value=dmg)
+    return msg
+
 
 def hades_ow(kwargs):
     """Hades (Overworld) - Gains power from dead allies."""
@@ -172,7 +182,7 @@ def hades_ow(kwargs):
         target = kwargs["target"]
         self = kwargs["self"]
         visible_gods = kwargs["visible_gods"]
-        msg = "Hades_ow gives 💥 dmg boost to : "
+        msg = "Hades_ow gives 💥 dmg boost to ✨gods : "
         for god in visible_gods:
             god.add_effect("hades_ow_do_more_dmg", value= math.floor(0.5 + dead_ally_nb/2), duration=2)
             msg += f"{god.name.capitalize(), }"
@@ -204,14 +214,15 @@ def charon(kwargs):
     if not kwargs.get("attacking_with_hermes", False):
         target = kwargs["target"]
         kwargs["self"].hp -= 2
+        msg = f"Charon protect 🧿 {target.name.capitalize()} from ennemy base dmg for 2 turn and remove all negative effectsfrom all visible gods"
         target.add_effect("charon_invisible_duration", value=target.hp, duration=2)
-        
+        bad_effects = ["aphro_charm", "zeus_stun", "tisi_freeze_timer","alecto_get_more_dmg", "mega_do_less_dmg"]
         # Remove negative effects from visible gods
         for god in kwargs["visible_gods"]:
-            for bad_effect in ["aphro_charm", "zeus_stun", "tisi_freeze_timer", 
-                             "alecto_get_more_dmg", "mega_do_less_dmg"]:
-                if bad_effect in god.effects:
-                    del god.effects[bad_effect]
+            for effect in bad_effects:
+                if effect in god.effects:
+                    del god.effects[effect]
+        return msg
 
 def persephone(kwargs):
     """Persephone's revival - Revives dead allies or heals living ones."""
@@ -223,22 +234,31 @@ def persephone(kwargs):
             if r.randint(0, 1):
                 target.alive = True
                 target.hp = target.max_hp
-                kwargs["self"].hp -= 2
+                kwargs["self"].hp -= 3
+                msg = f"Persephone revives {target.name.capitalize()} to max hp but losses 3 hp"
+            else:
+                msg = "Persephone revive failed!!!"
         else:
             # Heal living allies
             target.hp += 2
             if target.hp > target.max_hp:
                 target.hp = target.max_hp
+                msg = f"Persephone healed {target.nam.capitalize()} to max hp"
+            else:
+                msg = f"Persephone healed {target.nam.capitalize()} by 2 hp"
+    return msg
 
 def hades_uw(kwargs):
     """Hades (Underworld) - Provides shields based on dead allies."""
     if not kwargs.get("attacking_with_hermes", False):
         dead_ally_nb = len(kwargs["dead_ally"])
         visible_gods = kwargs["visible_gods"]
-        
+        duration = 1 + math.floor((4 - dead_ally_nb) / 2)
+        msg = f"Hades_uw gives {dead_ally_nb}☠️ shield for {duration} turn to ✨gods : "
         for god in visible_gods:
-            god.add_effect("hades_uw_shield", value=dead_ally_nb, 
-                          duration=1 + math.floor((4 - dead_ally_nb) / 2))
+            msg += f"{god.name.capitalize()}, "
+            god.add_effect("hades_uw_shield", value=dead_ally_nb,duration = duration)
+        return msg
 
 def tisiphone(kwargs):
     """Tisiphone's fury - Freezes enemies with a chance."""
@@ -248,10 +268,17 @@ def tisiphone(kwargs):
         if r.randint(0, 1) == 0:
             target.add_effect("tisi_freeze_timer", value=1, duration=2)
             self.add_effect("tisi_freeze_timer", value=1, duration=2)
+            msg = f"Tisiphone froze ❄️ {target.name.capiitalize()} and herself for 2 turns"
+        else:
+            msg = f"Tisiphone failed to freeze {target.name.capiitalize()}"
     else:
         if self.hp == self.max_hp:
             target.hp -= 2
-        else: self.hp += 1
+            msg = f"Tisiphone does 2 dmg to {target.name.capiitalize()}"
+        else: 
+            self.hp += 1
+            msg = "Tisiphone heals herself by 1 hp"
+    return msg
 
 def alecto(kwargs):
     """Alecto's curse - Makes target take more damage."""
@@ -259,8 +286,9 @@ def alecto(kwargs):
     attacking_with_hermes = kwargs.get("attacking_with_hermes", False)
     value = 2
     duration = 3 if attacking_with_hermes else 2
-    
+    msg = f"Alecto gives {target.name.capitalize()} take more dmg 💢 for {duration} turns"
     target.add_effect("alecto_get_more_dmg", value=value, duration=duration)
+    return msg
 
 def megaera(kwargs):
     """Megaera's weakness - Makes target deal less damage."""
@@ -268,11 +296,16 @@ def megaera(kwargs):
     attacking_with_hermes = kwargs.get("attacking_with_hermes", False)
     value = 2
     duration = 3 if attacking_with_hermes else 2
-    
+    msg = f"Megaera gives {target.name.capitalize()} dmg reduction 💚 for {duration} turns"
     target.add_effect("mega_do_less_dmg", value=value, duration=duration)
+    return msg
 
 def hecate(kwargs):
     """Hecate's magic - Makes self and target invisible."""
     kwargs["self"].visible = False
+    msg = "Hecate goes into hiding"
     if not kwargs.get("attacking_with_hermes", False):
-        kwargs["target"].visible = False
+        target = kwargs["target"]
+        target.visible = False
+        msg += f"{target.name.capitalize()} follows Hecate into hiding"
+    return msg

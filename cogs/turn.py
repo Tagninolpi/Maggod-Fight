@@ -361,7 +361,10 @@ class Turn(commands.Cog):
                 "dead_ally": get_dead(attack_team),
             }
             
-            ability_message = attacker.ability(ability_params)
+            if attacker.check_abillity():
+                ability_message = attacker.ability(ability_params)
+            else:
+                ability_message = f"{attacker.name.capitalize()} abillity is on cooldown you can use it in {attacker.reload}"
             if ability_message:
                 # Show ability effect
                 await channel.send(ability_message)
