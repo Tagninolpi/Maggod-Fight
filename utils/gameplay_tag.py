@@ -32,12 +32,6 @@ class Effect:
         """Check if the effect has expired."""
         return self.duration <= 0
     
-    def check_abillity(self):
-        if self.reload <= 0:
-            self.reload = self.reload_max
-            return True
-        else:
-            return False
 #used ?
     def __str__(self):
         """String representation of the effect."""
@@ -73,6 +67,13 @@ class God:
                 to_remove.append(name)
         for name in to_remove:
             del self.effects[name]
+    
+    def check_abillity(self):
+        if self.reload <= 0:
+            self.reload = self.reload_max
+            return True
+        else:
+            return False
 
 
     def get_dmg(self, value: int):
