@@ -54,7 +54,7 @@ class God:
     def add_effect(self, effect_name: str, value: int, duration: int):
         """Add an effect only if it doesn't already exist."""
         if effect_name not in self.effects:
-            self.effects[effect_name] = Effect(value, duration + 1)
+            self.effects[effect_name] = Effect(value, duration * 2)
 
 
     def update_effects(self):

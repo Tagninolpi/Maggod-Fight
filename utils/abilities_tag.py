@@ -159,7 +159,7 @@ def hermes(kwargs):
                 "self": attacker_1
                 })
         dmg = attacker_1.do_damage()
-        msg+= f"{attacker_1.name.capitalize()} does {dmg} dmg to {target.name.capitalize()}"
+        msg+= f"\n{attacker_1.name.capitalize()} does {dmg} dmg to {target.name.capitalize()}\n"
         target.get_dmg(value=dmg)
     
     if attacker_2:
@@ -170,7 +170,7 @@ def hermes(kwargs):
                 "self": attacker_2
             })
         dmg = attacker_2.do_damage()
-        msg+= f"{attacker_1.name.capitalize()} does {dmg} dmg to {target.name.capitalize()}"
+        msg+= f"\n{attacker_2.name.capitalize()} does {dmg} dmg to {target.name.capitalize()}"
         target.get_dmg(value=dmg)
     return msg
 
@@ -182,10 +182,11 @@ def hades_ow(kwargs):
         target = kwargs["target"]
         self = kwargs["self"]
         visible_gods = kwargs["visible_gods"]
-        msg = "Hades_ow gives 💥 dmg boost to ✨gods : "
+        dmg = math.floor(0.5 + dead_ally_nb/2)
+        msg = f"Hades_ow gives +{dmg}💥 dmg boost to ✨gods : "
         for god in visible_gods:
-            god.add_effect("hades_ow_do_more_dmg", value= math.floor(0.5 + dead_ally_nb/2), duration=2)
-            msg += f"{god.name.capitalize(), }"
+            god.add_effect("hades_ow_do_more_dmg", value= dmg, duration=2)
+            msg += f"{god.name.capitalize()}, "
         return msg
  
 def thanatos(kwargs):
@@ -245,9 +246,9 @@ def persephone(kwargs):
             target.hp += 2
             if target.hp > target.max_hp:
                 target.hp = target.max_hp
-                msg = f"Persephone healed {target.nam.capitalize()} to max hp"
+                msg = f"Persephone healed {target.name.capitalize()} to max hp"
             else:
-                msg = f"Persephone healed {target.nam.capitalize()} by 2 hp"
+                msg = f"Persephone healed {target.name.capitalize()} by 2 hp"
     return msg
 
 def hades_uw(kwargs):
