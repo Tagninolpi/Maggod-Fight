@@ -150,7 +150,7 @@ def hermes(kwargs):
     self = kwargs["self"]
     attacker_1 = kwargs.get("attacker_1")
     attacker_2 = kwargs.get("attacker_2")
-    msg = ""
+    msg = "attakiing with Hermes :\n"
     if attacker_1:
         if self.check_abillity():
             msg = attacker_1.ability({
@@ -217,7 +217,7 @@ def charon(kwargs):
     if not kwargs.get("attacking_with_hermes", False):
         target = kwargs["target"]
         kwargs["self"].hp -= 2
-        msg = f"Charon protect 🧿 {target.name.capitalize()} from ennemy base dmg for 2 turn and remove all negative effectsfrom all visible gods"
+        msg = f"Charon protect 🧿 {target.name.capitalize()} from ennemy base dmg for 2 turn and remove all negative effects from all visible gods, but takes 2 dmg"
         target.add_effect("charon_invisible_duration", value=target.hp, duration=2)
         bad_effects = ["aphro_charm", "zeus_stun", "tisi_freeze_timer","alecto_get_more_dmg", "mega_do_less_dmg"]
         # Remove negative effects from visible gods
@@ -271,13 +271,13 @@ def tisiphone(kwargs):
         if r.randint(0, 1) == 0:
             target.add_effect("tisi_freeze_timer", value=1, duration=2)
             self.add_effect("tisi_freeze_timer", value=1, duration=2)
-            msg = f"Tisiphone froze ❄️ {target.name.capiitalize()} and herself for 2 turns"
+            msg = f"Tisiphone froze ❄️ {target.name.capitalize()} and herself for 2 turns"
         else:
-            msg = f"Tisiphone failed to freeze {target.name.capiitalize()}"
+            msg = f"Tisiphone failed to freeze {target.name.capitalize()}"
     else:
         if self.hp == self.max_hp:
             target.hp -= 2
-            msg = f"Tisiphone does 2 dmg to {target.name.capiitalize()}"
+            msg = f"Tisiphone does 2 dmg to {target.name.capitalize()}"
         else: 
             self.hp += 1
             msg = "Tisiphone heals herself by 1 hp"

@@ -318,6 +318,13 @@ class Turn(commands.Cog):
                     channel, attack_team, defend_team, team_gods, "revive/heal", current_player
                 )
 
+        elif attacker.name == "aphrodite":
+            team_gods = get_alive(attack_team)  # Can charm hidden
+            if team_gods:
+                target = await self.send_god_selection_prompt(
+                    channel, attack_team, defend_team, team_gods, "charm", current_player
+                )
+
         elif attacker.name == "hecate":
             visible_allies = get_visible(attack_team)
             if visible_allies:
