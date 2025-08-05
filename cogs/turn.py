@@ -74,6 +74,8 @@ def create_team_embeds(team1: list, team2: list, player1_name: str, player2_name
             icons.append("🐶")
         if "alecto_get_more_dmg" in god.effects:
             icons.append("💢")
+        if god.reload > 0:
+            icons.append(f"{god.reload}⏳")
 
         return " ".join(icons)
 
@@ -285,10 +287,14 @@ class Turn(commands.Cog):
             if not visible_defenders:
                 await channel.send("❌ No visible targets available. Turn skipped.")
                 return
-            
-            attacked = await self.send_god_selection_prompt(
-                channel, defend_team, attack_team, visible_defenders, "attack", current_player
-            )
+            if attacker.name == "aphrodite":
+                attacked = await self.send_god_selection_prompt(
+                    channel, attack_team, defend_team, get_alive(defend_team), "attack", current_player
+                    )
+            else:
+                attacked = await self.send_god_selection_prompt(
+                    channel, defend_team, attack_team, visible_defenders, "attack", current_player
+                    )
             
             if not attacked:
                 return
@@ -316,13 +322,6 @@ class Turn(commands.Cog):
             if team_gods:
                 target = await self.send_god_selection_prompt(
                     channel, attack_team, defend_team, team_gods, "revive/heal", current_player
-                )
-
-        elif attacker.name == "aphrodite":
-            team_gods = get_alive(attack_team)  # Can charm hidden
-            if team_gods:
-                target = await self.send_god_selection_prompt(
-                    channel, attack_team, defend_team, team_gods, "charm", current_player
                 )
 
         elif attacker.name == "hecate":
@@ -388,8 +387,9 @@ class Turn(commands.Cog):
 
         # Clean up effects and handle deaths
         action_befor_delete_effect(attack_team, defend_team)
-        action_befor_delete_effect(defend_team, attack_team)
         action_befor_die(defend_team, attack_team)
+        action_befor_delete_effect(defend_team, attack_team)
+        
 
         # Update effects
         for god in attack_team + defend_team:

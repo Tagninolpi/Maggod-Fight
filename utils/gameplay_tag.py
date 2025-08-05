@@ -70,11 +70,17 @@ class God:
     
     def check_abillity(self):
         if self.reload <= 0:
-            self.reload = self.reload_max
+            if not(self.name == "thanatos"):
+                self.reload = self.reload_max
             return True
         else:
             return False
 
+    def heal(self,value):
+        if self.hp + value > self.max_hp:
+            self.hp = self.max_hp
+        else:
+            self.hp += value
 
     def get_dmg(self, value: int):
         """Apply damage to this god, prioritizing shield effects with the lowest duration left."""

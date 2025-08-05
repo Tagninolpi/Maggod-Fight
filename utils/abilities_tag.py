@@ -35,13 +35,14 @@ def hephaestus(kwargs):
 def aphrodite(kwargs):
     """Aphrodite's charm - Damages visible enemies or charms hidden ones."""
     target = kwargs["target"]
+    self = kwargs["self"]
     msg = "Aphrodite "
     if target.visible:
         # Direct damage if target is visible
-        target.hp -= 2
-        msg += f"does 2 dmg to {target.name.capitalize()}"
+        target.hp -= 1
+        self.heal(1)
+        msg += f"does 1 dmg to {target.name.capitalize()} and heal herself by 1"
     else:
-        # Charm hidden enemies at a cost
         msg += f"gives charm 💘 to {target.name.capitalize()} for 2 turns"
         target.add_effect("aphro_charm", value=0, duration=2) #under charm heal opponent by 1
     return msg
@@ -120,19 +121,13 @@ def apollo(kwargs):
     self = kwargs["self"]
     msg = "Apollo heals by 1 hp ✨gods : "
     # Heal self
-    if self.hp + 1 > self.max_hp:
-        self.hp = self.max_hp
-    else:
-        self.hp += 1
-        msg += "Apollo, "
+    self.heal(1)
+    msg += "Apollo, "
     
     # Heal all allies
     for god in ally_team:
-        if god.hp + 1 > god.max_hp:
-            god.hp = god.max_hp
-        else:
-            god.hp += 1
-            msg += f"{god.name.capitalize()}, "
+        god.heal(1)
+        msg += f"{god.name.capitalize()}, "
     return msg
 
 def artemis(kwargs):
@@ -150,7 +145,7 @@ def hermes(kwargs):
     self = kwargs["self"]
     attacker_1 = kwargs.get("attacker_1")
     attacker_2 = kwargs.get("attacker_2")
-    msg = "attakiing with Hermes :\n"
+    msg = "attaking with Hermes :\n"
     if attacker_1:
         if self.check_abillity():
             msg = attacker_1.ability({
@@ -196,7 +191,9 @@ def thanatos(kwargs):
         target.hp = 0
         self = kwargs["self"]
         self.hp -= 5  # High cost for instant kill
+        self.reload = self.reload_max
         return (f"Thanatos instakills {target.name.capitalize()}, but takes 5 dmg.")
+        
     else:
         return(f"Thanatos failed to instakill {target.name.capitalize()}")
 
@@ -243,13 +240,9 @@ def persephone(kwargs):
                 msg = "Persephone revive failed!!!"
         else:
             # Heal living allies
-            target.hp += 2
-            if target.hp > target.max_hp:
-                target.hp = target.max_hp
-                msg = f"Persephone healed {target.name.capitalize()} to max hp"
-            else:
-                msg = f"Persephone healed {target.name.capitalize()} by 2 hp"
-    return msg
+            target.heal(2)
+            f"Persephone healed {target.name.capitalize()} by 2 hp"
+        return msg
 
 def hades_uw(kwargs):
     """Hades (Underworld) - Provides shields based on dead allies."""
@@ -268,12 +261,9 @@ def tisiphone(kwargs):
     target = kwargs["target"]
     self = kwargs["self"]
     if len(kwargs["ennemy_team"]) > 2 and len(kwargs["ally_team"]) > 2:
-        if r.randint(0, 1) == 0:
-            target.add_effect("tisi_freeze_timer", value=1, duration=2)
-            self.add_effect("tisi_freeze_timer", value=1, duration=2)
-            msg = f"Tisiphone froze ❄️ {target.name.capitalize()} and herself for 2 turns"
-        else:
-            msg = f"Tisiphone failed to freeze {target.name.capitalize()}"
+        target.add_effect("tisi_freeze_timer", value=1, duration=2)
+        self.add_effect("tisi_freeze_timer", value=1, duration=2)
+        msg = f"Tisiphone froze ❄️ {target.name.capitalize()} and herself for 2 turns"
     else:
         if self.hp == self.max_hp:
             target.hp -= 2
@@ -305,12 +295,14 @@ def megaera(kwargs):
 
 def hecate(kwargs):
     """Hecate's magic - Makes self and target invisible."""
-    kwargs["self"].visible = False
     if not kwargs.get("attacking_with_hermes", False):
         target = kwargs["target"]
+        self = kwargs["self"]
+        self.heal(2)
+        msg = "Hacate heals herself by 2 hp"
         target.visible = False
         if target.name == "hecate":
-            msg = "Hecate goes into hiding"
+            msg += "Hecate goes into hiding"
         else:
-            msg = f"Hecate forces {target.name.capitalize()} into hiding"
-    return msg
+            msg += f"Hecate forces {target.name.capitalize()} into hiding"
+        return msg
