@@ -24,7 +24,7 @@ class LobbyManager(commands.Cog):
                              interaction: discord.Interaction,
                              count: int = 10):
         """Create Maggod Fight lobbies."""
-        if not Config.ENABLE_CREATE_LOBBIES_COMMAND:
+        if Config.ENABLE_CREATE_LOBBIES_COMMAND:
             await interaction.response.send_message(
             "🚫 This command is currently deactivated.",
             ephemeral=True
@@ -151,7 +151,7 @@ class LobbyManager(commands.Cog):
         "Delete the Maggod Fight Lobbies category and all its channels.")
     async def delete_lobbies(self, interaction: discord.Interaction):
         """Delete all Maggod Fight lobbies."""
-        if not Config.ENABLE_DELETE_LOBBIES_COMMAND:
+        if Config.ENABLE_DELETE_LOBBIES_COMMAND:
             await interaction.response.send_message(
             "🚫 This command is currently deactivated.",
             ephemeral=True
