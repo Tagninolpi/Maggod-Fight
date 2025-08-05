@@ -5,6 +5,7 @@ import math
 def poseidon(kwargs):
     """Poseidon's shield ability - Provides protective shields to allies."""
     visible_gods = kwargs.get("visible_gods", [])
+    alive_ally = kwargs.get("ally_team")
     attacking_with_hermes = kwargs.get("attacking_with_hermes", False)
     
     if attacking_with_hermes:
@@ -14,7 +15,7 @@ def poseidon(kwargs):
     else:
         # Strong permanent shield if no shields exist
         
-        if not any("posi_shield" in god.effects for god in visible_gods):
+        if not any("posi_shield" in god.effects for god in alive_ally):
             eligible = [g for g in visible_gods if g.name.lower() != "poseidon" and "posi_shield" not in g.effects]
             if eligible:
                 target = r.choice(eligible)

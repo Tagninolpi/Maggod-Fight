@@ -48,7 +48,7 @@ class God:
         self.effects = {}
         self.visible = False
         self.alive = True
-        self.reload = 5
+        self.reload = 0
         self.reload_max = reload_time
 
     def add_effect(self, effect_name: str, value: int, duration: int):
@@ -71,7 +71,7 @@ class God:
     def check_abillity(self):
         if self.reload <= 0:
             if not(self.name == "thanatos"):
-                self.reload = self.reload_max
+                self.reload = self.reload_max + 1
             return True
         else:
             return False
