@@ -74,7 +74,7 @@ def create_team_embeds(team1: list, team2: list, player1_name: str, player2_name
             icons.append("🐶")
         if "alecto_get_more_dmg" in god.effects:
             icons.append("💢")
-        if god.reload:
+        if god.reload>0:
             icons.append(f"{god.reload}⏳")
 
         return " ".join(icons)
@@ -377,7 +377,7 @@ class Turn(commands.Cog):
             if attacker.check_abillity():
                 ability_message = attacker.ability(ability_params)
             else:
-                ability_message = f"{attacker.name.capitalize()} abillity is on cooldown you can use it in {attacker.reload}"
+                ability_message = f"{attacker.name.capitalize()} abillity is on cooldown you can use it in {attacker.reload} turns"
             if ability_message:
                 # Show ability effect
                 await channel.send(ability_message)
