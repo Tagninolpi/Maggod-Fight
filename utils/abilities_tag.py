@@ -178,7 +178,7 @@ def hades_ow(kwargs):
         self = kwargs["self"]
         visible_gods = kwargs["visible_gods"]
         dmg = math.floor(0.5 + dead_ally_nb/2)
-        msg = f"Hades_ow gives +{dmg}💥 dmg boost to ✨gods : "
+        msg = f"Hades_ow gives +{dmg}💥 dmg boost for 2 turns to ✨gods : "
         for god in visible_gods:
             god.add_effect("hades_ow_do_more_dmg", value= dmg, duration=2)
             msg += f"{god.name.capitalize()}, "

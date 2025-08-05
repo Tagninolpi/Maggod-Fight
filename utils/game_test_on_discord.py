@@ -164,6 +164,7 @@ def action_befor_die(defend_team, attack_team):
                     "ennemy_team": get_alive(defend_team),
                     "self": god
                 })
+                return "Hera does 3 dmg to all ennemies"
     
     # Handle Charon's protective effect and death processing for defending team
     for god in defend_team:
@@ -180,6 +181,7 @@ def action_befor_die(defend_team, attack_team):
                     "ennemy_team": get_alive(attack_team),
                     "self": god
                 })
+                return "Hera does 3 dmg to all ennemies"
 
 def reset_god_to_default(god_name):
     """Reset a god to its default state."""

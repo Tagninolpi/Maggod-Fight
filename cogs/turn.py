@@ -74,7 +74,7 @@ def create_team_embeds(team1: list, team2: list, player1_name: str, player2_name
             icons.append("🐶")
         if "alecto_get_more_dmg" in god.effects:
             icons.append("💢")
-        if god.reload > 0:
+        if god.reload:
             icons.append(f"{god.reload}⏳")
 
         return " ".join(icons)
@@ -388,7 +388,10 @@ class Turn(commands.Cog):
 
         # Clean up effects and handle deaths
         action_befor_delete_effect(attack_team, defend_team)
-        action_befor_die(defend_team, attack_team)
+        action_befor_delete_effect(defend_team, attack_team)
+        msg = action_befor_die(defend_team, attack_team)
+        if msg:
+            await channel.send(msg)
         action_befor_delete_effect(defend_team, attack_team)
         
 
