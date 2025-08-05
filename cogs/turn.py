@@ -33,32 +33,38 @@ def create_team_embeds(team1: list, team2: list, player1_name: str, player2_name
         return s + " " * padding
 
     def get_shield(god) -> str:
+        icons = []
         if "posi_shield" in god.effects:
-            return f"🔱{god.effects['posi_shield'].value}"
-        elif "hep_shield" in god.effects:
-            return f"🛡️{god.effects['hep_shield'].value}"
-        elif "hades_uw_shield" in god.effects:
-            return f"☠️{god.effects['hades_uw_shield'].value}"
-        return ""
+            icons.append(f"🔱{god.effects['posi_shield'].value}")
+        if "hep_shield" in god.effects:
+            icons.append(f"🛡️{god.effects['hep_shield'].value}")
+        if "hades_uw_shield" in god.effects:
+            icons.append(f"☠️{god.effects['hades_uw_shield'].value}")
+        return " ".join(icons)
+
 
     def get_dmg_boost(god) -> str:
+        icons = []
         if "ares_do_more_dmg" in god.effects:
             val = god.effects["ares_do_more_dmg"].value
-            return f"+{val}🔥"
-        elif "hades_ow_do_more_dmg" in god.effects:
+            icons.append(f"+{val}🔥")
+        if "hades_ow_do_more_dmg" in god.effects:
             val = god.effects["hades_ow_do_more_dmg"].value
-            return f"+{val}💥"
-        elif "mega_do_less_dmg" in god.effects:
+            icons.append(f"+{val}💥")
+        if "mega_do_less_dmg" in god.effects:
             val = god.effects["mega_do_less_dmg"].value
-            return f"-{val}💚"
-        return ""
+            icons.append(f"-{val}💚")
+        return " ".join(icons)
+
 
     def get_hp_boost_icon(god) -> str:
+        icons = []
         if "athena_more_max_hp" in god.effects:
-            return "📯"
-        elif "cerebus_more_max_hp_per_visible_ally" in god.effects:
-            return "⛑️"
-        return ""
+            icons.append("📯")
+        if "cerebus_more_max_hp_per_visible_ally" in god.effects:
+            icons.append("⛑️")
+        return " ".join(icons)
+
 
     def get_misc_effects_icons(god) -> str:
         icons = []

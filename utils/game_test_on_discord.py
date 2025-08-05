@@ -29,25 +29,25 @@ abilities_ = {
 # All available gods with their stats
 gods = {
     "poseidon": God("poseidon", 10, 4, abilities_["poseidon"],0),
-    "hephaestus": God("hephaestus", 12, 2, abilities_["hephaestus"],2),
+    "hephaestus": God("hephaestus", 12, 2, abilities_["hephaestus"],3),
     "aphrodite": God("aphrodite", 10, 3, abilities_["aphrodite"],0),
     "ares": God("ares", 9, 5, abilities_["ares"],0),
     "hera": God("hera", 8, 5, abilities_["hera"],0),
     "zeus": God("zeus", 14, 2, abilities_["zeus"],2),
     "athena": God("athena", 12, 3, abilities_["athena"],0),
-    "apollo": God("apollo", 9, 4, abilities_["apollo"],0),
+    "apollo": God("apollo", 9, 4, abilities_["apollo"],1),
     "artemis": God("artemis", 7, 3, abilities_["artemis"],2),
     "hermes": God("hermes", 7, 1, abilities_["hermes"],4),
-    "hades_ow": God("hades_ow", 8, 3, abilities_["hades_ow"],0),
+    "hades_ow": God("hades_ow", 8, 3, abilities_["hades_ow"],1),
     "thanatos": God("thanatos", 11, 2, abilities_["thanatos"],0),
     "cerebus": God("cerebus", 9, 3, abilities_["cerebus"],0),
-    "charon": God("charon", 10, 5, abilities_["charon"],0),
-    "persephone": God("persephone", 8, 3, abilities_["persephone"],0),
-    "hades_uw": God("hades_uw", 6, 3, abilities_["hades_uw"],0),
+    "charon": God("charon", 10, 5, abilities_["charon"],3),
+    "persephone": God("persephone", 8, 3, abilities_["persephone"],1),
+    "hades_uw": God("hades_uw", 6, 3, abilities_["hades_uw"],1),
     "tisiphone": God("tisiphone", 11, 3, abilities_["tisiphone"],0),
-    "alecto": God("alecto", 9, 3, abilities_["alecto"],0),
-    "megaera": God("megaera", 9, 3, abilities_["megaera"],0),
-    "hecate": God("hecate", 10, 4, abilities_["hecate"],0),
+    "alecto": God("alecto", 9, 3, abilities_["alecto"],1),
+    "megaera": God("megaera", 9, 3, abilities_["megaera"],1),
+    "hecate": God("hecate", 10, 4, abilities_["hecate"],1),
 }
 
 # Default teams for testing (not used in actual matches)
@@ -165,7 +165,7 @@ def action_befor_die(defend_team, attack_team):
                     "ennemy_team": get_alive(defend_team),
                     "self": god
                 })
-                return "Hera does 3 dmg to all ennemies"
+                return "Hera died. She does revenge expolsion that does 3 dmg to all ennemies"
     
     # Handle Charon's protective effect and death processing for defending team
     for god in defend_team:

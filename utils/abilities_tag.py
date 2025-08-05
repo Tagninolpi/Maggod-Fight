@@ -148,7 +148,7 @@ def hermes(kwargs):
     attacker_2 = kwargs.get("attacker_2")
     msg = "attaking with Hermes :\n"
     if attacker_1:
-        if self.check_abillity():
+        if attacker_1.check_abillity():
             msg = attacker_1.ability({
                 **kwargs,
                 "attacking_with_hermes": True,
@@ -159,7 +159,7 @@ def hermes(kwargs):
         target.get_dmg(value=dmg)
     
     if attacker_2:
-        if self.check_abillity():
+        if attacker_2.check_abillity():
             msg += attacker_2.ability({
                 **kwargs,
                 "attacking_with_hermes": True,
@@ -242,7 +242,7 @@ def persephone(kwargs):
         else:
             # Heal living allies
             target.heal(2)
-            f"Persephone healed {target.name.capitalize()} by 2 hp"
+            msg = f"Persephone healed {target.name.capitalize()} by 2 hp"
         return msg
 
 def hades_uw(kwargs):
@@ -299,8 +299,9 @@ def hecate(kwargs):
     if not kwargs.get("attacking_with_hermes", False):
         target = kwargs["target"]
         self = kwargs["self"]
-        self.heal(2)
-        msg = "Hacate heals herself by 2 hp\n"
+        self.heal(1)
+        target.heal(1)
+        msg = f"Hacate heals herself and {target.name.capitalize()} by 1 hp\n"
         target.visible = False
         if target.name == "hecate":
             msg += "Hecate goes into hiding"
