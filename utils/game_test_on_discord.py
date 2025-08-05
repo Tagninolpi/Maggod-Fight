@@ -33,7 +33,7 @@ gods = {
     "aphrodite": God("aphrodite", 10, 3, abilities_["aphrodite"],0),
     "ares": God("ares", 9, 5, abilities_["ares"],0),
     "hera": God("hera", 8, 5, abilities_["hera"],0),
-    "zeus": God("zeus", 14, 2, abilities_["zeus"],0),
+    "zeus": God("zeus", 14, 2, abilities_["zeus"],1),
     "athena": God("athena", 12, 3, abilities_["athena"],0),
     "apollo": God("apollo", 9, 4, abilities_["apollo"],0),
     "artemis": God("artemis", 7, 3, abilities_["artemis"],1),

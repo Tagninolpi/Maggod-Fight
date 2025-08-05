@@ -39,7 +39,7 @@ class Effect:
 class God:
     """Represents a god in the game."""
     
-    def __init__(self, name: str, hp: int, dmg: int, ability_func,reload):
+    def __init__(self, name: str, hp: int, dmg: int, ability_func,reload_time):
         self.name = name
         self.hp = hp
         self.max_hp = hp
@@ -48,8 +48,8 @@ class God:
         self.effects = {}
         self.visible = False
         self.alive = True
-        self.reload = 0
-        self.reload_max = reload
+        self.reload = 5
+        self.reload_max = reload_time
 
     def add_effect(self, effect_name: str, value: int, duration: int):
         """Add an effect only if it doesn't already exist."""

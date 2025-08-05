@@ -299,7 +299,7 @@ def hecate(kwargs):
         target = kwargs["target"]
         self = kwargs["self"]
         self.heal(2)
-        msg = "Hacate heals herself by 2 hp"
+        msg = "Hacate heals herself by 2 hp\n"
         target.visible = False
         if target.name == "hecate":
             msg += "Hecate goes into hiding"
