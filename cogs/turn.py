@@ -288,8 +288,9 @@ class Turn(commands.Cog):
                 await channel.send("❌ No visible targets available. Turn skipped.")
                 return
             if attacker.name == "aphrodite":
+                alive_ennemy = get_alive(defend_team)
                 attacked = await self.send_god_selection_prompt(
-                    channel, attack_team, defend_team, get_alive(defend_team), "attack", current_player
+                    channel,defend_team ,attack_team ,alive_ennemy , "attack", current_player
                     )
             else:
                 attacked = await self.send_god_selection_prompt(
