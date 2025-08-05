@@ -7,7 +7,8 @@ class Config:
     # Discord Bot Token (required)
     DISCORD_TOKEN = os.getenv("TOKEN")
 
-    
+    ENABLE_DELETE_LOBBIES_COMMAND = False
+    ENABLE_CREATE_LOBBIES_COMMAND = False
     # Bot Configuration
     COMMAND_PREFIX = os.getenv("COMMAND_PREFIX", "!")
     
