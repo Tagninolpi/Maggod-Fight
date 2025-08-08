@@ -8,6 +8,7 @@ import asyncio
 from utils.game_test_on_discord import gods as all_gods_template
 from bot.utils import update_lobby_status_embed
 import asyncio
+from bot.checks import (is_lobby_channel,is_match_participant,match_phase,turn_not_in_progress)
 
 logger = logging.getLogger(__name__)
 
@@ -64,6 +65,10 @@ class BuildTeam(commands.Cog):
         self.bot = bot
     
     @app_commands.command(name="start", description="Start team building for a Maggod Fight match.")
+    @is_lobby_channel()
+    @is_match_participant()
+    @match_phase("ready")
+
     async def start_build(self, interaction: discord.Interaction):
         """Start the team building phase."""
         DEBUG_SKIP_BUILD = True  # ⬅️ Set to False for normal use
@@ -73,13 +78,6 @@ class BuildTeam(commands.Cog):
             except discord.NotFound:
                 logger.warning("Interaction expired before defer in /choose")
         channel = interaction.channel
-        if not isinstance(channel, discord.TextChannel):
-            await interaction.followup.send(
-                "❌ This command must be used in a Maggod fight lobby channel.",
-                ephemeral=False
-            )
-            return
-
         channel_id = channel.id
 
         # Import here to avoid circular imports
@@ -87,28 +85,6 @@ class BuildTeam(commands.Cog):
         from utils.game_test_on_discord import gods as all_gods_template
 
         match = matchmaking_dict.get(channel_id)
-
-        if not match or not match.started:
-            await interaction.followup.send(
-                "❌ No ongoing match in this channel. Use `/join` to start a match.",
-                ephemeral=False
-            )
-            return
-
-        if match.game_phase != "ready":
-            await interaction.followup.send(
-                "🛑 Team building is complete! The battle has begun.\n"
-                "The first player should use `/do_turn` to start.",
-                ephemeral=False
-            )
-            return
-
-        if hasattr(match, "teams_initialized") and match.teams_initialized:
-            await interaction.followup.send(
-                "✅ Team building already started.",
-                ephemeral=False
-            )
-            return
 
         # Common setup for both modes
         match.gods = copy.deepcopy(all_gods_template)
@@ -193,6 +169,11 @@ class BuildTeam(commands.Cog):
 
 
     @app_commands.command(name="choose", description="Choose a god for your team.")
+    @is_lobby_channel()
+    @is_match_participant()
+    @match_phase("building")
+    @turn_not_in_progress()
+
     async def choose(self, interaction: discord.Interaction):
         """Choose a god for the team."""
         channel = interaction.channel
@@ -200,39 +181,13 @@ class BuildTeam(commands.Cog):
             try:
                 await interaction.response.defer(ephemeral=False)  # or ephemeral=True if needed
             except discord.NotFound:
-                logger.warning("Interaction expired before defer in /choose")
-        if not isinstance(channel, discord.TextChannel):
-            await interaction.followup.send(
-                "❌ This command must be used in a Maggod fight lobby channel.",
-                ephemeral=False
-            )
-            return
-            
+                logger.warning("Interaction expired before defer in /choose")            
         channel_id = channel.id
 
         # Import here to avoid circular imports
         from bot.utils import matchmaking_dict
 
         match = matchmaking_dict.get(channel_id)
-        
-        if match.game_phase != "building":
-            await interaction.followup.send(
-                "🛑 Team building is complete! The battle has begun.\n"
-                "The first player should use `/do_turn` to start.",
-                ephemeral=False
-            )
-            return
-        if not match or not hasattr(match, "teams"):
-            await interaction.followup.send(
-                "❌ Team building hasn't started yet. Use `/start` to begin.",
-                ephemeral=False
-            )
-            return
-
-        if match.turn_in_progress:
-            await channel.send("⏳ A turn is already in progress. Please choose a god.")
-            return
-        
         match.turn_in_progress = True
         
         if match.solo_mode and match.next_picker == "bot":

@@ -3,6 +3,7 @@ from discord.ext import commands
 from discord import app_commands
 from bot.config import Config
 import logging
+from bot.checks import is_allowed_channel
 
 allowed_channel_id = 1393219828080185374
 logger = logging.getLogger(__name__)
@@ -20,6 +21,7 @@ class LobbyManager(commands.Cog):
     )
     @app_commands.describe(
         count="Number of lobbies to create (default: 10, max: 20)")
+    @is_allowed_channel(allowed_channel_id)
     async def create_lobbies(self,
                              interaction: discord.Interaction,
                              count: int = 10):
@@ -37,13 +39,6 @@ class LobbyManager(commands.Cog):
             except discord.NotFound:
                 logger.warning("Interaction expired before defer in /create_maggod_lobbies")
 
-        # ✅ Restrict to specific channel
-        if interaction.channel.id != allowed_channel_id:
-            await interaction.followup.send(
-                "❌ You can't use this command here.",
-                ephemeral=True
-            )
-            return
 
         # Validate count
         if count < 1 or count > 20:
@@ -149,6 +144,8 @@ class LobbyManager(commands.Cog):
         name="delete_maggod_lobbies",
         description=
         "Delete the Maggod Fight Lobbies category and all its channels.")
+    @is_allowed_channel(allowed_channel_id)
+    
     async def delete_lobbies(self, interaction: discord.Interaction):
         """Delete all Maggod Fight lobbies."""
         if Config.ENABLE_DELETE_LOBBIES_COMMAND:
@@ -163,14 +160,6 @@ class LobbyManager(commands.Cog):
                 await interaction.response.defer(ephemeral=False)
             except discord.NotFound:
                 logger.warning("Interaction expired before defer in /delete_maggod_lobbies")
-
-        # ✅ Restrict to specific channel
-        if interaction.channel.id != allowed_channel_id:
-            await interaction.followup.send(
-                "❌ You can't use this command here.",
-                ephemeral=True
-            )
-            return
 
         guild = interaction.guild
         if not guild:

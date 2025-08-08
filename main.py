@@ -33,7 +33,7 @@ class Match:
         self.current_turn_player = None
         self.turn_number = 0
         self.teams_initialized = False
-        self.game_phase = "Waiting for first player"  # waiting, building, playing, finished
+        self.game_phase = "Waiting for first player"  # Waiting for second player,ready, building, playing, finished
 
         self.current_attacking_team = None
         self.turn_state = {

@@ -9,6 +9,7 @@ from bot.utils import update_lobby_status_embed
 import asyncio
 import re
 import unicodedata
+from bot.checks import (is_lobby_channel,is_match_participant,match_phase,turn_not_in_progress)
 
 logger = logging.getLogger(__name__)
 
@@ -489,40 +490,18 @@ class Turn(commands.Cog):
 
 
     @app_commands.command(name="do_turn", description="Make your turn in the ongoing Maggod Fight battle.")
+    @is_lobby_channel()
+    @is_match_participant()
+    @match_phase("playing")
+    @turn_not_in_progress()
+
     async def do_turn_slash(self, interaction: discord.Interaction):
         """Execute a turn in the battle."""
         channel = interaction.channel
         
-        if not isinstance(channel, discord.TextChannel):
-            await interaction.response.send_message(
-                "❌ This command must be used in a text channel.",
-                ephemeral=True
-            ) 
-            return
-
         from bot.utils import matchmaking_dict
 
         match = matchmaking_dict.get(channel.id)
-        if not match:
-            await interaction.response.send_message(
-                "❌ No match found in this channel.",
-                ephemeral=True
-            )
-            return
-
-        if match.game_phase != "playing":
-            await interaction.response.send_message(
-                "❌ The battle hasn't started yet. Use `/start` to begin team building.",
-                ephemeral=True
-            )
-            return
-
-        if interaction.user.id not in [match.player1_id, match.player2_id]:
-            await interaction.response.send_message(
-                "🚫 You are not a participant in this match.",
-                ephemeral=True
-            )
-            return
 
         # Check if it's the player's turn
         current_player_id = match.turn_state["current_player"]
@@ -531,11 +510,6 @@ class Turn(commands.Cog):
                 "⏳ It is not your turn yet. Please wait for your opponent.",
                 ephemeral=True
             )
-            return
-        
-        #update
-        if match.turn_in_progress:
-            await channel.send("⏳ A turn is already in progress. Please choose a god.")
             return
 
         match.turn_in_progress = True

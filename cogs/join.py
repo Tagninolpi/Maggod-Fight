@@ -4,6 +4,7 @@ from discord import app_commands
 from bot.config import Config
 import logging
 import asyncio
+from bot.checks import is_lobby_channel
 logger = logging.getLogger(__name__)
 
 class Join(commands.Cog):
@@ -13,27 +14,15 @@ class Join(commands.Cog):
         self.bot = bot
 
     @app_commands.command(name="join", description="Join a Maggod Fight Lobby")
+    @is_lobby_channel()
+
     async def join_lobby(self, interaction: discord.Interaction):
         """Join a Maggod Fight lobby."""
         await interaction.response.defer(ephemeral=False)
         channel = interaction.channel
         from bot.utils import update_lobby_status_embed
-        if not isinstance(channel, discord.TextChannel):
-            await interaction.followup.send(
-            "❌ This command must be used in a Mggod fight lobby channel.",
-                ephemeral=True
-            )
-            return
             
         channel_id = channel.id
-
-        # Validate location
-        if not channel.category or channel.category.name != Config.LOBBY_CATEGORY_NAME:
-            await interaction.followup.send(
-                f"❌ You must use this command in a `{Config.LOBBY_CATEGORY_NAME}` channel.",
-                ephemeral=True
-            )
-            return
 
         # Import here to avoid circular imports
         from main import  Match
@@ -138,31 +127,33 @@ class Join(commands.Cog):
             await interaction.followup.send(embed=embed)
 
         elif match.started:
-            
-            embed = discord.Embed(
-                title="👥 Match in Progress",
-                description="This lobby is currently occupied, but you can spectate!",
-                color=0xffa500
-            )
-            embed.add_field(
-                name="🥊 Current Match",
-                value=f"**{match.player1_name}** vs **{match.player2_name}**",
-                inline=False
-            )
-            embed.add_field(
-                name="📊 Match Status",
-                value=f"Phase: {match.game_phase.title()}",
-                inline=False
-            )
-            embed.add_field(
-                name="🔍 Spectating",
-                value="You can watch the battle unfold, but cannot participate.",
-                inline=False
-            )
-            
-            await interaction.followup.send(embed=embed, ephemeral=True)
+            if interaction.user.id in [match.player1_id, match.player2_id]:
+                await interaction.followup.send("❌ You are already in this match!!!", ephemeral=True)
 
+            else:
+                embed = discord.Embed(
+                    title="👥 Match in Progress",
+                    description="This lobby is currently occupied, but you can spectate!",
+                    color=0xffa500
+                )
+                embed.add_field(
+                    name="🥊 Current Match",
+                value=f"**{match.player1_name}** vs **{match.player2_name}**",
+                    inline=False
+            )
+                embed.add_field(
+                    name="📊 Match Status",
+                    value=f"Phase: {match.game_phase.title()}",
+                    inline=False
+                )
+                embed.add_field(
+                    name="🔍 Spectating",
+                    value="You can watch the battle unfold, but cannot participate.",
+                    inline=False
+                )
+                await interaction.followup.send(embed=embed, ephemeral=True)
 
 async def setup(bot):
     """Setup function for the cog."""
     await bot.add_cog(Join(bot))
+ 
