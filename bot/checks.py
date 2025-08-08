@@ -1,10 +1,9 @@
 from discord import Interaction, TextChannel
-from discord.ext import commands
 from discord.app_commands import check
 from bot.config import Config
 from bot.utils import matchmaking_dict
 
-class Check(commands.Cog):
+class Check():
     def is_lobby_channel():
         @check
         async def predicate(interaction: Interaction) -> bool:
@@ -60,7 +59,7 @@ class Check(commands.Cog):
                 )
                 return False
             return True
-            return predicate
+        return predicate
 
     def turn_not_in_progress():
         @check
@@ -74,7 +73,3 @@ class Check(commands.Cog):
                 return False
             return True
         return predicate
-
-async def setup(bot):
-    """Setup function for the cog."""
-    await bot.add_cog(Check(bot))
