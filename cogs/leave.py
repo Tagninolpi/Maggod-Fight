@@ -4,7 +4,7 @@ from discord import app_commands
 from bot.config import Config
 import logging
 from bot.utils import update_lobby_status_embed
-from bot.checks import (is_lobby_channel,is_match_participant)
+from bot.checks import Check as c
 
 
 logger = logging.getLogger(__name__)
@@ -16,8 +16,8 @@ class Leave(commands.Cog):
         self.bot = bot
 
     @app_commands.command(name="leave", description="Leave the current Maggod Fight lobby and reset the match.")
-    @is_lobby_channel()
-    @is_match_participant()
+    @c.is_lobby_channel()
+    @c.is_match_participant()
     async def leave_lobby(self, interaction: discord.Interaction):
         """Leave the current lobby."""
         channel = interaction.channel

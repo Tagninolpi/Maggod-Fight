@@ -4,7 +4,7 @@ from discord import app_commands
 from bot.config import Config
 import logging
 import asyncio
-from bot.checks import is_lobby_channel
+from bot.checks import Check as c
 logger = logging.getLogger(__name__)
 
 class Join(commands.Cog):
@@ -14,7 +14,7 @@ class Join(commands.Cog):
         self.bot = bot
 
     @app_commands.command(name="join", description="Join a Maggod Fight Lobby")
-    @is_lobby_channel()
+    @c.is_lobby_channel()
 
     async def join_lobby(self, interaction: discord.Interaction):
         """Join a Maggod Fight lobby."""

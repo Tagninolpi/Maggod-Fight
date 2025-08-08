@@ -3,7 +3,7 @@ from discord.ext import commands
 from discord import app_commands
 from bot.config import Config
 import logging
-from bot.checks import is_allowed_channel
+from bot.checks import Check as c
 
 allowed_channel_id = 1393219828080185374
 logger = logging.getLogger(__name__)
@@ -21,7 +21,7 @@ class LobbyManager(commands.Cog):
     )
     @app_commands.describe(
         count="Number of lobbies to create (default: 10, max: 20)")
-    @is_allowed_channel(allowed_channel_id)
+    @c.is_allowed_channel(allowed_channel_id)
     async def create_lobbies(self,
                              interaction: discord.Interaction,
                              count: int = 10):
@@ -144,8 +144,8 @@ class LobbyManager(commands.Cog):
         name="delete_maggod_lobbies",
         description=
         "Delete the Maggod Fight Lobbies category and all its channels.")
-    @is_allowed_channel(allowed_channel_id)
-    
+    @c.is_allowed_channel(allowed_channel_id)
+
     async def delete_lobbies(self, interaction: discord.Interaction):
         """Delete all Maggod Fight lobbies."""
         if Config.ENABLE_DELETE_LOBBIES_COMMAND:

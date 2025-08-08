@@ -8,7 +8,7 @@ import asyncio
 from utils.game_test_on_discord import gods as all_gods_template
 from bot.utils import update_lobby_status_embed
 import asyncio
-from bot.checks import (is_lobby_channel,is_match_participant,match_phase,turn_not_in_progress)
+from bot.checks import Check as c
 
 logger = logging.getLogger(__name__)
 
@@ -65,9 +65,9 @@ class BuildTeam(commands.Cog):
         self.bot = bot
     
     @app_commands.command(name="start", description="Start team building for a Maggod Fight match.")
-    @is_lobby_channel()
-    @is_match_participant()
-    @match_phase("ready")
+    @c.is_lobby_channel()
+    @c.is_match_participant()
+    @c.match_phase("ready")
 
     async def start_build(self, interaction: discord.Interaction):
         """Start the team building phase."""
@@ -169,10 +169,10 @@ class BuildTeam(commands.Cog):
 
 
     @app_commands.command(name="choose", description="Choose a god for your team.")
-    @is_lobby_channel()
-    @is_match_participant()
-    @match_phase("building")
-    @turn_not_in_progress()
+    @c.is_lobby_channel()
+    @c.is_match_participant()
+    @c.match_phase("building")
+    @c.turn_not_in_progress()
 
     async def choose(self, interaction: discord.Interaction):
         """Choose a god for the team."""

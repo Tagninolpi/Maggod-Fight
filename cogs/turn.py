@@ -9,7 +9,7 @@ from bot.utils import update_lobby_status_embed
 import asyncio
 import re
 import unicodedata
-from bot.checks import (is_lobby_channel,is_match_participant,match_phase,turn_not_in_progress)
+from bot.checks import Check as c
 
 logger = logging.getLogger(__name__)
 
@@ -490,10 +490,10 @@ class Turn(commands.Cog):
 
 
     @app_commands.command(name="do_turn", description="Make your turn in the ongoing Maggod Fight battle.")
-    @is_lobby_channel()
-    @is_match_participant()
-    @match_phase("playing")
-    @turn_not_in_progress()
+    @c.is_lobby_channel()
+    @c.is_match_participant()
+    @c.match_phase("playing")
+    @c.turn_not_in_progress()
 
     async def do_turn_slash(self, interaction: discord.Interaction):
         """Execute a turn in the battle."""
