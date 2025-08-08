@@ -16,8 +16,8 @@ class Leave(commands.Cog):
         self.bot = bot
 
     @app_commands.command(name="leave", description="Leave the current Maggod Fight lobby and reset the match.")
-    @c.is_lobby_channel()
     @c.is_match_participant()
+    @c.is_lobby_channel()
     async def leave_lobby(self, interaction: discord.Interaction):
         """Leave the current lobby."""
         channel = interaction.channel

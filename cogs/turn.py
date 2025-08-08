@@ -490,10 +490,10 @@ class Turn(commands.Cog):
 
 
     @app_commands.command(name="do_turn", description="Make your turn in the ongoing Maggod Fight battle.")
-    @c.is_lobby_channel()
-    @c.is_match_participant()
-    @c.match_phase("playing")
     @c.turn_not_in_progress()
+    @c.match_phase("playing")
+    @c.is_match_participant()
+    @c.is_lobby_channel()
 
     async def do_turn_slash(self, interaction: discord.Interaction):
         """Execute a turn in the battle."""

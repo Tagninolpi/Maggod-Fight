@@ -65,9 +65,9 @@ class BuildTeam(commands.Cog):
         self.bot = bot
     
     @app_commands.command(name="start", description="Start team building for a Maggod Fight match.")
-    @c.is_lobby_channel()
-    @c.is_match_participant()
     @c.match_phase("ready")
+    @c.is_match_participant()
+    @c.is_lobby_channel()
 
     async def start_build(self, interaction: discord.Interaction):
         """Start the team building phase."""
@@ -169,10 +169,10 @@ class BuildTeam(commands.Cog):
 
 
     @app_commands.command(name="choose", description="Choose a god for your team.")
-    @c.is_lobby_channel()
-    @c.is_match_participant()
-    @c.match_phase("building")
     @c.turn_not_in_progress()
+    @c.match_phase("building")
+    @c.is_match_participant()
+    @c.is_lobby_channel()
 
     async def choose(self, interaction: discord.Interaction):
         """Choose a god for the team."""
