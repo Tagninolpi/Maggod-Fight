@@ -294,7 +294,7 @@ class Turn(commands.Cog):
         if buffed_ally:
             attacked = buffed_ally
             await channel.send(
-                f"🐕 **{buffed_ally.name.capitalize()}** forces the attacker to target it!"
+                f"🐕 **{buffed_ally.name.capitalize()}** forces **{attacker.name.capitalize()}** to target it!"
             )
         else:
             if not visible_defenders:

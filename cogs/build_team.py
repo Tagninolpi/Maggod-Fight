@@ -99,7 +99,7 @@ class BuildTeam(commands.Cog):
                 match.player1_id: [],
                 match.player2_id: []
                 }
-        DEBUG_SKIP_BUILD = True
+        DEBUG_SKIP_BUILD = False
         if DEBUG_SKIP_BUILD:
             # Assign 5 gods per player (random or predefined)
             gods_list = list(match.gods.values())
