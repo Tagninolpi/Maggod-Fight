@@ -220,8 +220,12 @@ def charon(kwargs):
     """Charon's protection - Protects allies and removes debuffs."""
     if not kwargs.get("attacking_with_hermes", False):
         target = kwargs["target"]
-        kwargs["self"].hp -= len(kwargs["dead_ally"]) -1
-        msg = f"Charon protect 🧿 {target.name.capitalize()} from ennemy base dmg for 2 turn and remove all negative effects from all visible gods, but takes 2 dmg"
+        dmg = kwargs["self"].heal(len(kwargs["dead_ally"]) -1)
+        msg = f"Charon protect 🧿 {target.name.capitalize()} from ennemy base dmg for 2 turn and remove all negative effects from all visible gods,"
+        if dmg > 0:
+            msg += f"and gains {dmg} hp"
+        elif dmg < 0:
+            msg += f"but losses {dmg} hp"
         target.add_effect("charon_invisible_duration", value=target.hp, duration=2)
         bad_effects = ["aphro_charm", "zeus_stun", "tisi_freeze_timer","alecto_get_more_dmg", "mega_do_less_dmg"]
         # Remove negative effects from visible gods
