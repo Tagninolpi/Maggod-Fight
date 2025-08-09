@@ -67,7 +67,7 @@ class MaggodFightBot(commands.Bot):
     async def setup_hook(self):
         """Setup hook called when bot is starting."""
         logger.info("Bot is starting up...")
-        
+    
         # Load all cogs
         cogs_to_load = [
             'cogs.lobby_manager',
@@ -76,21 +76,74 @@ class MaggodFightBot(commands.Bot):
             'cogs.build_team',
             'cogs.turn'
         ]
-        
+    
         for cog in cogs_to_load:
             try:
                 await self.load_extension(cog)
                 logger.info(f"Loaded cog: {cog}")
             except Exception as e:
                 logger.error(f"Failed to load cog {cog}: {e}")
-        
+
         # Setup events and commands
         setup_events(self)
         #await setup_commands(self)
-        
+
+        # Import exceptions locally to avoid circular imports or import errors
+        from bot.exceptions import (
+            NotInLobbyChannel,
+            NotMatchParticipant,
+            NotAllowedChannel,
+            WrongMatchPhase,
+            TurnInProgress,
+        )
+
+        # Global error handler for all slash commands
+        @self.tree.error
+        async def on_app_command_error(interaction: discord.Interaction, error: discord.app_commands.AppCommandError):
+            # Unwrap original error if it exists (sometimes error is wrapped)
+            orig_error = getattr(error, "original", error)
+
+            if isinstance(orig_error, NotInLobbyChannel):
+                await interaction.response.send_message(f"❌ {orig_error}", ephemeral=True)
+                return
+            if isinstance(orig_error, NotMatchParticipant):
+                await interaction.response.send_message(f"🚫 {orig_error}", ephemeral=True)
+                return
+            if isinstance(orig_error, NotAllowedChannel):
+                await interaction.response.send_message(f"❌ {orig_error}", ephemeral=True)
+                return
+            if isinstance(orig_error, WrongMatchPhase):
+                await interaction.response.send_message(f"❌ {orig_error}", ephemeral=True)
+                return
+            if isinstance(orig_error, TurnInProgress):
+                await interaction.response.send_message(f"⏳ {orig_error}", ephemeral=True)
+                return
+
+            if isinstance(error, discord.app_commands.CheckFailure):
+                await interaction.response.send_message(
+                    "❌ You cannot use this command right now.",
+                    ephemeral=True
+                )
+                return
+
+            if isinstance(error, discord.app_commands.CommandOnCooldown):
+                await interaction.response.send_message(
+                    f"⏳ This command is on cooldown. Try again in {error.retry_after:.1f} seconds.",
+                    ephemeral=True
+                )
+                return
+
+            # Fallback for unhandled errors
+            await interaction.response.send_message(
+                "⚠️ An unexpected error occurred while running this command.",
+                ephemeral=True
+            )
+
+            logger.error(f"Command error: {error}", exc_info=True)
+
         logger.info("Event handlers loaded successfully")
         logger.info("Commands loaded successfully")
-    
+
     async def on_ready(self):
         """Called when the bot is ready."""
         self.start_time = datetime.utcnow()
