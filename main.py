@@ -163,7 +163,8 @@ class MaggodFightBot(commands.Bot):
             if channel:
                 await channel.send(f"<@{Config.OWNER_ID}>✅ **Maggod Fight Bot is now online!**")
             else:
-                logger.warning("Announcement channel not found.")
+                logger.error(f"Invalid ANNOUNCE_CHANNEL_ID: {Config.ANNOUNCE_CHANNEL_ID} "
+                            f"(not a TextChannel)")
         except Exception as e:
             logger.error(f"Failed to send online message: {e}")
 

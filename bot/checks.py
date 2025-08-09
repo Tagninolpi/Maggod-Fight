@@ -36,10 +36,10 @@ class Check():
             return True
         return predicate
 
-    def is_allowed_channel(allowed_channel_id: int):
+    def is_allowed_channel():
         @check
         async def predicate(interaction: Interaction) -> bool:
-            if interaction.channel.id != allowed_channel_id:
+            if interaction.channel.id != Config.allowed_channel_id:
                 raise NotAllowedChannel("You can't use this command here.")
             return True
         return predicate
