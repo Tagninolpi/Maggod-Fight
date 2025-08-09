@@ -14,3 +14,6 @@ class WrongMatchPhase(CheckFailure):
 
 class TurnInProgress(CheckFailure):
     pass
+
+class PlayerIsAllowed(CheckFailure):
+    pass

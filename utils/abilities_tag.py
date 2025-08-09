@@ -20,6 +20,7 @@ def poseidon(kwargs):
             if eligible:
                 target = r.choice(eligible)
                 target.add_effect("posi_shield", value=5, duration=100)
+    
 
 def hephaestus(kwargs):
     """Hephaestus's forge shields - Provides temporary shields to all visible allies."""

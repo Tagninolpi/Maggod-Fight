@@ -8,6 +8,7 @@ from bot.exceptions import (
     NotAllowedChannel,
     WrongMatchPhase,
     TurnInProgress,
+    PlayerIsAllowed,
 )
 
 class Check():
@@ -58,5 +59,13 @@ class Check():
             match = matchmaking_dict.get(interaction.channel.id)
             if match and match.turn_in_progress:
                 raise TurnInProgress("A turn is already in progress. Please choose a god.")
+            return True
+        return predicate
+    
+    def is_allowed_player():
+        @check
+        async def predicate(interaction: Interaction) -> bool:
+            if interaction.user.id not in Config.ALLOWED_PLAYER_IDS:
+                raise PlayerIsAllowed("You are not allowed to use this command.")
             return True
         return predicate

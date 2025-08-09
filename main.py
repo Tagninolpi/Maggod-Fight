@@ -95,6 +95,7 @@ class MaggodFightBot(commands.Bot):
             NotAllowedChannel,
             WrongMatchPhase,
             TurnInProgress,
+            PlayerIsAllowed,
         )
 
         # Global error handler for all slash commands
@@ -118,7 +119,10 @@ class MaggodFightBot(commands.Bot):
             if isinstance(orig_error, TurnInProgress):
                 await interaction.response.send_message(f"⏳ {orig_error}", ephemeral=True)
                 return
-
+            if isinstance(orig_error, PlayerIsAllowed):
+                await interaction.response.send_message(f"❌ {orig_error}", ephemeral=True)
+                return
+            
             if isinstance(error, discord.app_commands.CheckFailure):
                 await interaction.response.send_message(
                     "❌ You cannot use this command right now.",
