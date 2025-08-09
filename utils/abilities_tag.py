@@ -20,6 +20,7 @@ def poseidon(kwargs):
             if eligible:
                 target = r.choice(eligible)
                 target.add_effect("posi_shield", value=5, duration=100)
+    return ""
     
 
 def hephaestus(kwargs):
@@ -62,6 +63,7 @@ def ares(kwargs):
         # Permanent boost if not already active
         for god in visible_gods:
             god.add_effect("ares_do_more_dmg", value=1, duration=100)
+    return ""
 
 def hera(kwargs):
     """Hera's death curse - Damages all enemies when she dies."""
@@ -71,6 +73,7 @@ def hera(kwargs):
             god.hp -= 3
             msg += f"{god.name.capitalize()}, "
         return msg
+    return ""
 
 def zeus(kwargs):
     """Zeus's lightning - Stuns target and damages all visible allies."""
@@ -116,6 +119,7 @@ def athena(kwargs):
                 god.add_effect("athena_more_max_hp", value=2, duration=100)
                 god.max_hp += 2
                 god.hp += 2
+    return ""
 
 def apollo(kwargs):
     """Apollo's healing light - Heals self and all allies."""
@@ -185,6 +189,7 @@ def hades_ow(kwargs):
             god.add_effect("hades_ow_do_more_dmg", value= dmg, duration=2)
             msg += f"{god.name.capitalize()}, "
         return msg
+    return ""
  
 def thanatos(kwargs):
     """Thanatos's death touch - 50% chance to instantly kill target."""
@@ -209,6 +214,7 @@ def cerebus(kwargs):
         self.hp -= 1
         target.hp += 1
         return msg
+    return ""
 
 def charon(kwargs):
     """Charon's protection - Protects allies and removes debuffs."""
@@ -224,6 +230,7 @@ def charon(kwargs):
                 if effect in god.effects:
                     del god.effects[effect]
         return msg
+    return ""
 
 def persephone(kwargs):
     """Persephone's revival - Revives dead allies or heals living ones."""
@@ -256,6 +263,7 @@ def hades_uw(kwargs):
             msg += f"{god.name.capitalize()}, "
             god.add_effect("hades_uw_shield", value=dead_ally_nb,duration = duration)
         return msg
+    return ""
 
 def tisiphone(kwargs):
     """Tisiphone's fury - Freezes enemies with a chance."""
@@ -308,3 +316,4 @@ def hecate(kwargs):
         else:
             msg += f"Hecate forces {target.name.capitalize()} into hiding"
         return msg
+    return ""
