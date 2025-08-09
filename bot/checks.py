@@ -12,20 +12,31 @@ from bot.exceptions import (
 )
 
 class Check():
-    def is_lobby_channel():
+    def is_lobby_channel(skip_name_check: bool = False):
         @check
         async def predicate(interaction: Interaction) -> bool:
             channel = interaction.channel
             if not isinstance(channel, TextChannel):
                 raise NotInLobbyChannel(
-                    f"This command must be used in a text channel (`{Config.LOBBY_CATEGORY_NAME}`)."
+                    f"This command must be used in a text channel."
                 )
+
+            # Check category match first
             if not channel.category or channel.category.name != Config.LOBBY_CATEGORY_NAME:
                 raise NotInLobbyChannel(
                     f"You must use this command in a `{Config.LOBBY_CATEGORY_NAME}` channel."
                 )
+
+            # If skip_name_check is False → also check channel name prefix
+            if not skip_name_check and not channel.name.startswith("🔘・maggod-fight-lobby-"):
+                raise NotInLobbyChannel(
+                    "You must use this command in a Maggod Fight lobby channel."
+                )
+
             return True
+
         return predicate
+
 
     def is_match_participant():
         @check

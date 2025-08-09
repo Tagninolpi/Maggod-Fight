@@ -17,7 +17,7 @@ class LobbyManager(commands.Cog):
     )
     @c.is_allowed_player()
     @c.is_allowed_channel()
-    @c.is_lobby_channel()
+    @c.is_lobby_channel(True)
     async def create_lobbies(self, interaction: discord.Interaction):
         # Defer the response for ephemeral reply
         await interaction.response.defer(ephemeral=True)
@@ -51,7 +51,7 @@ class LobbyManager(commands.Cog):
     )
     @c.is_allowed_player()
     @c.is_allowed_channel()
-    @c.is_lobby_channel()
+    @c.is_lobby_channel(True)
     async def delete_lobbies(self, interaction: discord.Interaction):
         await interaction.response.defer(ephemeral=True)
 
