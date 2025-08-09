@@ -25,29 +25,29 @@ abilities_ = {
     "megaera": abilities.megaera,
     "hecate": abilities.hecate,
 }
-
+ 
 # All available gods with their stats
 gods = {
-    "poseidon": God("poseidon", 10, 4, abilities_["poseidon"],0),
+    "poseidon": God("poseidon", 9, 5, abilities_["poseidon"],0),
     "hephaestus": God("hephaestus", 12, 2, abilities_["hephaestus"],3),
-    "aphrodite": God("aphrodite", 10, 3, abilities_["aphrodite"],0),
-    "ares": God("ares", 9, 5, abilities_["ares"],0),
-    "hera": God("hera", 8, 5, abilities_["hera"],0),
+    "aphrodite": God("aphrodite", 9, 3, abilities_["aphrodite"],2),
+    "ares": God("ares", 8, 3, abilities_["ares"],0),
+    "hera": God("hera", 6, 4, abilities_["hera"],0),
     "zeus": God("zeus", 14, 2, abilities_["zeus"],2),
-    "athena": God("athena", 12, 3, abilities_["athena"],0),
-    "apollo": God("apollo", 9, 4, abilities_["apollo"],1),
-    "artemis": God("artemis", 7, 3, abilities_["artemis"],2),
-    "hermes": God("hermes", 7, 1, abilities_["hermes"],4),
-    "hades_ow": God("hades_ow", 8, 3, abilities_["hades_ow"],1),
-    "thanatos": God("thanatos", 11, 2, abilities_["thanatos"],0),
-    "cerebus": God("cerebus", 9, 3, abilities_["cerebus"],0),
-    "charon": God("charon", 10, 5, abilities_["charon"],3),
+    "athena": God("athena", 10, 4, abilities_["athena"],0),
+    "apollo": God("apollo", 10, 2, abilities_["apollo"],1),
+    "artemis": God("artemis", 9, 3, abilities_["artemis"],1),
+    "hermes": God("hermes", 8, 2, abilities_["hermes"],4),
+    "hades_ow": God("hades_ow", 9, 3, abilities_["hades_ow"],2),
+    "thanatos": God("thanatos", 11, 2, abilities_["thanatos"],1),
+    "cerebus": God("cerebus", 10, 3, abilities_["cerebus"],3),
+    "charon": God("charon", 9, 4, abilities_["charon"],3),
     "persephone": God("persephone", 8, 3, abilities_["persephone"],1),
-    "hades_uw": God("hades_uw", 6, 3, abilities_["hades_uw"],1),
-    "tisiphone": God("tisiphone", 11, 3, abilities_["tisiphone"],0),
+    "hades_uw": God("hades_uw", 8, 2, abilities_["hades_uw"],2),
+    "tisiphone": God("tisiphone", 11, 3, abilities_["tisiphone"],1),
     "alecto": God("alecto", 9, 3, abilities_["alecto"],1),
-    "megaera": God("megaera", 9, 3, abilities_["megaera"],1),
-    "hecate": God("hecate", 10, 4, abilities_["hecate"],1),
+    "megaera": God("megaera", 9, 4, abilities_["megaera"],3),
+    "hecate": God("hecate", 9, 3, abilities_["hecate"],1),
 }
 
 # Default teams for testing (not used in actual matches)
@@ -83,12 +83,6 @@ def became_visible_gain_effect(team, target):
                     god.ability({
                         "target": target,
                         "visible_gods": get_visible(team)
-                    })
-                elif god.name == "cerebus":
-                    god.ability({
-                        "target": target,
-                        "visible_gods": get_visible(team),
-                        "self": god
                     })
                 elif god.name == "ares":
                     god.ability({
@@ -127,12 +121,6 @@ def delete_effect(team, effect_name):
             # Handle special effect removals
             if effect_name == "athena_more_max_hp":
                 god.max_hp -= effect.value
-            elif effect_name == "cerebus_more_max_hp_per_visible_ally":
-                # Find cerebus and reduce its max HP
-                for cerebus in team:
-                    if cerebus.name == "cerebus":
-                        cerebus.max_hp -= effect.value
-                        break
         
         # Ensure HP doesn't exceed max HP
         if god.max_hp < god.hp:
@@ -149,8 +137,6 @@ def action_befor_delete_effect(attack_team, defend_team):
                 delete_effect(attack_team, "ares_do_more_dmg")
             elif god.name == "athena":
                 delete_effect(attack_team, "athena_more_max_hp")
-            elif god.name == "cerebus":
-                delete_effect(attack_team, "cerebus_more_max_hp_per_visible_ally")
 
 def action_befor_die(defend_team, attack_team):
     """Handle actions before gods die."""

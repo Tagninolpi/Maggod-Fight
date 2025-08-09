@@ -25,7 +25,7 @@ def hephaestus(kwargs):
     """Hephaestus's forge shields - Provides temporary shields to all visible allies."""
     visible_gods = kwargs["visible_gods"]
     attacking_with_hermes = kwargs.get("attacking_with_hermes", False)
-    value = 2 if attacking_with_hermes else 3
+    value = 1 if attacking_with_hermes else 2
     duration = 1 if attacking_with_hermes else 2
     msg = f"🛡️ Hephaestus gives {value} HP {duration}-turn shield to:\n ✨gods : "
     for god in visible_gods:
@@ -44,8 +44,8 @@ def aphrodite(kwargs):
         self.heal(1)
         msg += f"does 1 dmg to {target.name.capitalize()} and heal herself by 1"
     else:
-        msg += f"gives charm 💘 to {target.name.capitalize()} for 2 turns"
-        target.add_effect("aphro_charm", value=0, duration=2) #under charm heal opponent by 1
+        msg += f"gives charm 💘 to {target.name.capitalize()} for 3 turns"
+        target.add_effect("aphro_charm", value=0, duration=3) #under charm heal opponent by 1
     return msg
 
 def ares(kwargs):
@@ -66,7 +66,7 @@ def hera(kwargs):
     """Hera's death curse - Damages all enemies when she dies."""
     if not kwargs["self"].alive:
         msg = "Hera died, she does 3 dmg to : "
-        for god in kwargs["ennemy_team"]:
+        for god in kwargs["visible_ennemy_team"]:
             god.hp -= 3
             msg += f"{god.name.capitalize()}, "
         return msg
@@ -93,7 +93,7 @@ def zeus(kwargs):
         for god in alive_ennemy:
             god.hp -= 2
             msg += f"{god.name.capitalize()}, "
-        self.hp -= 2    
+            self.hp -= 1 
     return msg
 
 
@@ -133,7 +133,7 @@ def apollo(kwargs):
 
 def artemis(kwargs):
     """Artemis's hunting arrows - Damages all enemies."""
-    ennemy_team = kwargs["ennemy_team"]
+    ennemy_team = kwargs["visible_ennemy_team"]
     msg = "Artemis does 1 dmg to ✨gods : "
     for god in ennemy_team:
         god.hp -= 1
@@ -200,21 +200,20 @@ def thanatos(kwargs):
 
 def cerebus(kwargs):
     """Cerberus's guard - Gains HP for each visible ally."""
-    visible_gods = kwargs["visible_gods"]
+    target = kwargs["target"]
+    self = kwargs["self"]
     if not kwargs.get("attacking_with_hermes", False):
-        for god in visible_gods:
-            if "cerebus_more_max_hp_per_visible_ally" not in god.effects:
-                self = kwargs["self"]
-                god.add_effect("cerebus_more_max_hp_per_visible_ally", value=1, duration=100)
-                self.add_effect("cerebus_more_max_hp_per_visible_ally", value=1, duration=100)
-                self.max_hp += 1
-                self.hp += 1
+        msg = f"Cerebus gives attract⛑️ to {target.name.capitalize()}, but looses 1 hp and gives it to {target.name.capitalize()}"
+        target.add_effect("cerebus_more_max_hp_per_visible_ally", value=1, duration=2)
+        self.hp -= 1
+        target.hp += 1
+        return msg
 
 def charon(kwargs):
     """Charon's protection - Protects allies and removes debuffs."""
     if not kwargs.get("attacking_with_hermes", False):
         target = kwargs["target"]
-        kwargs["self"].hp -= 2
+        kwargs["self"].hp -= len(kwargs["dead_ally"]) -1
         msg = f"Charon protect 🧿 {target.name.capitalize()} from ennemy base dmg for 2 turn and remove all negative effects from all visible gods, but takes 2 dmg"
         target.add_effect("charon_invisible_duration", value=target.hp, duration=2)
         bad_effects = ["aphro_charm", "zeus_stun", "tisi_freeze_timer","alecto_get_more_dmg", "mega_do_less_dmg"]
@@ -279,7 +278,7 @@ def alecto(kwargs):
     target = kwargs["target"]
     attacking_with_hermes = kwargs.get("attacking_with_hermes", False)
     value = 2
-    duration = 3 if attacking_with_hermes else 2
+    duration = 2 if attacking_with_hermes else 3
     msg = f"Alecto gives {target.name.capitalize()} take more dmg 💢 for {duration} turns"
     target.add_effect("alecto_get_more_dmg", value=value, duration=duration)
     return msg
@@ -288,8 +287,8 @@ def megaera(kwargs):
     """Megaera's weakness - Makes target deal less damage."""
     target = kwargs["target"]
     attacking_with_hermes = kwargs.get("attacking_with_hermes", False)
-    value = 2
-    duration = 3 if attacking_with_hermes else 2
+    value = 4
+    duration = 1 if attacking_with_hermes else 2
     msg = f"Megaera gives {target.name.capitalize()} dmg reduction 💚 for {duration} turns"
     target.add_effect("mega_do_less_dmg", value=value, duration=duration)
     return msg

@@ -284,12 +284,18 @@ class Turn(commands.Cog):
         # Select target
         visible_defenders = get_visible(defend_team)
         
-        # Check for Cerberus special targeting
-        cerebus_present = any((god.name == "cerebus") and god.visible and god.alive for god in defend_team)
-        if cerebus_present:
-            # Cerberus forces all attacks to target it
-            attacked = next(god for god in defend_team if god.name == "cerebus")
-            await channel.send(f"🐕 **Cerberus** forces the attacker to target it!")
+        # Check if any alive & visible ally has the special Cerberus effect
+        buffed_ally = next(
+            (god for god in defend_team
+            if "cerebus_more_max_hp_per_visible_ally" in god.effects and god.alive),
+            None
+            )
+
+        if buffed_ally:
+            attacked = buffed_ally
+            await channel.send(
+                f"🐕 **{buffed_ally.name.capitalize()}** forces the attacker to target it!"
+            )
         else:
             if not visible_defenders:
                 await channel.send("❌ No visible targets available. Turn skipped.")
@@ -337,6 +343,13 @@ class Turn(commands.Cog):
             if visible_allies:
                 target = await self.send_god_selection_prompt(
                     channel, attack_team, defend_team, visible_allies, "make invisible", current_player
+                )
+
+        elif attacker.name == "cerebus":
+            visible_allies = get_visible(attack_team)
+            if visible_allies:
+                target = await self.send_god_selection_prompt(
+                    channel, attack_team, defend_team, visible_allies, "give attract⛑️", current_player
                 )
 
         elif attacker.name == "hermes":
