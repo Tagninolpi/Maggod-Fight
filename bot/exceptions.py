@@ -1,17 +1,16 @@
-class CheckFailureException(Exception):
-    """Base exception for check failures."""
+from discord.app_commands import CheckFailure
 
-class NotInLobbyChannel(CheckFailureException):
+class NotInLobbyChannel(CheckFailure):
     pass
 
-class NotMatchParticipant(CheckFailureException):
+class NotMatchParticipant(CheckFailure):
     pass
 
-class NotAllowedChannel(CheckFailureException):
+class NotAllowedChannel(CheckFailure):
     pass
 
-class WrongMatchPhase(CheckFailureException):
+class WrongMatchPhase(CheckFailure):
     pass
 
-class TurnInProgress(CheckFailureException):
+class TurnInProgress(CheckFailure):
     pass
