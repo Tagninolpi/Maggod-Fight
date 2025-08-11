@@ -44,7 +44,7 @@ gods = {
     "charon": God("charon", 9, 4, abilities_["charon"],3),
     "persephone": God("persephone", 8, 3, abilities_["persephone"],1),
     "hades_uw": God("hades_uw", 8, 2, abilities_["hades_uw"],2),
-    "tisiphone": God("tisiphone", 11, 3, abilities_["tisiphone"],1),
+    "tisiphone": God("tisiphone", 11, 3, abilities_["tisiphone"],3),
     "alecto": God("alecto", 9, 3, abilities_["alecto"],1),
     "megaera": God("megaera", 9, 4, abilities_["megaera"],3),
     "hecate": God("hecate", 9, 3, abilities_["hecate"],1),

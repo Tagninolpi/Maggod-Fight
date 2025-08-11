@@ -34,7 +34,7 @@ def hephaestus(kwargs):
         god.add_effect("hep_shield", value=value, duration=duration)
         msg += f",{god.name.capitalize()} "
     return msg
-
+ 
 def aphrodite(kwargs):
     """Aphrodite's charm - Damages visible enemies or charms hidden ones."""
     target = kwargs["target"]
@@ -220,12 +220,13 @@ def charon(kwargs):
     """Charon's protection - Protects allies and removes debuffs."""
     if not kwargs.get("attacking_with_hermes", False):
         target = kwargs["target"]
-        dmg = kwargs["self"].heal(len(kwargs["dead_ally"]) -1)
+        heal = 2-len(kwargs["dead_ally"])
+        kwargs["self"].heal(heal)
         msg = f"Charon protect 🧿 {target.name.capitalize()} from ennemy base dmg for 2 turn and remove all negative effects from all visible gods,"
-        if dmg > 0:
-            msg += f"and gains {dmg} hp"
-        elif dmg < 0:
-            msg += f"but losses {dmg} hp"
+        if heal > 0:
+            msg += f"and gains {heal} hp"
+        elif heal < 0:
+            msg += f"but losses {heal} hp"
         target.add_effect("charon_invisible_duration", value=target.hp, duration=2)
         bad_effects = ["aphro_charm", "zeus_stun", "tisi_freeze_timer","alecto_get_more_dmg", "mega_do_less_dmg"]
         # Remove negative effects from visible gods
