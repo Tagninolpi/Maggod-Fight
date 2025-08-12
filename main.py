@@ -29,6 +29,7 @@ class Match:
         self.teams = {} #List in dict {Player_id : [Gods]}
         self.gods = {} # copy of all the gods (no modification of the initial dict)
         self.available_gods = [] # list of all the remaining gods (used during team building)
+        self.picked_gods = {}
         self.next_picker = None # str (player id or "bot")
         self.current_turn_player = None 
         self.turn_number = 0

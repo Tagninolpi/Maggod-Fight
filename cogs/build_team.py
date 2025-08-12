@@ -15,48 +15,72 @@ logger = logging.getLogger(__name__)
 
 class GodSelectionView(discord.ui.View):
     """View for selecting gods during team building."""
-    
-    def __init__(self, gods: list, allowed_user: discord.Member):
-        super().__init__(timeout=300)
+
+    def __init__(self, all_gods: list, available_gods: list, allowed_user: discord.Member,
+                 picked_gods: dict, player1_id: int, player2_id: int):
+        super().__init__(timeout=60)
         self.allowed_user = allowed_user
         self.selected_god = None
+        self.picked_gods = picked_gods
+        self.player1_id = player1_id
+        self.player2_id = player2_id
 
         # Create buttons for each god (up to 25 buttons max)
-        gods_to_show = gods[:25]  # Discord has a 25 component limit
+        gods_to_show = all_gods[:25]  # Discord has a 25 component limit
         for i, god in enumerate(gods_to_show):
             row = i // 5  # 5 buttons per row
-            self.add_item(self.make_button(god, row))
+            self.add_item(self.make_button(god, available_gods, row))
 
-    def make_button(self, god, row: int):
+    def make_button(self, god, available_gods, row: int):
         """Create a button for a god."""
-        # Create label with god info
-        label = f"{god.name} ({god.hp}HP/{god.dmg}DMG)"
-        if len(label) > 80:  # Discord button label limit
-            label = f"{god.name} ({god.hp}/{god.dmg})"
-        
+
+        # Make sure name is exactly 11 characters wide
+        label = god.name.ljust(11)  
+
+        # Default style
+        style = discord.ButtonStyle.primary
+
+        # Check if god was already picked
+        if god.name in self.picked_gods:
+            picker_id = self.picked_gods[god.name]
+            if picker_id == self.player1_id:
+                style = discord.ButtonStyle.success  # Green
+            elif picker_id == self.player2_id:
+                style = discord.ButtonStyle.primary  # Blue
+            disabled = True
+        else:
+            # Disable if not in available_gods
+            disabled = god not in available_gods
+
         button = discord.ui.Button(
             label=label,
-            style=discord.ButtonStyle.primary,
-            row=row
+            style=style,
+            row=row,
+            disabled=disabled
         )
 
         async def callback(interaction: discord.Interaction):
             if interaction.user != self.allowed_user:
                 await interaction.response.send_message(
-                    "⚠️ You're not allowed to pick right now. \n Either it is not your turn or you are or not a participant ",
+                    "⚠️ You're not allowed to pick right now.",
                     ephemeral=True
                 )
                 return
 
+            self.picked_gods[god.name] = interaction.user.id
+
             self.selected_god = god
             self.stop()
             await interaction.response.send_message(
-                f"✅ **{interaction.user.display_name}** selected **{god.name}**! (HP: {god.hp}, DMG: {god.dmg})",
+                f"✅ **{interaction.user.display_name}** selected **{god.name}**! "
+                f"(HP: {god.hp}, DMG: {god.dmg})",
                 ephemeral=True
             )
 
         button.callback = callback
         return button
+
+
 
 class BuildTeam(commands.Cog):
     """Cog for building teams in Maggod Fight."""
@@ -88,7 +112,8 @@ class BuildTeam(commands.Cog):
 
         # Common setup for both modes
         match.gods = copy.deepcopy(all_gods_template)
-        match.available_gods = list(match.gods.values())
+        match.gods = list(match.gods.values())
+        match.available_gods = match.gods
         if match.solo_mode:
             match.teams = {
                 match.player1_id: [],
@@ -99,10 +124,10 @@ class BuildTeam(commands.Cog):
                 match.player1_id: [],
                 match.player2_id: []
                 }
-        DEBUG_SKIP_BUILD = True
+        DEBUG_SKIP_BUILD = False
         if DEBUG_SKIP_BUILD:
             # Assign 5 gods per player (random or predefined)
-            gods_list = list(match.gods.values())
+            gods_list = match.gods
             random.shuffle(gods_list)
 
             match.teams = {
@@ -201,7 +226,15 @@ class BuildTeam(commands.Cog):
                 )
                 return
             # Show god selection UI
-            view = GodSelectionView(match.available_gods, interaction.user)
+            view = GodSelectionView(
+                all_gods=list(match.gods.values()),
+                available_gods=match.available_gods,
+                allowed_user=interaction.user,
+                picked_gods=match.picked_gods,
+                player1_id=match.player1_id,
+                player2_id=match.player2_id
+                )
+
         
             # Create embed showing available gods
             embed = discord.Embed(
@@ -252,6 +285,7 @@ class BuildTeam(commands.Cog):
             chosen = view.selected_god
         if match.solo_mode and match.next_picker == "bot":  # assuming you have a flag indicating bot mode
             match.teams["bot"].append(chosen)
+            match.picked_gods[chosen.name] = "bot"
         else:
             # Multiplayer mode - assign based on user id (or your previous logic)
             match.teams[interaction.user.id].append(chosen)

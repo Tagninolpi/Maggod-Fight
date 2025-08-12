@@ -213,7 +213,7 @@ def cerebus(kwargs):
         msg = f"Cerebus gives attract⛑️ to {target.name.capitalize()}, but looses 1 hp and gives it to {target.name.capitalize()}"
         target.add_effect("cerebus_more_max_hp_per_visible_ally", value=1, duration=2)
         self.hp -= 1
-        target.hp += 1
+        target.heal(1)
         return msg
     return ""
 

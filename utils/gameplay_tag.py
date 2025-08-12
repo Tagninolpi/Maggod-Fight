@@ -9,7 +9,7 @@ class EffectType(Enum):
     ZEUS_STUN = "zeus_stun"
     ATHENA_MORE_HP = "athena_more_max_hp"
     HADES_OW_MORE_DMG = "hades_ow_do_more_dmg"
-    CEREBUS_MORE_MAX_HP = "cerebus_more_max_hp_per_visible_ally"
+    CERBERUS_MORE_MAX_HP = "cerberus_more_max_hp_per_visible_ally"
     CHARON_INVISIBLE = "charon_invisible_duration"
     HADES_UW_MORE_HP = "hades_uw_shield"
     TISI_FREEZE = "tisi_freeze_timer"

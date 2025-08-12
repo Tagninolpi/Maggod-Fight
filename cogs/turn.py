@@ -62,7 +62,7 @@ def create_team_embeds(team1: list, team2: list, player1_name: str, player2_name
         icons = []
         if "athena_more_max_hp" in god.effects:
             icons.append("📯")
-        if "cerebus_more_max_hp_per_visible_ally" in god.effects:
+        if "cerberus_more_max_hp_per_visible_ally" in god.effects:
             icons.append("⛑️")
         return " ".join(icons)
 
@@ -77,7 +77,7 @@ def create_team_embeds(team1: list, team2: list, player1_name: str, player2_name
             icons.append("🧿")
         if "tisi_freeze_timer" in god.effects:
             icons.append("❄️")
-        if "cerebus_more_max_hp_per_visible_ally" in god.effects:
+        if "cerberus_more_max_hp_per_visible_ally" in god.effects:
             icons.append("🐶")
         if "alecto_get_more_dmg" in god.effects:
             icons.append("💢")
@@ -106,7 +106,7 @@ def create_team_embeds(team1: list, team2: list, player1_name: str, player2_name
             hp_str = f"{god.hp}/"
             is_hp_boosted = (
                 "athena_more_max_hp" in god.effects or
-                "cerebus_more_max_hp_per_visible_ally" in god.effects
+                "cerberus_more_max_hp_per_visible_ally" in god.effects
             )
             raw_max_hp = str(god.max_hp)
             max_hp_str = bold_digits(raw_max_hp) if is_hp_boosted else raw_max_hp
@@ -301,7 +301,7 @@ class Turn(commands.Cog):
         # Check if any alive & visible ally has the special Cerberus effect
         buffed_ally = next(
             (god for god in defend_team
-            if "cerebus_more_max_hp_per_visible_ally" in god.effects and god.alive),
+            if "cerberus_more_max_hp_per_visible_ally" in god.effects and god.alive),
             None
             )
 
@@ -359,7 +359,7 @@ class Turn(commands.Cog):
                     channel, attack_team, defend_team, visible_allies, "make invisible", current_player
                 )
 
-        elif attacker.name == "cerebus":
+        elif attacker.name == "cerberus":
             visible_allies = get_visible(attack_team)
             if visible_allies:
                 target = await self.send_god_selection_prompt(
@@ -516,7 +516,7 @@ class Turn(commands.Cog):
         asyncio.create_task(update_lobby_status_embed(self.bot))
 
 
-    @app_commands.command(name="do_turn", description="Make your turn in the ongoing Maggod Fight battle.")
+    @app_commands.command(name="do", description="Make your turn in the ongoing Maggod Fight battle.")
     @c.turn_not_in_progress()
     @c.match_phase("playing")
     @c.is_match_participant()
