@@ -204,14 +204,14 @@ def thanatos(kwargs):
         
     else:
         return(f"Thanatos failed to instakill {target.name.capitalize()}")
-
-def cerebus(kwargs):
+ 
+def cerberus(kwargs):
     """Cerberus's guard - Gains HP for each visible ally."""
     target = kwargs["target"]
     self = kwargs["self"]
     if not kwargs.get("attacking_with_hermes", False):
-        msg = f"Cerebus gives attract⛑️ to {target.name.capitalize()}, but looses 1 hp and gives it to {target.name.capitalize()}"
-        target.add_effect("cerebus_more_max_hp_per_visible_ally", value=1, duration=2)
+        msg = f"cerberus gives attract⛑️ to {target.name.capitalize()}, but looses 1 hp and gives it to {target.name.capitalize()}"
+        target.add_effect("cerberus_more_max_hp_per_visible_ally", value=1, duration=2)
         self.hp -= 1
         target.heal(1)
         return msg
