@@ -102,49 +102,37 @@ class MaggodFightBot(commands.Bot):
         # Global error handler for all slash commands
         @self.tree.error
         async def on_app_command_error(interaction: discord.Interaction, error: discord.app_commands.AppCommandError):
-            # Unwrap original error if it exists (sometimes error is wrapped)
+            # Unwrap original error if present
             orig_error = getattr(error, "original", error)
 
             if isinstance(orig_error, NotInLobbyChannel):
-                await interaction.response.send_message(f"❌ {orig_error}", ephemeral=True)
-                return
-            if isinstance(orig_error, NotMatchParticipant):
-                await interaction.response.send_message(f"🚫 {orig_error}", ephemeral=True)
-                return
-            if isinstance(orig_error, NotAllowedChannel):
-                await interaction.response.send_message(f"❌ {orig_error}", ephemeral=True)
-                return
-            if isinstance(orig_error, WrongMatchPhase):
-                await interaction.response.send_message(f"❌ {orig_error}", ephemeral=True)
-                return
-            if isinstance(orig_error, TurnInProgress):
-                await interaction.response.send_message(f"⏳ {orig_error}", ephemeral=True)
-                return
-            if isinstance(orig_error, PlayerIsAllowed):
-                await interaction.response.send_message(f"❌ {orig_error}", ephemeral=True)
-                return
-            
-            if isinstance(error, discord.app_commands.CheckFailure):
-                await interaction.response.send_message(
-                    "❌ You cannot use this command right now.",
-                    ephemeral=True
-                )
-                return
+                msg = f"❌ {orig_error}"
+            elif isinstance(orig_error, NotMatchParticipant):
+                msg = f"🚫 {orig_error}"
+            elif isinstance(orig_error, NotAllowedChannel):
+                msg = f"❌ {orig_error}"
+            elif isinstance(orig_error, WrongMatchPhase):
+                msg = f"❌ {orig_error}"
+            elif isinstance(orig_error, TurnInProgress):
+                msg = f"⏳ {orig_error}"
+            elif isinstance(orig_error, PlayerIsAllowed):
+                msg = f"❌ {orig_error}"
+            elif isinstance(error, discord.app_commands.CheckFailure):
+                msg = "❌ You cannot use this command right now."
+            elif isinstance(error, discord.app_commands.CommandOnCooldown):
+                msg = f"⏳ This command is on cooldown. Try again in {error.retry_after:.1f} seconds."
+            else:
+                msg = "⚠️ An unexpected error occurred while running this command."
+                logger.error(f"Command error: {error}", exc_info=True)
 
-            if isinstance(error, discord.app_commands.CommandOnCooldown):
-                await interaction.response.send_message(
-                    f"⏳ This command is on cooldown. Try again in {error.retry_after:.1f} seconds.",
-                    ephemeral=True
-                )
-                return
-
-            # Fallback for unhandled errors
-            await interaction.response.send_message(
-                "⚠️ An unexpected error occurred while running this command.",
-                ephemeral=True
-            )
-
-            logger.error(f"Command error: {error}", exc_info=True)
+            # ✅ Ensure we send the error message correctly whether a response exists or not
+            try:
+                if interaction.response.is_done():
+                    await interaction.followup.send(msg, ephemeral=True)
+                else:
+                    await interaction.response.send_message(msg, ephemeral=True)
+            except discord.InteractionResponded:
+                await interaction.followup.send(msg, ephemeral=True)
 
         logger.info("Event handlers loaded successfully")
         logger.info("Commands loaded successfully")
