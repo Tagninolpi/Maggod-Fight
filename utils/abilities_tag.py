@@ -109,9 +109,10 @@ def athena(kwargs):
     if attacking_with_hermes:
         # Temporary HP boost when used with Hermes
         for god in visible_gods:
-            god.add_effect("athena_more_max_hp", value=1, duration=1)
-            god.max_hp += 1
-            god.hp += 1
+            if "athena_more_max_hp" not in god.effects:
+                god.add_effect("athena_more_max_hp", value=1, duration=1)
+                god.max_hp += 1
+                god.hp += 1
     else:
         # Permanent HP boost if not already active
         for god in visible_gods:

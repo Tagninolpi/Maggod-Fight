@@ -175,12 +175,24 @@ class GodSelectionView(discord.ui.View):
 
         async def callback(interaction: discord.Interaction):
             if interaction.user != self.allowed_user:
-                await interaction.response.send_message("You're not allowed to select a god.")
+                await interaction.response.send_message("You're not allowed to select a god.", ephemeral=True)
                 return
-            self.selected_god = god
-            self.stop()
-            await interaction.response.send_message(f"**{interaction.user.display_name}** selected {god.name}", ephemeral=True)
 
+            self.selected_god = god
+
+            # Disable all buttons in this view
+            for item in self.children:
+                item.disabled = True
+
+            # Edit the original message to update buttons state
+            await interaction.message.edit(view=self)
+
+            self.stop()
+
+            await interaction.response.send_message(
+                f"**{interaction.user.display_name}** selected {god.name}",
+                ephemeral=True
+            )
         button.callback = callback
         return button
 
@@ -234,11 +246,13 @@ class Turn(commands.Cog):
         # Wait for selection
         await view.wait()
         
-        # Clean up the message
-        try:
-            await msg.delete()
-        except discord.NotFound:
-            pass
+        delete_UI = False
+        if delete_UI:
+            # Clean up the message
+            try:
+                await msg.delete()
+            except discord.NotFound:
+                pass
 
         if view.selected_god is None:
             # Timeout occurred

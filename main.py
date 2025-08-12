@@ -21,16 +21,16 @@ logger = logging.getLogger(__name__)
 class Match:
     """Represents a single Maggod Fight match."""
     def __init__(self, player1_id=None, player2_id=None):
-        self.player1_id = player1_id
-        self.player1_name = "Player 1"
-        self.player2_id = player2_id
-        self.player2_name = "Player 2"
-        self.started = False
-        self.teams = {}
-        self.gods = {}
-        self.available_gods = []
-        self.next_picker = None
-        self.current_turn_player = None
+        self.player1_id = player1_id #str
+        self.player1_name = "Player 1" #str
+        self.player2_id = player2_id #str
+        self.player2_name = "Player 2" #str
+        self.started = False #bool
+        self.teams = {} #List in dict {Player_id : [Gods]}
+        self.gods = {} # copy of all the gods (no modification of the initial dict)
+        self.available_gods = [] # list of all the remaining gods (used during team building)
+        self.next_picker = None # str (player id or "bot")
+        self.current_turn_player = None 
         self.turn_number = 0
         self.teams_initialized = False
         self.game_phase = "Waiting for first player"  # Waiting for second player,ready, building, playing, finished
