@@ -18,7 +18,7 @@ class GodSelectionView(discord.ui.View):
 
     def __init__(self, all_gods: list, available_gods: list, allowed_user: discord.Member,
                  picked_gods: dict, player1_id: int, player2_id: int):
-        super().__init__(timeout=60)
+        super().__init__(timeout=300)
         self.allowed_user = allowed_user
         self.selected_god = None
         self.picked_gods = picked_gods  # expected: {player_id: [god_names]}
@@ -365,11 +365,11 @@ class BuildTeam(commands.Cog):
             # Process the selection
             chosen = view.selected_god
         if match.solo_mode and match.next_picker == "bot":  # assuming you have a flag indicating bot mode
-            match.teams["bot"].append(chosen)
+            match.teams.setdefault("bot", []).append(chosen)
             match.picked_gods[chosen.name] = "bot"
         else:
             # Multiplayer mode - assign based on user id (or your previous logic)
-            match.teams[interaction.user.id].append(chosen)
+            match.teams.setdefault(interaction.user.id, []).append(chosen)
         match.available_gods.remove(chosen)
 
         logger.info(f"Player {interaction.user.id} chose {chosen.name} in channel {channel_id}")
