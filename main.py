@@ -88,53 +88,6 @@ class MaggodFightBot(commands.Bot):
         # Setup events and commands
         setup_events(self)
         #await setup_commands(self)
-
-        # Import exceptions locally to avoid circular imports or import errors
-        from bot.exceptions import (
-            NotInLobbyChannel,
-            NotMatchParticipant,
-            NotAllowedChannel,
-            WrongMatchPhase,
-            TurnInProgress,
-            PlayerIsAllowed,
-        )
-
-        # Global error handler for all slash commands
-        @self.tree.error
-        async def on_app_command_error(interaction: discord.Interaction, error: discord.app_commands.AppCommandError):
-            # Unwrap original error if present
-            orig_error = getattr(error, "original", error)
-
-            if isinstance(orig_error, NotInLobbyChannel):
-                msg = f"❌ {orig_error}"
-            elif isinstance(orig_error, NotMatchParticipant):
-                msg = f"🚫 {orig_error}"
-            elif isinstance(orig_error, NotAllowedChannel):
-                msg = f"❌ {orig_error}"
-            elif isinstance(orig_error, WrongMatchPhase):
-                msg = f"❌ {orig_error}"
-            elif isinstance(orig_error, TurnInProgress):
-                msg = f"⏳ {orig_error}"
-            elif isinstance(orig_error, PlayerIsAllowed):
-                msg = f"❌ {orig_error}"
-            elif isinstance(error, discord.app_commands.CheckFailure):
-                msg = "❌ You cannot use this command right now."
-            elif isinstance(error, discord.app_commands.CommandOnCooldown):
-                msg = f"⏳ This command is on cooldown. Try again in {error.retry_after:.1f} seconds."
-            else:
-                msg = "⚠️ An unexpected error occurred while running this command."
-                logger.error(f"Command error: {error}", exc_info=True)
-
-            # ✅ Ensure we send the error message correctly whether a response exists or not
-            try:
-                if interaction.response.is_done():
-                    await interaction.followup.send(msg, ephemeral=True)
-                else:
-                    await interaction.response.send_message(msg, ephemeral=True)
-            except discord.InteractionResponded:
-                await interaction.followup.send(msg, ephemeral=True)
-
-        logger.info("Event handlers loaded successfully")
         logger.info("Commands loaded successfully")
 
     async def on_ready(self):

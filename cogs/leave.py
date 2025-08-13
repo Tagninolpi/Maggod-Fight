@@ -4,8 +4,6 @@ from discord import app_commands
 from bot.config import Config
 import logging
 from bot.utils import update_lobby_status_embed
-from bot.checks import Check as c
-
 
 logger = logging.getLogger(__name__)
 
@@ -16,11 +14,37 @@ class Leave(commands.Cog):
         self.bot = bot
 
     @app_commands.command(name="leave", description="Leave the current Maggod Fight lobby and reset the match.")
-    @c.is_match_participant()
-    @c.is_lobby_channel()
     async def leave_lobby(self, interaction: discord.Interaction):
         """Leave the current lobby."""
         channel = interaction.channel
+        if not isinstance(channel, discord.TextChannel):
+            await interaction.response.send_message(
+                "❌ This command must be used in a text channel.",
+                ephemeral=True
+            )
+            return
+
+        if not channel.category or channel.category.name != Config.LOBBY_CATEGORY_NAME:
+            await interaction.response.send_message(
+                f"❌ You must use this command in a `{Config.LOBBY_CATEGORY_NAME}` channel.",
+                ephemeral=True
+            )
+            return
+
+        if not channel.name.startswith("🔘・maggod-fight-lobby-"):
+            await interaction.response.send_message(
+                "❌ You must use this command in a Maggod Fight lobby channel.",
+                ephemeral=True
+            )
+            return
+        
+        match = matchmaking_dict.get(interaction.channel.id)
+        if not match or interaction.user.id not in [match.player1_id, match.player2_id]:
+            await interaction.response.send_message(
+                "❌ You are not a participant in this match.",
+                ephemeral=True
+            )
+            return
         await interaction.response.defer(ephemeral=False)
         
         channel_id = channel.id

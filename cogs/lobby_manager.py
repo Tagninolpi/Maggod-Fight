@@ -2,7 +2,6 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 from bot.config import Config
-from bot.checks import Check as c
 from bot.utils import matchmaking_dict
 
 class LobbyManager(commands.Cog):
@@ -15,11 +14,38 @@ class LobbyManager(commands.Cog):
         name="create_maggod_lobbies",
         description="Create 2 Maggod Fight Lobby channels under existing category."
     )
-    @c.is_allowed_player()
-    @c.is_allowed_channel()
-    @c.is_lobby_channel(True)
     async def create_lobbies(self, interaction: discord.Interaction):
         # Defer the response for ephemeral reply
+        # At the start of your command
+        channel = interaction.channel
+        if not isinstance(channel, discord.TextChannel):
+            await interaction.response.send_message(
+                "❌ This command must be used in a text channel.",
+                ephemeral=True
+            )
+            return
+
+        if not channel.category or channel.category.name != Config.LOBBY_CATEGORY_NAME:
+            await interaction.response.send_message(
+                f"❌ You must use this command in a `{Config.LOBBY_CATEGORY_NAME}` channel.",
+                ephemeral=True
+            )
+            return
+        
+        if interaction.channel.id != Config.allowed_channel_id:
+            await interaction.response.send_message(
+                "❌ You can't use this command here.",
+                ephemeral=True
+            )
+            return
+        
+        if interaction.user.id not in Config.ALLOWED_PLAYER_IDS:
+            await interaction.response.send_message(
+                "❌ You are not allowed to use this command.",
+                ephemeral=True
+            )
+            return
+
         await interaction.response.defer(ephemeral=True)
 
         guild = interaction.guild
@@ -49,10 +75,36 @@ class LobbyManager(commands.Cog):
         name="delete_maggod_lobbies",
         description="Delete all Maggod Fight lobby channels in the lobby category."
     )
-    @c.is_allowed_player()
-    @c.is_allowed_channel()
-    @c.is_lobby_channel(True)
     async def delete_lobbies(self, interaction: discord.Interaction):
+        channel = interaction.channel
+        if not isinstance(channel, discord.TextChannel):
+            await interaction.response.send_message(
+                "❌ This command must be used in a text channel.",
+                ephemeral=True
+            )
+            return
+
+        if not channel.category or channel.category.name != Config.LOBBY_CATEGORY_NAME:
+            await interaction.response.send_message(
+                f"❌ You must use this command in a `{Config.LOBBY_CATEGORY_NAME}` channel.",
+                ephemeral=True
+            )
+            return
+        
+        if interaction.channel.id != Config.allowed_channel_id:
+            await interaction.response.send_message(
+                "❌ You can't use this command here.",
+                ephemeral=True
+            )
+            return
+        
+        if interaction.user.id not in Config.ALLOWED_PLAYER_IDS:
+            await interaction.response.send_message(
+                "❌ You are not allowed to use this command.",
+                ephemeral=True
+            )
+            return
+
         await interaction.response.defer(ephemeral=True)
 
         guild = interaction.guild

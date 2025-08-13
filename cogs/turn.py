@@ -9,7 +9,8 @@ from bot.utils import update_lobby_status_embed
 import asyncio
 import re
 import unicodedata
-from bot.checks import Check as c
+from bot.config import Config
+
 
 logger = logging.getLogger(__name__)
 
@@ -517,19 +518,55 @@ class Turn(commands.Cog):
 
 
     @app_commands.command(name="do", description="Make your turn in the ongoing Maggod Fight battle.")
-    @c.turn_not_in_progress()
-    @c.match_phase("playing")
-    @c.is_match_participant()
-    @c.is_lobby_channel()
 
     async def do_turn_slash(self, interaction: discord.Interaction):
         """Execute a turn in the battle."""
         channel = interaction.channel
+        if not isinstance(channel, discord.TextChannel):
+            await interaction.response.send_message(
+                "❌ This command must be used in a text channel.",
+                ephemeral=True
+            )
+            return
+
+        if not channel.category or channel.category.name != Config.LOBBY_CATEGORY_NAME:
+            await interaction.response.send_message(
+                f"❌ You must use this command in a `{Config.LOBBY_CATEGORY_NAME}` channel.",
+                ephemeral=True
+            )
+            return
+
+        if not channel.name.startswith("🔘・maggod-fight-lobby-"):
+            await interaction.response.send_message(
+                "❌ You must use this command in a Maggod Fight lobby channel.",
+                ephemeral=True
+            )
+            return
         
         from bot.utils import matchmaking_dict
+        match = matchmaking_dict.get(interaction.channel.id)
+        if not match or interaction.user.id not in [match.player1_id, match.player2_id]:
+            await interaction.response.send_message(
+                "❌ You are not a participant in this match.",
+                ephemeral=True
+            )
+            return
 
-        match = matchmaking_dict.get(channel.id)
-
+        if not match or match.game_phase != "playing":
+            await interaction.response.send_message(
+                f"❌ You can't use this command now (required phase: playing).",
+                ephemeral=True
+            )
+            return
+        
+        if match and match.turn_in_progress:
+            await interaction.response.send_message(
+                "❌ A turn is already in progress. Please choose a god.",
+                ephemeral=True
+            )
+            return
+        
+        # start
         # Check if it's the player's turn
         current_player_id = match.turn_state["current_player"]
         if interaction.user.id != current_player_id and not(match.solo_mode):

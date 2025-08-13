@@ -7,8 +7,8 @@ import logging
 import asyncio
 from utils.game_test_on_discord import gods as all_gods_template
 from bot.utils import update_lobby_status_embed
+from bot.config import Config
 import asyncio
-from bot.checks import Check as c
 
 logger = logging.getLogger(__name__)
 
@@ -89,13 +89,47 @@ class BuildTeam(commands.Cog):
         self.bot = bot
     
     @app_commands.command(name="start", description="Start team building for a Maggod Fight match.")
-    @c.match_phase("ready")
-    @c.is_match_participant()
-    @c.is_lobby_channel()
-
     async def start_build(self, interaction: discord.Interaction):
         """Start the team building phase."""
-        DEBUG_SKIP_BUILD = True  # ⬅️ Set to False for normal use
+        # At the start of your command
+        channel = interaction.channel
+        if not isinstance(channel, discord.TextChannel):
+            await interaction.response.send_message(
+                "❌ This command must be used in a text channel.",
+                ephemeral=True
+            )
+            return
+
+        if not channel.category or channel.category.name != Config.LOBBY_CATEGORY_NAME:
+            await interaction.response.send_message(
+                f"❌ You must use this command in a `{Config.LOBBY_CATEGORY_NAME}` channel.",
+                ephemeral=True
+            )
+            return
+
+        if not channel.name.startswith("🔘・maggod-fight-lobby-"):
+            await interaction.response.send_message(
+                "❌ You must use this command in a Maggod Fight lobby channel.",
+                ephemeral=True
+            )
+            return
+        
+        match = matchmaking_dict.get(interaction.channel.id)
+        if not match or interaction.user.id not in [match.player1_id, match.player2_id]:
+            await interaction.response.send_message(
+                "❌ You are not a participant in this match.",
+                ephemeral=True
+            )
+            return
+
+        if not match or match.game_phase != "ready":
+            await interaction.response.send_message(
+                f"❌ You can't use this command now (required phase: ready).",
+                ephemeral=True
+            )
+            return
+        
+        # start
         if not interaction.response.is_done():
             try:
                 await interaction.response.defer(ephemeral=False)  # or ephemeral=True if needed
@@ -194,14 +228,53 @@ class BuildTeam(commands.Cog):
 
 
     @app_commands.command(name="choose", description="Choose a god for your team.")
-    @c.turn_not_in_progress()
-    @c.match_phase("building")
-    @c.is_match_participant()
-    @c.is_lobby_channel()
-
     async def choose(self, interaction: discord.Interaction):
         """Choose a god for the team."""
         channel = interaction.channel
+        if not isinstance(channel, discord.TextChannel):
+            await interaction.response.send_message(
+                "❌ This command must be used in a text channel.",
+                ephemeral=True
+            )
+            return
+
+        if not channel.category or channel.category.name != Config.LOBBY_CATEGORY_NAME:
+            await interaction.response.send_message(
+                f"❌ You must use this command in a `{Config.LOBBY_CATEGORY_NAME}` channel.",
+                ephemeral=True
+            )
+            return
+
+        if not channel.name.startswith("🔘・maggod-fight-lobby-"):
+            await interaction.response.send_message(
+                "❌ You must use this command in a Maggod Fight lobby channel.",
+                ephemeral=True
+            )
+            return
+        
+        match = matchmaking_dict.get(interaction.channel.id)
+        if not match or interaction.user.id not in [match.player1_id, match.player2_id]:
+            await interaction.response.send_message(
+                "❌ You are not a participant in this match.",
+                ephemeral=True
+            )
+            return
+
+        if not match or match.game_phase != "building":
+            await interaction.response.send_message(
+                f"❌ You can't use this command now (required phase: building).",
+                ephemeral=True
+            )
+            return
+        
+        if match and match.turn_in_progress:
+            await interaction.response.send_message(
+                "❌ A turn is already in progress. Please choose a god.",
+                ephemeral=True
+            )
+            return
+
+        # start
         if not interaction.response.is_done():
             try:
                 await interaction.response.defer(ephemeral=False)  # or ephemeral=True if needed
