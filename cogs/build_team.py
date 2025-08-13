@@ -25,54 +25,59 @@ class GodSelectionView(discord.ui.View):
         self.player1_id = player1_id
         self.player2_id = player2_id
 
-        # Limit to 25 buttons max (Discord limit)
-        gods_to_show = all_gods[:25]
+        gods_to_show = all_gods[:25]  # Discord limit
         for i, god in enumerate(gods_to_show):
-            row = i // 5  # 5 buttons per row
+            row = i // 5
             self.add_item(self.make_button(god, available_gods, row))
 
     def make_button(self, god, available_gods, row: int):
-        """Create a button for a god with proper style and disabled state."""
-
-        # Pad label to 11 characters using Braille blank
+        """Create a button with proper style and disabled state."""
         label = god.name + "⠀" * max(0, 11 - len(god.name))
-
-        # Default style
-        style = discord.ButtonStyle.primary
         disabled = False
+        style = discord.ButtonStyle.secondary  # Default grey
 
-        # Check if god was already picked
         if god.name in self.picked_gods:
+            # God already picked
             picker_id = self.picked_gods[god.name]
-            if picker_id == self.player1_id:
-                style = discord.ButtonStyle.success  # Green for player 1
-            elif picker_id == self.player2_id:
-                style = discord.ButtonStyle.danger  # Red for player 2
             disabled = True
-        elif god not in available_gods:
-            disabled = True  # Disable if god is unavailable
+            if picker_id == self.player1_id:
+                style = discord.ButtonStyle.success  # Green
+            elif picker_id == self.player2_id:
+                style = discord.ButtonStyle.danger   # Red
+        elif god in available_gods:
+            # God is available to pick
+            style = discord.ButtonStyle.primary  # Blue
+            disabled = False
+        else:
+            # God unavailable
+            disabled = True
+            style = discord.ButtonStyle.secondary  # Grey
 
         button = discord.ui.Button(label=label, style=style, row=row, disabled=disabled)
 
-        async def callback(interaction: discord.Interaction):
-            if interaction.user != self.allowed_user:
+        # Only enable callback for available gods
+        if not disabled:
+            async def callback(interaction: discord.Interaction):
+                if interaction.user != self.allowed_user:
+                    await interaction.response.send_message(
+                        "⚠️ You're not allowed to pick right now.",
+                        ephemeral=True
+                    )
+                    return
+
+                self.picked_gods[god.name] = interaction.user.id
+                self.selected_god = god
+                self.stop()
                 await interaction.response.send_message(
-                    "⚠️ You're not allowed to pick right now.",
+                    f"✅ **{interaction.user.display_name}** selected **{god.name}**! "
+                    f"(HP: {god.hp}, DMG: {god.dmg})",
                     ephemeral=True
                 )
-                return
 
-            self.picked_gods[god.name] = interaction.user.id
-            self.selected_god = god
-            self.stop()
-            await interaction.response.send_message(
-                f"✅ **{interaction.user.display_name}** selected **{god.name}**! "
-                f"(HP: {god.hp}, DMG: {god.dmg})",
-                ephemeral=True
-            )
+            button.callback = callback
 
-        button.callback = callback
         return button
+
 
 
 class BuildTeam(commands.Cog):
