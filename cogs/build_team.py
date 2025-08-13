@@ -113,7 +113,7 @@ class BuildTeam(commands.Cog):
                 ephemeral=True
             )
             return
-        
+        from bot.utils import matchmaking_dict
         match = matchmaking_dict.get(interaction.channel.id)
         if not match or interaction.user.id not in [match.player1_id, match.player2_id]:
             await interaction.response.send_message(
@@ -251,7 +251,7 @@ class BuildTeam(commands.Cog):
                 ephemeral=True
             )
             return
-        
+        from bot.utils import matchmaking_dict
         match = matchmaking_dict.get(interaction.channel.id)
         if not match or interaction.user.id not in [match.player1_id, match.player2_id]:
             await interaction.response.send_message(
