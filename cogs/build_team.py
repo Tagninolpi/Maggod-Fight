@@ -130,11 +130,8 @@ class BuildTeam(commands.Cog):
             return
         
         # start
-        if not interaction.response.is_done():
-            try:
-                await interaction.response.defer(ephemeral=False)  # or ephemeral=True if needed
-            except discord.NotFound:
-                logger.warning("Interaction expired before defer in /choose")
+        await interaction.response.defer(ephemeral=False)  # or ephemeral=True if needed
+
         channel = interaction.channel
         channel_id = channel.id
 
