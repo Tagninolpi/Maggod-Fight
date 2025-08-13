@@ -297,7 +297,7 @@ class BuildTeam(commands.Cog):
                 return
             # Show god selection UI
             view = GodSelectionView(
-                all_gods=list(match.gods.values()),
+                all_gods=match.gods,
                 available_gods=match.available_gods,
                 allowed_user=interaction.user,
                 picked_gods=match.picked_gods,
