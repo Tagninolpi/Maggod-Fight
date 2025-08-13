@@ -25,39 +25,34 @@ class GodSelectionView(discord.ui.View):
         self.player1_id = player1_id
         self.player2_id = player2_id
 
-        # Create buttons for each god (up to 25 buttons max)
-        gods_to_show = all_gods[:25]  # Discord has a 25 component limit
+        # Limit to 25 buttons max (Discord limit)
+        gods_to_show = all_gods[:25]
         for i, god in enumerate(gods_to_show):
             row = i // 5  # 5 buttons per row
             self.add_item(self.make_button(god, available_gods, row))
 
     def make_button(self, god, available_gods, row: int):
-        """Create a button for a god with visual alignment."""
+        """Create a button for a god with proper style and disabled state."""
 
-        # Use Unicode Braille blank for padding to 11 characters
+        # Pad label to 11 characters using Braille blank
         label = god.name + "⠀" * max(0, 11 - len(god.name))
 
         # Default style
         style = discord.ButtonStyle.primary
+        disabled = False
 
         # Check if god was already picked
         if god.name in self.picked_gods:
             picker_id = self.picked_gods[god.name]
             if picker_id == self.player1_id:
-                style = discord.ButtonStyle.success  # Green
+                style = discord.ButtonStyle.success  # Green for player 1
             elif picker_id == self.player2_id:
-                style = discord.ButtonStyle.primary  # Blue
+                style = discord.ButtonStyle.danger  # Red for player 2
             disabled = True
-        else:
-            # Disable if not in available_gods
-            disabled = god not in available_gods
+        elif god not in available_gods:
+            disabled = True  # Disable if god is unavailable
 
-        button = discord.ui.Button(
-            label=label,
-            style=style,
-            row=row,
-            disabled=disabled
-        )
+        button = discord.ui.Button(label=label, style=style, row=row, disabled=disabled)
 
         async def callback(interaction: discord.Interaction):
             if interaction.user != self.allowed_user:
@@ -78,6 +73,7 @@ class GodSelectionView(discord.ui.View):
 
         button.callback = callback
         return button
+
 
 class BuildTeam(commands.Cog):
     """Cog for building teams in Maggod Fight."""
@@ -247,7 +243,15 @@ class BuildTeam(commands.Cog):
             return
         from bot.utils import matchmaking_dict
         match = matchmaking_dict.get(interaction.channel.id)
-        if not match or interaction.user.id not in [match.player1_id, match.player2_id]:
+        if match is None:
+            logger.warning(f"Match not found for channel {interaction.channel.id} during /choose by {interaction.user.id}")
+            await interaction.response.send_message(
+                "❌ This match no longer exists in this channel.",
+                ephemeral=True
+            )
+            return
+
+        if interaction.user.id not in [match.player1_id, match.player2_id]:
             await interaction.response.send_message(
                 "❌ You are not a participant in this match.",
                 ephemeral=True
