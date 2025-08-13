@@ -32,10 +32,10 @@ class GodSelectionView(discord.ui.View):
             self.add_item(self.make_button(god, available_gods, row))
 
     def make_button(self, god, available_gods, row: int):
-        """Create a button for a god."""
+        """Create a button for a god with visual alignment."""
 
-        # Make sure name is exactly 11 characters wide
-        label = god.name.ljust(11)  
+        # Use Unicode Braille blank for padding to 11 characters
+        label = god.name + "⠀" * max(0, 11 - len(god.name))
 
         # Default style
         style = discord.ButtonStyle.primary
@@ -68,7 +68,6 @@ class GodSelectionView(discord.ui.View):
                 return
 
             self.picked_gods[god.name] = interaction.user.id
-
             self.selected_god = god
             self.stop()
             await interaction.response.send_message(
@@ -79,8 +78,6 @@ class GodSelectionView(discord.ui.View):
 
         button.callback = callback
         return button
-
-
 
 class BuildTeam(commands.Cog):
     """Cog for building teams in Maggod Fight."""
