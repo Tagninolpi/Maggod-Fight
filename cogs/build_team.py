@@ -364,9 +364,9 @@ class BuildTeam(commands.Cog):
 
             # Process the selection
             chosen = view.selected_god
-        if match.solo_mode and match.next_picker == "bot":  # assuming you have a flag indicating bot mode
-            match.teams.setdefault("bot", []).append(chosen)
-            match.picked_gods[chosen.name] = "bot"
+        if match.solo_mode and match.next_picker == "bot":  # assuming you have a flag indicating bot mod
+            match.teams.setdefault(123, []).append(chosen)
+            match.picked_gods[chosen.name] = 123
         else:
             # Multiplayer mode - assign based on user id (or your previous logic)
             match.teams.setdefault(interaction.user.id, []).append(chosen)
