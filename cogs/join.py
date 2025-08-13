@@ -42,7 +42,6 @@ class Join(commands.Cog):
         if not interaction.response.is_done():
             await interaction.response.defer(ephemeral=False)
 
-        channel = interaction.channel
         from bot.utils import update_lobby_status_embed
             
         channel_id = channel.id
@@ -147,7 +146,10 @@ class Join(commands.Cog):
                 inline=False
             )
             
-            await interaction.followup.send(embed=embed)
+            try:
+                await interaction.followup.send(embed=embed)
+            except discord.HTTPException as e:
+                logger.warning(f"Failed to send followup: {e}")
 
         elif match.started:
             if interaction.user.id in [match.player1_id, match.player2_id]:
@@ -174,7 +176,10 @@ class Join(commands.Cog):
                     value="You can watch the battle unfold, but cannot participate.",
                     inline=False
                 )
-                await interaction.followup.send(embed=embed, ephemeral=True)
+                try:
+                    await interaction.followup.send(embed=embed)
+                except discord.HTTPException as e:
+                    logger.warning(f"Failed to send followup: {e}")
         logger.info("Current matchmaking_dict:")
         for cid, match in matchmaking_dict.items():
             logger.info(f"Channel {cid}: Player1={match.player1_name} ({match.player1_id}), "
