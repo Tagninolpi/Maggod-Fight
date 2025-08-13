@@ -214,6 +214,12 @@ class BuildTeam(commands.Cog):
         "current_player": match.next_picker,
         "turn_number": 1
         }
+        logger.info("Current matchmaking_dict:")
+        for cid, match in matchmaking_dict.items():
+            logger.info(f"Channel {cid}: Player1={match.player1_name} ({match.player1_id}), "
+                        f"Player2={match.player2_name} ({match.player2_id}), "
+                        f"Phase={match.game_phase}")
+
 
 
 

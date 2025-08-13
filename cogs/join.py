@@ -175,6 +175,12 @@ class Join(commands.Cog):
                     inline=False
                 )
                 await interaction.followup.send(embed=embed, ephemeral=True)
+        logger.info("Current matchmaking_dict:")
+        for cid, match in matchmaking_dict.items():
+            logger.info(f"Channel {cid}: Player1={match.player1_name} ({match.player1_id}), "
+                        f"Player2={match.player2_name} ({match.player2_id}), "
+                        f"Phase={match.game_phase}")
+
 
 async def setup(bot):
     """Setup function for the cog."""
