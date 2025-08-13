@@ -21,11 +21,11 @@ class GodSelectionView(discord.ui.View):
         super().__init__(timeout=60)
         self.allowed_user = allowed_user
         self.selected_god = None
-        self.picked_gods = picked_gods
+        self.picked_gods = picked_gods  # expected: {player_id: [god_names]}
         self.player1_id = player1_id
         self.player2_id = player2_id
 
-        gods_to_show = all_gods[:25]  # Discord limit
+        gods_to_show = all_gods[:25]  # Discord's limit per view
         for i, god in enumerate(gods_to_show):
             row = i // 5
             self.add_item(self.make_button(god, available_gods, row))
@@ -36,26 +36,26 @@ class GodSelectionView(discord.ui.View):
         disabled = False
         style = discord.ButtonStyle.secondary  # Default grey
 
-        if god.name in self.picked_gods:
-            # God already picked
-            picker_id = self.picked_gods[god.name]
+        # Check if already picked by Player 1
+        if god.name in self.picked_gods.get(self.player1_id, []):
+            style = discord.ButtonStyle.success  # Green
             disabled = True
-            if picker_id == self.player1_id:
-                style = discord.ButtonStyle.success  # Green
-            elif picker_id == self.player2_id:
-                style = discord.ButtonStyle.danger   # Red
+        # Check if already picked by Player 2
+        elif god.name in self.picked_gods.get(self.player2_id, []):
+            style = discord.ButtonStyle.danger  # Red
+            disabled = True
+        # Available to pick
         elif god in available_gods:
-            # God is available to pick
             style = discord.ButtonStyle.primary  # Blue
             disabled = False
+        # Not available
         else:
-            # God unavailable
-            disabled = True
             style = discord.ButtonStyle.secondary  # Grey
+            disabled = True
 
         button = discord.ui.Button(label=label, style=style, row=row, disabled=disabled)
 
-        # Only enable callback for available gods
+        # Only clickable if available
         if not disabled:
             async def callback(interaction: discord.Interaction):
                 if interaction.user != self.allowed_user:
@@ -65,7 +65,8 @@ class GodSelectionView(discord.ui.View):
                     )
                     return
 
-                self.picked_gods[god.name] = interaction.user.id
+                # Record pick in correct player's list
+                self.picked_gods.setdefault(interaction.user.id, []).append(god.name)
                 self.selected_god = god
                 self.stop()
                 await interaction.response.send_message(
@@ -77,8 +78,6 @@ class GodSelectionView(discord.ui.View):
             button.callback = callback
 
         return button
-
-
 
 class BuildTeam(commands.Cog):
     """Cog for building teams in Maggod Fight."""
