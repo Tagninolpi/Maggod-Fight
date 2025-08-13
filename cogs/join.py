@@ -17,6 +17,8 @@ class Join(commands.Cog):
     async def join_lobby(self, interaction: discord.Interaction):
         """Join a Maggod Fight lobby."""
         # At the start of your command
+        if interaction.response.is_done():
+            return
         channel = interaction.channel
         if not isinstance(channel, discord.TextChannel):
             await interaction.response.send_message(
