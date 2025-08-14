@@ -614,11 +614,12 @@ class Turn(commands.Cog):
                 )
 
                 # Update game save after each turn
-                await db_manager.update_game_save(channel, match)
+                #await db_manager.update_game_save(channel, match) #database
 
                 await channel.send(embed=embed)
             else:
                 # Delete game save after match is over
+                pass #database
                 await db_manager.delete_game_save(channel, match)
 
         except Exception as e:
