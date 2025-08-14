@@ -11,7 +11,28 @@ from bot.config import Config
 import asyncio
 
 logger = logging.getLogger(__name__)
+DEBUG_SKIP_BUILD = False  # global variable
+class StartChoiceView(discord.ui.View):
+    def __init__(self, match, timeout=60):
+        super().__init__(timeout=timeout)
+        self.match = match
+        self.choice_made = asyncio.Event()
 
+    @discord.ui.button(label="Skip Team Building", style=discord.ButtonStyle.red)
+    async def skip_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        global DEBUG_SKIP_BUILD
+        DEBUG_SKIP_BUILD = True
+        await interaction.response.send_message("✅ Skipping team building phase!", ephemeral=True)
+        self.choice_made.set()
+        self.stop()
+
+    @discord.ui.button(label="Build Teams", style=discord.ButtonStyle.green)
+    async def build_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        global DEBUG_SKIP_BUILD
+        DEBUG_SKIP_BUILD = False
+        await interaction.response.send_message("⚔ Starting team building phase!", ephemeral=True)
+        self.choice_made.set()
+        self.stop()
 
 class GodSelectionView(discord.ui.View):
     """View for selecting gods during team building."""
@@ -152,7 +173,17 @@ class BuildTeam(commands.Cog):
                 match.player1_id: [],
                 match.player2_id: []
                 }
-        DEBUG_SKIP_BUILD = False
+        
+        view = StartChoiceView(match)
+        await interaction.response.send_message("Choose how to start the game:", view=view)
+
+        # Wait until choice is made or timeout
+        try:
+            await asyncio.wait_for(view.choice_made.wait(), timeout=60)
+        except asyncio.TimeoutError:
+            await interaction.followup.send("⌛ No choice made. do /start again.", ephemeral=True)
+            return
+
         if DEBUG_SKIP_BUILD:
             # Assign 5 gods per player (random or predefined)
             gods_list = match.gods

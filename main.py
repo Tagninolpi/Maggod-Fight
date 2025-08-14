@@ -4,6 +4,7 @@ import os
 import discord
 from discord.ext import commands
 from datetime import datetime
+from datetime import timezone
 
 # Import bot components
 from bot.config import Config
@@ -63,7 +64,7 @@ class MaggodFightBot(commands.Bot):
         
         # Bot statistics
         self.stats = BotStats()
-        self.start_time = None
+        self.start_time = datetime.now(timezone.utc)
         
     async def setup_hook(self):
         """Setup hook called when bot is starting."""
