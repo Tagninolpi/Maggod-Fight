@@ -266,8 +266,6 @@ class Turn(commands.Cog):
             # Reset the match
             if channel.id in matchmaking_dict:
                 del matchmaking_dict[channel.id]
-            
-            
             return None
 
         return view.selected_god
@@ -578,59 +576,60 @@ class Turn(commands.Cog):
             )
             return
 
-        match.turn_in_progress = True
-
         await interaction.response.defer()
 
-        try:
-            # Determine which team is attacking
-            if interaction.user.id == match.player1_id and not(match.turn_state["current_player"] == "bot"):
-                attack_team = match.teams[match.player1_id]
-                defend_team = match.teams[match.player2_id]
-            else:
-                attack_team = match.teams[match.player2_id]
-                defend_team = match.teams[match.player1_id]
-
-            # Execute the turn
-            game_ended = await self.execute_turn(channel, attack_team, defend_team, interaction.user)
-
-            if not game_ended:
-                # Switch turns
-                match.turn_state["current_player"] = (
-                    match.player2_id if match.turn_state["current_player"] == match.player1_id else match.player1_id
-                )
-                match.turn_state["turn_number"] += 1
-                
-                # Announce next turn
-                if match.solo_mode:
-                    next_player_id = interaction.user.id
+        while True:
+            match.turn_in_progress = True
+            try:
+                # Determine which team is attacking
+                if interaction.user.id == match.player1_id and not(match.turn_state["current_player"] == "bot"):
+                    attack_team = match.teams[match.player1_id]
+                    defend_team = match.teams[match.player2_id]
                 else:
-                    next_player_id = match.turn_state['current_player']
-                
-                embed = discord.Embed(
-                    title="🔄 Next Turn",
-                    description=f"Turn {match.turn_state['turn_number']}: <@{next_player_id}>, use `/do_turn`!",
-                    color=0x00bfff
+                    attack_team = match.teams[match.player2_id]
+                    defend_team = match.teams[match.player1_id]
+
+                # Execute the turn
+                game_ended = await self.execute_turn(channel, attack_team, defend_team, interaction.user)
+
+                if not game_ended:
+                    # Switch turns
+                    match.turn_state["current_player"] = (
+                        match.player2_id if match.turn_state["current_player"] == match.player1_id else match.player1_id
+                    )
+                    match.turn_state["turn_number"] += 1
+                    
+                    # Announce next turn
+                    if match.solo_mode:
+                        next_player_id = interaction.user.id
+                    else:
+                        next_player_id = match.turn_state['current_player']
+                    
+                    embed = discord.Embed(
+                        title="🔄 Next Turn",
+                        description=f"Turn {match.turn_state['turn_number']}: <@{next_player_id}>, use `/do_turn`!",
+                        color=0x00bfff
+                    )
+
+                    # Update game save after each turn
+                    #await db_manager.update_game_save(channel, match) #database
+
+                    await channel.send(embed=embed)
+                else:
+                    # Delete game save after match is over
+                    pass #database
+                    await db_manager.delete_game_save(channel, match)
+                    break
+
+            except Exception as e:
+                logger.error(f"Error in do_turn: {e}")
+                await interaction.followup.send(
+                    "❌ An error occurred during your turn. Please try again.",
+                    ephemeral=True
                 )
 
-                # Update game save after each turn
-                #await db_manager.update_game_save(channel, match) #database
-
-                await channel.send(embed=embed)
-            else:
-                # Delete game save after match is over
-                pass #database
-                await db_manager.delete_game_save(channel, match)
-
-        except Exception as e:
-            logger.error(f"Error in do_turn: {e}")
-            await interaction.followup.send(
-                "❌ An error occurred during your turn. Please try again.",
-                ephemeral=True
-            )
-
-        finally:
-            match.turn_in_progress = False
+            finally:
+                match.turn_in_progress = False
 
 async def setup(bot):
     """Setup function for the cog."""

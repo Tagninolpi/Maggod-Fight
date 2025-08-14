@@ -58,8 +58,6 @@ class StartChoiceView(discord.ui.View):
         self.choice_made.set()
         self.stop()
 
-
-
 class GodSelectionView(discord.ui.View):
     """View for selecting gods during team building."""
 
@@ -84,21 +82,30 @@ class GodSelectionView(discord.ui.View):
         style = discord.ButtonStyle.secondary  # Default grey
 
         # Check if already picked by Player 1
+        bot_id = 123  # ID of the bot player
+
+        # Check if already picked by Player 1
         if god.name in self.picked_gods.get(self.player1_id, []):
             style = discord.ButtonStyle.success  # Green
             disabled = True
-        # Check if already picked by Player 2
-        elif god.name in self.picked_gods.get(self.player2_id, []):
+
+        # Check if already picked by Player 2 (human or bot)
+        elif god.name in self.picked_gods.get(self.player2_id, []) or (
+            self.player2_id == bot_id and god.name in self.picked_gods.get(bot_id, [])
+        ):
             style = discord.ButtonStyle.danger  # Red
             disabled = True
+
         # Available to pick
         elif god in available_gods:
             style = discord.ButtonStyle.primary  # Blue
             disabled = False
+
         # Not available
         else:
             style = discord.ButtonStyle.secondary  # Grey
             disabled = True
+
 
         button = discord.ui.Button(label=label, style=style, row=row, disabled=disabled)
 
@@ -280,9 +287,6 @@ class BuildTeam(commands.Cog):
                         f"Player2={match.player2_name} ({match.player2_id}), "
                         f"Phase={match.game_phase}")
 
-
-
-
     @app_commands.command(name="choose", description="Choose a god for your team.")
     async def choose(self, interaction: discord.Interaction):
         """Choose a god for the team."""
@@ -356,8 +360,8 @@ class BuildTeam(commands.Cog):
         while True:
             if match.solo_mode and match.next_picker == "bot":
                 chosen = random.choice(match.available_gods)
-                match.teams.setdefault(match.player1_id, []).append(chosen)
-                match.picked_gods[chosen.name] = match.player1_id
+                match.teams.setdefault(123, []).append(chosen)
+                match.picked_gods[123] = chosen.name
                 match.available_gods.remove(chosen)
                 logger.info(f"Bot chose {chosen.name} in channel {channel_id}")
 
@@ -420,7 +424,7 @@ class BuildTeam(commands.Cog):
 
                 chosen = view.selected_god
                 match.teams.setdefault(interaction.user.id, []).append(chosen)
-                match.picked_gods[chosen.name] = interaction.user.id
+                match.picked_gods[interaction.user.id] = chosen.name
                 match.available_gods.remove(chosen)
                 logger.info(f"Player {interaction.user.id} chose {chosen.name} in channel {channel_id}")
 
