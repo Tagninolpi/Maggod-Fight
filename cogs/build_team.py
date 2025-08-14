@@ -18,7 +18,7 @@ class StartChoiceView(discord.ui.View):
     def __init__(self, match, initiator_id, timeout=60):
         super().__init__(timeout=timeout)
         self.match = match
-        self.initiator_id = initiator_id  # ✅ Only this user can click
+        self.initiator_id = initiator_id
         self.choice_made = asyncio.Event()
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
@@ -30,13 +30,18 @@ class StartChoiceView(discord.ui.View):
             return False
         return True
 
+    def disable_all_buttons(self):
+        """Manually disable all buttons in this view."""
+        for item in self.children:
+            if isinstance(item, discord.ui.Button):
+                item.disabled = True
+
     @discord.ui.button(label="Skip Team Building", style=discord.ButtonStyle.red)
     async def skip_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         global DEBUG_SKIP_BUILD
         DEBUG_SKIP_BUILD = True
 
-        # Disable all buttons
-        self.disable_all_items()
+        self.disable_all_buttons()
         await interaction.response.edit_message(content="✅ Skipping team building phase!", view=self)
 
         self.choice_made.set()
@@ -47,12 +52,12 @@ class StartChoiceView(discord.ui.View):
         global DEBUG_SKIP_BUILD
         DEBUG_SKIP_BUILD = False
 
-        # Disable all buttons
-        self.disable_all_items()
+        self.disable_all_buttons()
         await interaction.response.edit_message(content="✅ Proceeding with team building phase!", view=self)
 
         self.choice_made.set()
         self.stop()
+
 
 
 class GodSelectionView(discord.ui.View):

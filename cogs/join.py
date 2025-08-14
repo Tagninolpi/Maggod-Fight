@@ -5,8 +5,7 @@ from bot.config import Config
 import logging
 import asyncio
 logger = logging.getLogger(__name__)
-join_lock = asyncio.Lock()
-
+join_in_progress = False
 class Join(commands.Cog):
     """Cog for joining Maggod Fight lobbies."""
     
@@ -16,36 +15,46 @@ class Join(commands.Cog):
     @app_commands.command(name="join", description="Join a Maggod Fight Lobby")
 
     async def join_lobby(self, interaction: discord.Interaction):
-        async with join_lock: 
-            """Join a Maggod Fight lobby."""
-            # At the start of your command
-            if interaction.response.is_done():
-                return
-            channel = interaction.channel
-            if not isinstance(channel, discord.TextChannel):
-                await interaction.response.send_message(
-                    "❌ This command must be used in a text channel.",
-                    ephemeral=True
-                )
-                return
+        global join_in_progress
+        """Join a Maggod Fight lobby."""
+        # At the start of your command
+        if interaction.response.is_done():
+            return
+        channel = interaction.channel
+        if not isinstance(channel, discord.TextChannel):
+            await interaction.response.send_message(
+                "❌ This command must be used in a text channel.",
+                ephemeral=True
+            )
+            return
 
-            if not channel.category or channel.category.name != Config.LOBBY_CATEGORY_NAME:
-                await interaction.response.send_message(
-                    f"❌ You must use this command in a `{Config.LOBBY_CATEGORY_NAME}` channel.",
-                    ephemeral=True
-                )
-                return
+        if not channel.category or channel.category.name != Config.LOBBY_CATEGORY_NAME:
+            await interaction.response.send_message(
+                f"❌ You must use this command in a `{Config.LOBBY_CATEGORY_NAME}` channel.",
+                ephemeral=True
+            )
+            return
 
-            if not channel.name.startswith("🔘・maggod-fight-lobby-"):
-                await interaction.response.send_message(
-                    "❌ You must use this command in a Maggod Fight lobby channel.",
-                    ephemeral=True
-                )
-                return
+        if not channel.name.startswith("🔘・maggod-fight-lobby-"):
+            await interaction.response.send_message(
+                "❌ You must use this command in a Maggod Fight lobby channel.",
+                ephemeral=True
+            )
+            return
+        
+        if join_in_progress:
+            await interaction.response.send_message(
+                "❌ A turn is already in progress. Please choose a god.",
+                ephemeral=True
+            )
+            return
 
-            if not interaction.response.is_done():
-                await interaction.response.defer(ephemeral=False)
+        if not interaction.response.is_done():
+            await interaction.response.defer(ephemeral=False)
 
+        
+        join_in_progress = True
+        try:
             from bot.utils import update_lobby_status_embed
                 
             channel_id = channel.id
@@ -189,6 +198,8 @@ class Join(commands.Cog):
                 logger.info(f"Channel {cid}: Player1={match.player1_name} ({match.player1_id}), "
                             f"Player2={match.player2_name} ({match.player2_id}), "
                             f"Phase={match.game_phase}")
+        finally:
+            join_in_progress = False
 
 
 async def setup(bot):
