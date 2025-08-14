@@ -34,9 +34,26 @@ class StartChoiceView(discord.ui.View):
     async def skip_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         global DEBUG_SKIP_BUILD
         DEBUG_SKIP_BUILD = True
-        await interaction.response.send_message("✅ Skipping team building phase!", ephemeral=True)
+
+        # Disable all buttons
+        self.disable_all_items()
+        await interaction.response.edit_message(content="✅ Skipping team building phase!", view=self)
+
         self.choice_made.set()
         self.stop()
+
+    @discord.ui.button(label="Do Team Building", style=discord.ButtonStyle.green)
+    async def build_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        global DEBUG_SKIP_BUILD
+        DEBUG_SKIP_BUILD = False
+
+        # Disable all buttons
+        self.disable_all_items()
+        await interaction.response.edit_message(content="✅ Proceeding with team building phase!", view=self)
+
+        self.choice_made.set()
+        self.stop()
+
 
 class GodSelectionView(discord.ui.View):
     """View for selecting gods during team building."""
