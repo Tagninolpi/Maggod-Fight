@@ -15,24 +15,26 @@ import asyncio
 logger = logging.getLogger(__name__)
 DEBUG_SKIP_BUILD = False  # global variable
 class StartChoiceView(discord.ui.View):
-    def __init__(self, match, timeout=60):
+    def __init__(self, match, initiator_id, timeout=60):
         super().__init__(timeout=timeout)
         self.match = match
+        self.initiator_id = initiator_id  # ✅ Only this user can click
         self.choice_made = asyncio.Event()
+
+    async def interaction_check(self, interaction: discord.Interaction) -> bool:
+        if interaction.user.id != self.initiator_id:
+            await interaction.response.send_message(
+                "❌ Only the player who started the game can make this choice.",
+                ephemeral=True
+            )
+            return False
+        return True
 
     @discord.ui.button(label="Skip Team Building", style=discord.ButtonStyle.red)
     async def skip_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         global DEBUG_SKIP_BUILD
         DEBUG_SKIP_BUILD = True
         await interaction.response.send_message("✅ Skipping team building phase!", ephemeral=True)
-        self.choice_made.set()
-        self.stop()
-
-    @discord.ui.button(label="Build Teams", style=discord.ButtonStyle.green)
-    async def build_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        global DEBUG_SKIP_BUILD
-        DEBUG_SKIP_BUILD = False
-        await interaction.response.send_message("⚔ Starting team building phase!", ephemeral=True)
         self.choice_made.set()
         self.stop()
 
@@ -176,15 +178,14 @@ class BuildTeam(commands.Cog):
                 match.player2_id: []
                 }
         
-        view = StartChoiceView(match)
-        await interaction.response.send_message("Choose how to start the game:", view=view)
-
-        # Wait until choice is made or timeout
+        # ✅ Restrict buttons to command initiator
+        view = StartChoiceView(match, initiator_id=interaction.user.id)
+        await interaction.followup.send("Choose how to start the game:", view=view)
         try:
             await asyncio.wait_for(view.choice_made.wait(), timeout=60)
         except asyncio.TimeoutError:
-            await interaction.followup.send("⌛ No choice made. do /start again.", ephemeral=True)
-            return
+            return await interaction.followup.send("⌛ No choice made. Do /start again.", ephemeral=True)
+
 
         if DEBUG_SKIP_BUILD:
             # Assign 5 gods per player (random or predefined)
