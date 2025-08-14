@@ -4,6 +4,8 @@ from discord import app_commands
 import random
 import logging
 from typing import Optional
+
+from database.manager import db_manager
 from utils.gameplay_tag import God
 from bot.utils import update_lobby_status_embed
 import asyncio
@@ -611,7 +613,13 @@ class Turn(commands.Cog):
                     color=0x00bfff
                 )
 
+                # Update game save after each turn
+                await db_manager.update_game_save(channel, match)
+
                 await channel.send(embed=embed)
+            else:
+                # Delete game save after match is over
+                await db_manager.delete_game_save(channel, match)
 
         except Exception as e:
             logger.error(f"Error in do_turn: {e}")

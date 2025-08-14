@@ -5,6 +5,8 @@ import random
 import copy
 import logging
 import asyncio
+
+from database.manager import db_manager
 from utils.game_test_on_discord import gods as all_gods_template
 from bot.utils import update_lobby_status_embed
 from bot.config import Config
@@ -457,6 +459,9 @@ class BuildTeam(commands.Cog):
             # Prompt the player who just picked to start the game
             await channel.send(f"<@{interaction.user.id}>, use `/do_turn` to take the first move.")
             match.turn_in_progress = False
+
+            # Create game save after finishing team building
+            await db_manager.create_game_save(channel, match)
         else:
             # Continue team building
             next_player = interaction.guild.get_member(match.next_picker)

@@ -4,7 +4,10 @@ from datetime import datetime
 from bot.config import Config
 import discord
 from discord.ext import commands
-matchmaking_dict = {}
+
+from database.manager import db_manager
+
+matchmaking_dict = db_manager.load_all()
 
 def setup_logging():
     """Set up logging configuration for the bot."""
