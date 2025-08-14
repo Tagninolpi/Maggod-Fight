@@ -399,7 +399,12 @@ class BuildTeam(commands.Cog):
                 )
 
                 # Wait for the player to pick or timeout
-                await view.wait(timeout=900)  # 15 minutes
+                try:
+                    await asyncio.wait_for(view.wait(), timeout=900)
+                except asyncio.TimeoutError:
+                    # Timeout handling here
+                    view.selected_god = None
+                # 15 minutes
 
                 if view.selected_god is None:
                     # Timeout handling
