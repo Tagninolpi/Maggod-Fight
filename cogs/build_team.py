@@ -201,7 +201,7 @@ class BuildTeam(commands.Cog):
         if match.solo_mode:
             match.teams = {
                 match.player1_id: [],
-                "bot": []
+                123: []
                 }
         else:
             match.teams = {
@@ -275,7 +275,7 @@ class BuildTeam(commands.Cog):
         )
 
         await interaction.followup.send(embed=embed)
-        if match.next_picker == "bot":
+        if match.next_picker == 123:
             await interaction.followup.send(f"<@{match.player1_id}>, Use `/choose` so the bot can pick it's first god.")
         else:
             await interaction.followup.send(f"<@{match.next_picker}>, you're up! Use `/choose` to pick your first god.")
@@ -360,7 +360,7 @@ class BuildTeam(commands.Cog):
         match.turn_in_progress = True
 
         while match.turn_in_progress:
-            if match.solo_mode and match.next_picker == "bot":
+            if match.solo_mode and match.next_picker == 123:
                 chosen = random.choice(match.available_gods)
                 match.teams.setdefault(123, []).append(chosen)
                 match.picked_gods[123] = chosen.name
@@ -447,7 +447,7 @@ class BuildTeam(commands.Cog):
             await channel.send(embed=embed)
 
             # Switch to next picker
-            if match.solo_mode and match.next_picker == "bot":
+            if match.solo_mode and match.next_picker == 123:
                 match.next_picker = match.player1_id
             else:
                 match.next_picker = match.player1_id if match.next_picker == match.player2_id else match.player2_id

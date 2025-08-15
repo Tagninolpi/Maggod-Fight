@@ -16,7 +16,7 @@ from bot.config import Config
 
 logger = logging.getLogger(__name__)
 
-def create_team_embeds(team1: list, team2: list, player1_name: str, player2_name: str,action_text: str) -> list[discord.Embed]:
+def create_team_embeds(team1: list, team2: list, player1_name: str, player2_name: str,action_text: str,allowed) -> list[discord.Embed]:
 
 
     def visual_len(s: str) -> int:
@@ -140,24 +140,49 @@ def create_team_embeds(team1: list, team2: list, player1_name: str, player2_name
             lines.append(misc_effects_line)
 
         return "```\n" + "\n".join(lines) + "\n```"
+    
+    if player2_name == 123:
+        if not(action_text == "attack"):
+            embed1 = discord.Embed(title=f"{player1_name}'s Team", color=discord.Color.green())
+            embed1.description = format_team(team1)
 
-    if not(action_text == "attack"):
-        embed1 = discord.Embed(title=f"{player1_name}'s Team", color=discord.Color.green())
-        embed1.description = format_team(team1)
+            embed2 = discord.Embed(title=f"{player2_name}'s Team", color=discord.Color.red())
+            embed2.description = format_team(team2)
+        else:
+            embed1 = discord.Embed(title=f"{player2_name}'s Team", color=discord.Color.red())
+            embed1.description = format_team(team1)
 
-        embed2 = discord.Embed(title=f"{player2_name}'s Team", color=discord.Color.red())
-        embed2.description = format_team(team2)
+            embed2 = discord.Embed(title=f"{player1_name}'s Team", color=discord.Color.green())
+            embed2.description = format_team(team2)
+        action_embed = discord.Embed(
+            title=f"🎯 {player1_name} select God to {action_text.title()}",
+            color=0x00ff00
+        )
     else:
-        embed1 = discord.Embed(title=f"{player2_name}'s Team", color=discord.Color.red())
-        embed1.description = format_team(team1)
+        if not(action_text == "attack"):
+            embed1 = discord.Embed(title=f"{player2_name}'s Team", color=discord.Color.green())
+            embed1.description = format_team(team2)
 
-        embed2 = discord.Embed(title=f"{player1_name}'s Team", color=discord.Color.green())
-        embed2.description = format_team(team2)
-    action_embed = discord.Embed(
-        title=f"🎯 Select God to {action_text.title()}",
-        color=0x00ff00
-    )
+            embed2 = discord.Embed(title=f"{player1_name}'s Team", color=discord.Color.red())
+            embed2.description = format_team(team1)
+        else:
+            embed1 = discord.Embed(title=f"{player1_name}'s Team", color=discord.Color.red())
+            embed1.description = format_team(team2)
+
+            embed2 = discord.Embed(title=f"{player2_name}'s Team", color=discord.Color.green())
+            embed2.description = format_team(team1)
+        if allowed.display_name == player1_name:
+            action_embed = discord.Embed(
+                title=f"🎯 {player1_name} select God to {action_text.title()}",
+                color=0x00ff00
+            )
+        else:
+            action_embed = discord.Embed(
+                title=f"🎯 {player2_name} select God to {action_text.title()}",
+                color=0x00ff00
+            )
     return [action_embed, embed2, embed1]
+    
 
 class GodSelectionView(discord.ui.View):
     def __init__(self, all_gods: list[God], selectable_gods: list[God], allowed_user: discord.Member, team_1):
@@ -191,11 +216,6 @@ class GodSelectionView(discord.ui.View):
             await interaction.message.edit(view=self)
 
             self.stop()
-
-            await interaction.response.send_message(
-                f"**{interaction.user.display_name}** selected {god.name}",
-                ephemeral=True
-            )
         button.callback = callback
         return button
 
@@ -230,32 +250,18 @@ class Turn(commands.Cog):
 
 
         # Auto-select if in solo mode and it's the bot's turn
-        if match.solo_mode and  match.turn_state["current_player"] == "bot":
+        if match.solo_mode and  match.turn_state["current_player"] == 123:
             selected = random.choice(selectable_gods)
             return selected
         
         # Create embeds showing team status
-        embeds = create_team_embeds(team1, team2, match.player1_name, match.player2_name,action_text)
+        embeds = create_team_embeds(team1, team2, match.player1_name, match.player2_name,action_text,allowed_user)
         
         # Create selection view
         view = GodSelectionView(all_gods= team1 + team2,selectable_gods=selectable_gods, allowed_user=allowed_user,team_1=team1)
 
-        msg = await channel.send(
-            f"{allowed_user.mention}, select a god to {action_text}:",
-            embeds=embeds,
-            view=view
-        )
-
         # Wait for selection
         await view.wait()
-        
-        delete_UI = False
-        if delete_UI:
-            # Clean up the message
-            try:
-                await msg.delete()
-            except discord.NotFound:
-                pass
 
         if view.selected_god is None:
             # Timeout occurred
@@ -581,7 +587,7 @@ class Turn(commands.Cog):
         while match.turn_in_progress:
             try:
                 # Determine which team is attacking
-                if interaction.user.id == match.player1_id and not(match.turn_state["current_player"] == "bot"):
+                if interaction.user.id == match.player1_id and not(match.turn_state["current_player"] == 123):
                     attack_team = match.teams[match.player1_id]
                     defend_team = match.teams[match.player2_id]
                 else:
