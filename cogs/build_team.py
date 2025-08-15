@@ -197,7 +197,7 @@ class BuildTeam(commands.Cog):
         # Common setup for both modes
         match.gods = copy.deepcopy(all_gods_template)
         match.gods = list(match.gods.values())
-        match.available_gods = match.gods
+        match.available_gods = copy.deepcopy(match.gods)
         if match.solo_mode:
             match.teams = {
                 match.player1_id: [],
