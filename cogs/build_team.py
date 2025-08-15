@@ -85,13 +85,14 @@ class GodSelectionView(discord.ui.View):
         bot_id = 123  # ID of the bot player
 
         # Check if already picked by Player 1
-        if god.name in self.picked_gods.get(self.player1_id, []):
+        if any(g.name == god.name for g in self.picked_gods.get(self.player1_id, [])):
             style = discord.ButtonStyle.success  # Green
             disabled = False
 
         # Check if already picked by Player 2 (human or bot)
-        elif god.name in self.picked_gods.get(self.player2_id, []) or (
-            self.player2_id == bot_id and god.name in self.picked_gods.get(bot_id, [])
+        elif any(g.name == god.name for g in self.picked_gods.get(self.player2_id, [])) or (
+            self.player2_id == bot_id
+            and any(g.name == god.name for g in self.picked_gods.get(bot_id, []))
         ):
             style = discord.ButtonStyle.danger  # Red
             disabled = False
@@ -105,6 +106,7 @@ class GodSelectionView(discord.ui.View):
         else:
             style = discord.ButtonStyle.secondary  # Grey
             disabled = True
+
 
 
         button = discord.ui.Button(label=label, style=style, row=row, disabled=disabled)
@@ -424,7 +426,8 @@ class BuildTeam(commands.Cog):
 
                 chosen = view.selected_god
                 match.teams.setdefault(interaction.user.id, []).append(chosen)
-                match.picked_gods[interaction.user.id] = chosen.name
+                match.picked_gods.setdefault(interaction.user.id, []).append(chosen.name)
+
                 match.available_gods.remove(chosen)
                 logger.info(f"Player {interaction.user.id} chose {chosen.name} in channel {channel_id}")
 
