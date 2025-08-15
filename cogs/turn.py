@@ -614,6 +614,7 @@ class Turn(commands.Cog):
                     #await db_manager.update_game_save(channel, match) #database
 
                     await channel.send(embed=embed)
+                    await asyncio.sleep(2)
                 else:
                     # Delete game save after match is over
                     pass #database
