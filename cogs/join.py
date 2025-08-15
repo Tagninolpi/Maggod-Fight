@@ -199,6 +199,7 @@ class Join(commands.Cog):
                             f"Player2={match.player2_name} ({match.player2_id}), "
                             f"Phase={match.game_phase}")
         finally:
+            await asyncio.sleep(2)
             join_in_progress = False
 
 

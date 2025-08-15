@@ -87,14 +87,14 @@ class GodSelectionView(discord.ui.View):
         # Check if already picked by Player 1
         if god.name in self.picked_gods.get(self.player1_id, []):
             style = discord.ButtonStyle.success  # Green
-            disabled = True
+            disabled = False
 
         # Check if already picked by Player 2 (human or bot)
         elif god.name in self.picked_gods.get(self.player2_id, []) or (
             self.player2_id == bot_id and god.name in self.picked_gods.get(bot_id, [])
         ):
             style = discord.ButtonStyle.danger  # Red
-            disabled = True
+            disabled = False
 
         # Available to pick
         elif god in available_gods:
@@ -357,7 +357,7 @@ class BuildTeam(commands.Cog):
         # Inside your /choose command, replace the main selection logic with a while loop
         match.turn_in_progress = True
 
-        while True:
+        while match.turn_in_progres:
             if match.solo_mode and match.next_picker == "bot":
                 chosen = random.choice(match.available_gods)
                 match.teams.setdefault(123, []).append(chosen)

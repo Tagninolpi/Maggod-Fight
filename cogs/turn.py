@@ -577,9 +577,8 @@ class Turn(commands.Cog):
             return
 
         await interaction.response.defer()
-
-        while True:
-            match.turn_in_progress = True
+        match.turn_in_progress = True
+        while match.turn_in_progress:
             try:
                 # Determine which team is attacking
                 if interaction.user.id == match.player1_id and not(match.turn_state["current_player"] == "bot"):
@@ -619,7 +618,7 @@ class Turn(commands.Cog):
                     # Delete game save after match is over
                     pass #database
                     await db_manager.delete_game_save(channel, match)
-                    break
+                    match.turn_in_progress = False
 
             except Exception as e:
                 logger.error(f"Error in do_turn: {e}")
@@ -627,9 +626,8 @@ class Turn(commands.Cog):
                     "❌ An error occurred during your turn. Please try again.",
                     ephemeral=True
                 )
-
-            finally:
                 match.turn_in_progress = False
+                
 
 async def setup(bot):
     """Setup function for the cog."""
