@@ -291,7 +291,7 @@ class BuildTeam(commands.Cog):
 
     @app_commands.command(name="choose", description="Choose a god for your team.")
     async def choose(self, interaction: discord.Interaction):
-        """Choose a god for the team."""
+        """Start the god selection for the team."""
         channel = interaction.channel
         if not isinstance(channel, discord.TextChannel):
             await interaction.response.send_message(
@@ -313,10 +313,10 @@ class BuildTeam(commands.Cog):
                 ephemeral=True
             )
             return
+
         from bot.utils import matchmaking_dict
-        match = matchmaking_dict.get(interaction.channel.id)
+        match = matchmaking_dict.get(channel.id)
         if match is None:
-            logger.warning(f"Match not found for channel {interaction.channel.id} during /choose by {interaction.user.id}")
             await interaction.response.send_message(
                 "❌ This match no longer exists in this channel.",
                 ephemeral=True
@@ -330,111 +330,107 @@ class BuildTeam(commands.Cog):
             )
             return
 
-        if not match or match.game_phase != "building":
+        if match.game_phase != "building":
             await interaction.response.send_message(
-                f"❌ You can't use this command now (required phase: building).",
-                ephemeral=True
-            )
-            return
-        
-        if match and match.turn_in_progress:
-            await interaction.response.send_message(
-                "❌ A turn is already in progress. Please choose a god.",
+                "❌ You can't use this command now (required phase: building).",
                 ephemeral=True
             )
             return
 
-        # start
-        if not interaction.response.is_done():
-            try:
-                await interaction.response.defer(ephemeral=False)  # or ephemeral=True if needed
-            except discord.NotFound:
-                logger.warning("Interaction expired before defer in /choose")            
-        channel_id = channel.id
+        if match.turn_in_progress:
+            await interaction.response.send_message(
+                "❌ A turn is already in progress. Please wait.",
+                ephemeral=True
+            )
+            return
 
-        # Import here to avoid circular imports
-        from bot.utils import matchmaking_dict
-
-        match = matchmaking_dict.get(channel_id)
-        # Inside your /choose command, replace the main selection logic with a while loop
+        # Start drafting loop
         match.turn_in_progress = True
 
+        # Defer response to avoid timeout
+        if not interaction.response.is_done():
+            try:
+                await interaction.response.defer(ephemeral=True)
+            except discord.NotFound:
+                pass
+
+        asyncio.create_task(self._drafting_loop(channel.id))
+
+        await interaction.followup.send(
+            "🏛️ Drafting phase started! Each player will select gods in turn.",
+            ephemeral=True
+        )
+
+
+    async def _drafting_loop(self, channel_id: int):
+        from bot.utils import matchmaking_dict
+        match = matchmaking_dict.get(channel_id)
+        if not match:
+            return
+
+        channel = self.bot.get_channel(channel_id)
+        if not channel:
+            return
+
         while match.turn_in_progress:
+            # Solo mode bot pick
             if match.solo_mode and match.next_picker == "bot":
                 chosen = random.choice(match.available_gods)
                 match.teams.setdefault(123, []).append(chosen)
                 match.picked_gods[123] = chosen.name
                 match.available_gods.remove(chosen)
-                logger.info(f"Bot chose {chosen.name} in channel {channel_id}")
+                await channel.send(f"🤖 Bot picked **{chosen.name}**!")
+                match.next_picker = match.player1_id
+                await asyncio.sleep(1)
+                continue
 
-            else:
-                if interaction.user.id != match.next_picker:
-                    await interaction.followup.send(
-                        f"⏳ Please wait for your turn. It's <@{match.next_picker}>'s turn.",
-                        ephemeral=True
-                    )
+            # Human player pick
+            player_id = match.next_picker
+            next_player = channel.guild.get_member(player_id)
+            if not next_player:
+                match.turn_in_progress = False
+                return
 
+            view = GodSelectionView(
+                all_gods=match.gods,
+                available_gods=match.available_gods,
+                allowed_user=next_player,
+                picked_gods=match.picked_gods,
+                player1_id=match.player1_id,
+                player2_id=match.player2_id
+            )
 
-                # Create and show the god selection view
-                view = GodSelectionView(
-                    all_gods=match.gods,
-                    available_gods=match.available_gods,
-                    allowed_user=interaction.user,
-                    picked_gods=match.picked_gods,
-                    player1_id=match.player1_id,
-                    player2_id=match.player2_id
-                )
+            embed = discord.Embed(
+                title="🏛️ Choose Your God",
+                description=f"<@{player_id}>, select your god from the available options.",
+                color=0x00ff00
+            )
+            embed.add_field(
+                name="📊 Current Status",
+                value=f"Available Gods: {len(match.available_gods)}\n"
+                    f"Your Team: {len(match.teams.get(player_id, []))}/5 gods",
+                inline=False
+            )
 
-                embed = discord.Embed(
-                    title="🏛️ Choose Your God",
-                    description="Select a god for your team from the available options.",
-                    color=0x00ff00
-                )
-                embed.add_field(
-                    name="📊 Current Status",
-                    value=f"Available Gods: {len(match.available_gods)}\n"
-                        f"Your Team: {len(match.teams[interaction.user.id])}/5 gods",
-                    inline=False
-                )
+            await channel.send(embed=embed, view=view)
 
-                await interaction.followup.send(
-                    f"<@{interaction.user.id}>, select your god:",
-                    embed=embed,
-                    view=view,
-                    ephemeral=True
-                )
+            try:
+                await asyncio.wait_for(view.wait(), timeout=900)  # 15 minutes
+            except asyncio.TimeoutError:
+                await channel.send(f"⏱️ <@{player_id}> timed out. Match has been reset.")
+                match.game_phase = "Waiting for first player"
+                match.turn_in_progress = False
+                del matchmaking_dict[channel_id]
+                return
 
-                # Wait for the player to pick or timeout
-                try:
-                    await asyncio.wait_for(view.wait(), timeout=900)
-                except asyncio.TimeoutError:
-                    # Timeout handling here
-                    view.selected_god = None
-                # 15 minutes
+            chosen = view.selected_god
+            match.teams.setdefault(player_id, []).append(chosen)
+            match.picked_gods.setdefault(player_id, []).append(chosen.name)
+            match.available_gods.remove(chosen)
 
-                if view.selected_god is None:
-                    # Timeout handling
-                    await interaction.followup.send(
-                        "⏱️ Selection timed out. Match has been reset.",
-                        ephemeral=True
-                    )
-                    match.game_phase = "Waiting for first player"
-                    asyncio.create_task(update_lobby_status_embed(self.bot))
-                    del matchmaking_dict[channel_id]
-                    logger.info(f"Match timed out in channel {channel_id}")
-                    return
-
-                chosen = view.selected_god
-                match.teams.setdefault(interaction.user.id, []).append(chosen)
-                match.picked_gods.setdefault(interaction.user.id, []).append(chosen.name)
-
-                match.available_gods.remove(chosen)
-                logger.info(f"Player {interaction.user.id} chose {chosen.name} in channel {channel_id}")
-
-            # Send selection announcement
             embed = discord.Embed(
                 title="⚡ God Selected!",
-                description=f"**{interaction.user.display_name if not match.solo_mode else 'Bot'}** has chosen their god.",
+                description=f"<@{player_id}> has chosen their god.",
                 color=0x00bfff
             )
             embed.add_field(
@@ -444,29 +440,22 @@ class BuildTeam(commands.Cog):
             )
             await channel.send(embed=embed)
 
-            # Switch to next picker
-            if match.solo_mode and match.next_picker == "bot":
-                match.next_picker = match.player1_id
-            else:
-                match.next_picker = match.player1_id if match.next_picker == match.player2_id else match.player2_id
+            # Switch picker
+            match.next_picker = match.player1_id if player_id == match.player2_id else match.player2_id
 
             # Check if both teams are complete
-            p1_team = match.teams[match.player1_id]
-            p2_team = match.teams[match.player2_id]
+            p1_team = match.teams.get(match.player1_id, [])
+            p2_team = match.teams.get(match.player2_id, [])
 
             if len(p1_team) == 5 and len(p2_team) == 5:
                 match.game_phase = "playing"
-                asyncio.create_task(update_lobby_status_embed(self.bot))
-                await channel.send("✅ **Both teams are complete! Let the battle begin!**")
+                match.turn_in_progress = False
+                await channel.send("✅ Both teams are complete! Let the battle begin!")
                 await self.show_teams(channel, match)
                 await channel.send(f"<@{match.next_picker}>, use `/do_turn` to take the first move.")
-                match.turn_in_progress = False
                 break
-            else:
-                # Prompt next player
-                next_player = interaction.guild.get_member(match.next_picker)
-                next_player_name = next_player.display_name if next_player else "Next Player"
-                await channel.send(f"<@{match.next_picker}>, it's your turn! **{next_player_name}**, use `/choose` to pick your next god.")
+
+            await asyncio.sleep(0.5)  # avoid tight loop
 
 
     async def show_teams(self, channel, match):
