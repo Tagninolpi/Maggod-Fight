@@ -373,7 +373,7 @@ class BuildTeam(commands.Cog):
             return
         # Initialize the first picker randomly
         if match.solo_mode:
-            match.next_picker = random.choice([match.player1_id, "bot"])
+            match.next_picker = random.choice([match.player1_id, 123])
         else:
             match.next_picker = random.choice([match.player1_id, match.player2_id])
 
@@ -396,6 +396,7 @@ class BuildTeam(commands.Cog):
                     match.turn_in_progress = False
                     return
 
+                # Human pick (visible to all)
                 view = GodSelectionView(
                     all_gods=match.gods,
                     available_gods=match.available_gods,
@@ -409,6 +410,7 @@ class BuildTeam(commands.Cog):
                     description=f"<@{picker}>, select your god from the available options.",
                     color=0x00ff00
                 )
+                # Send message visible to everyone
                 await channel.send(embed=embed, view=view)
 
                 try:
@@ -418,6 +420,7 @@ class BuildTeam(commands.Cog):
                     match.turn_in_progress = False
                     del matchmaking_dict[channel.id]
                     return
+
 
                 chosen = view.selected_god
                 match.teams.setdefault(picker, []).append(chosen)
