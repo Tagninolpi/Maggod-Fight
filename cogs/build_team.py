@@ -357,7 +357,7 @@ class BuildTeam(commands.Cog):
         # Inside your /choose command, replace the main selection logic with a while loop
         match.turn_in_progress = True
 
-        while match.turn_in_progres:
+        while match.turn_in_progress:
             if match.solo_mode and match.next_picker == "bot":
                 chosen = random.choice(match.available_gods)
                 match.teams.setdefault(123, []).append(chosen)
