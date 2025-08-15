@@ -371,89 +371,73 @@ class BuildTeam(commands.Cog):
         channel = self.bot.get_channel(channel_id)
         if not channel:
             return
+        # Initialize the first picker randomly
+        if match.solo_mode:
+            match.next_picker = random.choice([match.player1_id, "bot"])
+        else:
+            match.next_picker = random.choice([match.player1_id, match.player2_id])
+
+        match.turn_in_progress = True
 
         while match.turn_in_progress:
-            # Solo mode bot pick
-            if match.solo_mode and match.next_picker == "bot":
+            picker = match.next_picker
+
+            if picker == "bot":
+                # Bot pick
                 chosen = random.choice(match.available_gods)
                 match.teams.setdefault(123, []).append(chosen)
                 match.picked_gods[123] = chosen.name
                 match.available_gods.remove(chosen)
                 await channel.send(f"🤖 Bot picked **{chosen.name}**!")
-                match.next_picker = match.player1_id
-                await asyncio.sleep(1)
-                continue
+            else:
+                # Human pick
+                player = channel.guild.get_member(picker)
+                if not player:
+                    match.turn_in_progress = False
+                    return
 
-            # Human player pick
-            player_id = match.next_picker
-            next_player = channel.guild.get_member(player_id)
-            if not next_player:
-                match.turn_in_progress = False
-                return
+                view = GodSelectionView(
+                    all_gods=match.gods,
+                    available_gods=match.available_gods,
+                    allowed_user=player,
+                    picked_gods=match.picked_gods,
+                    player1_id=match.player1_id,
+                    player2_id=match.player2_id
+                )
+                embed = discord.Embed(
+                    title="🏛️ Choose Your God",
+                    description=f"<@{picker}>, select your god from the available options.",
+                    color=0x00ff00
+                )
+                await channel.send(embed=embed, view=view)
 
-            view = GodSelectionView(
-                all_gods=match.gods,
-                available_gods=match.available_gods,
-                allowed_user=next_player,
-                picked_gods=match.picked_gods,
-                player1_id=match.player1_id,
-                player2_id=match.player2_id
-            )
+                try:
+                    await asyncio.wait_for(view.wait(), timeout=900)
+                except asyncio.TimeoutError:
+                    await channel.send("⏱️ Selection timed out. Match has been reset.")
+                    match.turn_in_progress = False
+                    del matchmaking_dict[channel.id]
+                    return
 
-            embed = discord.Embed(
-                title="🏛️ Choose Your God",
-                description=f"<@{player_id}>, select your god from the available options.",
-                color=0x00ff00
-            )
-            embed.add_field(
-                name="📊 Current Status",
-                value=f"Available Gods: {len(match.available_gods)}\n"
-                    f"Your Team: {len(match.teams.get(player_id, []))}/5 gods",
-                inline=False
-            )
-
-            await channel.send(embed=embed, view=view)
-
-            try:
-                await asyncio.wait_for(view.wait(), timeout=900)  # 15 minutes
-            except asyncio.TimeoutError:
-                await channel.send(f"⏱️ <@{player_id}> timed out. Match has been reset.")
-                match.game_phase = "Waiting for first player"
-                match.turn_in_progress = False
-                del matchmaking_dict[channel_id]
-                return
-
-            chosen = view.selected_god
-            match.teams.setdefault(player_id, []).append(chosen)
-            match.picked_gods.setdefault(player_id, []).append(chosen.name)
-            match.available_gods.remove(chosen)
-
-            embed = discord.Embed(
-                title="⚡ God Selected!",
-                description=f"<@{player_id}> has chosen their god.",
-                color=0x00bfff
-            )
-            embed.add_field(
-                name="🏛️ Selected God",
-                value=f"**{chosen.name}**\nHP: {chosen.hp} | DMG: {chosen.dmg}",
-                inline=True
-            )
-            await channel.send(embed=embed)
-
-            # Switch picker
-            match.next_picker = match.player1_id if player_id == match.player2_id else match.player2_id
+                chosen = view.selected_god
+                match.teams.setdefault(picker, []).append(chosen)
+                match.picked_gods.setdefault(picker, []).append(chosen.name)
+                match.available_gods.remove(chosen)
+                await channel.send(f"✅ <@{picker}> picked **{chosen.name}**!")
 
             # Check if both teams are complete
-            p1_team = match.teams.get(match.player1_id, [])
-            p2_team = match.teams.get(match.player2_id, [])
-
-            if len(p1_team) == 5 and len(p2_team) == 5:
+            if len(match.teams.get(match.player1_id, [])) == 5 and \
+            len(match.teams.get(match.player2_id, [])) == 5:
                 match.game_phase = "playing"
                 match.turn_in_progress = False
-                await channel.send("✅ Both teams are complete! Let the battle begin!")
-                await self.show_teams(channel, match)
-                await channel.send(f"<@{match.next_picker}>, use `/do_turn` to take the first move.")
+                await channel.send("✅ **Both teams are complete! Let the battle begin!**")
                 break
+
+            # Randomly pick the next picker from eligible ones
+            eligible = [match.player1_id, match.player2_id]
+            if match.solo_mode:
+                eligible.append("bot")
+            match.next_picker = random.choice(eligible)
 
             await asyncio.sleep(0.5)  # avoid tight loop
 
