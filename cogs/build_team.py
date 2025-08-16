@@ -374,19 +374,12 @@ class BuildTeam(commands.Cog):
                 god_names = [god.name for god in match.gods]
                 logger.info(f"DEBUG: gods list has {len(match.gods)} gods: {god_names}")
                 await interaction.channel.send(f"Debug gods: {', '.join(god_names)}")
-                player_name = match.player1_name if match.next_picker == match.player1_id else match.player2_name
-                if match.next_picker == interaction.user.id:
-                    embed = discord.Embed(
-                        title=f"🏛️ <@{player_name}> Choose Your God",
-                        description="Select a god for your team from the available options.",
-                        color=0x00ff00
-                    )
-                else:
-                    embed = discord.Embed(
-                        title=f"🏛️ <@{player_name}> Choose Your God",
-                        description="Select a god for your team from the available options.",
-                        color=0x00ff00
-                    )
+                embed = discord.Embed(
+                    title=f"🏛️ <@{match.next_picker}> Choose Your God",
+                    description="Select a god for your team from the available options.",
+                    color=0x00ff00
+                )
+
 
                 await interaction.channel.send(embed=embed, view=view)
 
