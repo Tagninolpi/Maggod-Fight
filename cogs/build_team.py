@@ -358,7 +358,7 @@ class BuildTeam(commands.Cog):
                 chosen = random.choice(match.available_gods)
                 match.teams.setdefault(123, []).append(chosen)
                 match.picked_gods.setdefault(123, []).append(chosen.name)
-                match.available_gods.remove(chosen)
+                match.available_gods = [g for g in match.available_gods if g.name != chosen.name]
                 logger.info(f"Bot chose {chosen.name} in channel {channel_id}")
 
             else:
@@ -406,7 +406,7 @@ class BuildTeam(commands.Cog):
                 chosen = view.selected_god
                 match.teams.setdefault(interaction.user.id, []).append(chosen)
                 match.picked_gods.setdefault(interaction.user.id, []).append(chosen.name)
-                match.available_gods.remove(chosen)
+                match.available_gods = [g for g in match.available_gods if g.name != chosen.name]
                 logger.info(f"Player {interaction.user.id} chose {chosen.name} in channel {channel_id}")
 
             # Switch to next picker
