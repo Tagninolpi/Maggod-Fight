@@ -61,7 +61,7 @@ class StartChoiceView(discord.ui.View):
 class GodSelectionView(discord.ui.View):
     """View for selecting gods during team building."""
 
-    def __init__(self, all_gods: list, available_gods: list, allowed_user: discord.Member,
+    def __init__(self, all_gods: list, available_gods: list, allowed_user: int,
                  picked_gods: dict, player1_id: int, player2_id: int):
         super().__init__(timeout=300)
         self.allowed_user = allowed_user
@@ -85,17 +85,15 @@ class GodSelectionView(discord.ui.View):
         bot_id = 123  # ID of the bot player
 
         # Check if already picked by Player 1
-        if any(g.name == god.name for g in self.picked_gods.get(self.player1_id, [])):
+        if god.name in self.picked_gods.get(self.player1_id, []):
             style = discord.ButtonStyle.success  # Green
-            disabled = False
-
+            disabled = True
         # Check if already picked by Player 2 (human or bot)
-        elif any(g.name == god.name for g in self.picked_gods.get(self.player2_id, [])) or (
-            self.player2_id == bot_id
-            and any(g.name == god.name for g in self.picked_gods.get(bot_id, []))
+        elif god.name in self.picked_gods.get(self.player2_id, []) or (
+            self.player2_id == bot_id and god.name in self.picked_gods.get(bot_id, [])
         ):
             style = discord.ButtonStyle.danger  # Red
-            disabled = False
+            disabled = True
 
         # Available to pick
         elif god in available_gods:
@@ -109,12 +107,13 @@ class GodSelectionView(discord.ui.View):
 
 
 
+
         button = discord.ui.Button(label=label, style=style, row=row, disabled=disabled)
 
         # Only clickable if available
         if not disabled:
             async def callback(interaction: discord.Interaction):
-                if interaction.user != self.allowed_user:
+                if interaction.user.id != self.allowed_user:
                     await interaction.response.send_message(
                         "⚠️ You're not allowed to pick right now.",
                         ephemeral=True
@@ -125,11 +124,6 @@ class GodSelectionView(discord.ui.View):
                 self.picked_gods.setdefault(interaction.user.id, []).append(god.name)
                 self.selected_god = god
                 self.stop()
-                await interaction.response.send_message(
-                    f"✅ **{interaction.user.display_name}** selected **{god.name}**! "
-                    f"(HP: {god.hp}, DMG: {god.dmg})",
-                    ephemeral=True
-                )
 
             button.callback = callback
 
@@ -363,23 +357,16 @@ class BuildTeam(commands.Cog):
             if match.solo_mode and match.next_picker == 123:
                 chosen = random.choice(match.available_gods)
                 match.teams.setdefault(123, []).append(chosen)
-                match.picked_gods[123] = chosen.name
+                match.picked_gods.setdefault(123, []).append(chosen.name)
                 match.available_gods.remove(chosen)
                 logger.info(f"Bot chose {chosen.name} in channel {channel_id}")
 
             else:
-                if interaction.user.id != match.next_picker:
-                    await interaction.followup.send(
-                        f"⏳ Please wait for your turn. It's <@{match.next_picker}>'s turn.",
-                        ephemeral=True
-                    )
-
-
                 # Create and show the god selection view
                 view = GodSelectionView(
                     all_gods=match.gods,
                     available_gods=match.available_gods,
-                    allowed_user=interaction.user,
+                    allowed_user=match.next_picker,
                     picked_gods=match.picked_gods,
                     player1_id=match.player1_id,
                     player2_id=match.player2_id
@@ -397,13 +384,6 @@ class BuildTeam(commands.Cog):
                     value=f"Available Gods: {len(match.available_gods)}\n"
                         f"Your Team: {len(match.teams[interaction.user.id])}/5 gods",
                     inline=False
-                )
-
-                await interaction.followup.send(
-                    f"<@{interaction.user.id}>, select your god:",
-                    embed=embed,
-                    view=view,
-                    ephemeral=True
                 )
 
                 # Wait for the player to pick or timeout
