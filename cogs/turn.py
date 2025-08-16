@@ -260,18 +260,26 @@ class Turn(commands.Cog):
         # Create selection view
         view = GodSelectionView(all_gods= team1 + team2,selectable_gods=selectable_gods, allowed_user=allowed_user,team_1=team1)
 
-        msg = await channel.send(embeds=embeds,view=view)
+        # Send the embed with the view
+        msg = await channel.send(embed=embeds, view=view)
 
-        # Wait for selection
-        await view.wait()
-        
-        delete_UI = False
+        # Set whether to delete the UI after selection
+        delete_UI = True
+
+        try:
+            # Wait for selection, timeout after 15 minutes (900s)
+            await asyncio.wait_for(view.wait(), timeout=900)
+        except asyncio.TimeoutError:
+            # Handle timeout: no selection made
+            view.selected_god = None
+
+        # Optionally delete the message
         if delete_UI:
-            # Clean up the message
             try:
                 await msg.delete()
             except discord.NotFound:
                 pass
+
 
         if view.selected_god is None:
             # Timeout occurred

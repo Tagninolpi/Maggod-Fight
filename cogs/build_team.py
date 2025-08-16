@@ -77,7 +77,7 @@ class GodSelectionView(discord.ui.View):
 
     def make_button(self, god, available_gods, row: int):
         """Create a button with proper style and disabled state."""
-        label = god.name + "⠀" * max(0, 11 - len(god.name))
+        label = god.name + "⠀" * max(0, 10 - len(god.name))
         disabled = False
         style = discord.ButtonStyle.secondary  # Default grey
 
@@ -371,25 +371,32 @@ class BuildTeam(commands.Cog):
                     player1_id=match.player1_id,
                     player2_id=match.player2_id
                 )
-                god_names = [god.name for god in match.gods]
-                logger.info(f"DEBUG: gods list has {len(match.gods)} gods: {god_names}")
-                await interaction.channel.send(f"Debug gods: {', '.join(god_names)}")
                 embed = discord.Embed(
                     title=f"🏛️ <@{match.next_picker}> Choose Your God",
                     description="Select a god for your team from the available options.",
                     color=0x00ff00
                 )
+                
+                # Send the embed with the view
+                msg = await interaction.channel.send(embed=embed, view=view)
 
+                # Set whether to delete the UI after selection
+                delete_UI = True
 
-                await interaction.channel.send(embed=embed, view=view)
-
-                # Wait for the player to pick or timeout
                 try:
+                    # Wait for selection, timeout after 15 minutes (900s)
                     await asyncio.wait_for(view.wait(), timeout=900)
                 except asyncio.TimeoutError:
-                    # Timeout handling here
+                    # Handle timeout: no selection made
                     view.selected_god = None
-                # 15 minutes
+
+                # Optionally delete the message
+                if delete_UI:
+                    try:
+                        await msg.delete()
+                    except discord.NotFound:
+                        pass
+
 
                 if view.selected_god is None:
                     # Timeout handling
