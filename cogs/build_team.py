@@ -374,6 +374,21 @@ class BuildTeam(commands.Cog):
                 god_names = [god.name for god in match.gods]
                 logger.info(f"DEBUG: gods list has {len(match.gods)} gods: {god_names}")
                 await interaction.channel.send(f"Debug gods: {', '.join(god_names)}")
+                player_name = interaction.guild.get_member(match.next_picker).name
+                if match.next_picker == interaction.user.id:
+                    embed = discord.Embed(
+                        title=f"🏛️ <@{player_name}> Choose Your God",
+                        description="Select a god for your team from the available options.",
+                        color=0x00ff00
+                    )
+                else:
+                    embed = discord.Embed(
+                        title=f"🏛️ <@{player_name}> Choose Your God",
+                        description="Select a god for your team from the available options.",
+                        color=0x00ff00
+                    )
+
+                await interaction.channel.send(embed=embed, view=view)
 
                 # Wait for the player to pick or timeout
                 try:
