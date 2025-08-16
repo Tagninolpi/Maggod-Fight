@@ -475,7 +475,7 @@ class Turn(commands.Cog):
         match = matchmaking_dict.get(channel.id)
         if not match:
             return
-
+ 
         # Update bot stats
         if hasattr(self.bot, 'stats'):
             self.bot.stats.increment_match_completed()
