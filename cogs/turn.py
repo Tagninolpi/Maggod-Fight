@@ -260,8 +260,18 @@ class Turn(commands.Cog):
         # Create selection view
         view = GodSelectionView(all_gods= team1 + team2,selectable_gods=selectable_gods, allowed_user=allowed_user,team_1=team1)
 
+        msg = await channel.send(embeds=embeds,view=view)
+
         # Wait for selection
         await view.wait()
+        
+        delete_UI = False
+        if delete_UI:
+            # Clean up the message
+            try:
+                await msg.delete()
+            except discord.NotFound:
+                pass
 
         if view.selected_god is None:
             # Timeout occurred
