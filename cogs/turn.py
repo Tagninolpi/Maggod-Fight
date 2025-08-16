@@ -261,7 +261,7 @@ class Turn(commands.Cog):
         view = GodSelectionView(all_gods= team1 + team2,selectable_gods=selectable_gods, allowed_user=allowed_user,team_1=team1)
 
         # Send the embed with the view
-        msg = await channel.send(embed=embeds, view=view)
+        msg = await channel.send(embeds=embeds, view=view)
 
         # Set whether to delete the UI after selection
         delete_UI = True
