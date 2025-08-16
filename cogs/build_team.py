@@ -96,7 +96,7 @@ class GodSelectionView(discord.ui.View):
             disabled = True
 
         # Available to pick
-        elif god in available_gods:
+        elif god.name in [g.name for g in available_gods]:
             style = discord.ButtonStyle.primary  # Blue
             disabled = False
 
