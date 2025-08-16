@@ -374,17 +374,6 @@ class BuildTeam(commands.Cog):
                 god_names = [god.name for god in match.gods]
                 logger.info(f"DEBUG: gods list has {len(match.gods)} gods: {god_names}")
                 await interaction.channel.send(f"Debug gods: {', '.join(god_names)}")
-                embed = discord.Embed(
-                    title="🏛️ Choose Your God",
-                    description="Select a god for your team from the available options.",
-                    color=0x00ff00
-                )
-                embed.add_field(
-                    name="📊 Current Status",
-                    value=f"Available Gods: {len(match.available_gods)}\n"
-                        f"Your Team: {len(match.teams[interaction.user.id])}/5 gods",
-                    inline=False
-                )
 
                 # Wait for the player to pick or timeout
                 try:
@@ -409,22 +398,8 @@ class BuildTeam(commands.Cog):
                 chosen = view.selected_god
                 match.teams.setdefault(interaction.user.id, []).append(chosen)
                 match.picked_gods.setdefault(interaction.user.id, []).append(chosen.name)
-
                 match.available_gods.remove(chosen)
                 logger.info(f"Player {interaction.user.id} chose {chosen.name} in channel {channel_id}")
-
-            # Send selection announcement
-            embed = discord.Embed(
-                title="⚡ God Selected!",
-                description=f"**{interaction.user.display_name if not match.solo_mode else 'Bot'}** has chosen their god.",
-                color=0x00bfff
-            )
-            embed.add_field(
-                name="🏛️ Selected God",
-                value=f"**{chosen.name}**\nHP: {chosen.hp} | DMG: {chosen.dmg}",
-                inline=True
-            )
-            await channel.send(embed=embed)
 
             # Switch to next picker
             if match.solo_mode and match.next_picker == 123:
@@ -444,12 +419,6 @@ class BuildTeam(commands.Cog):
                 await channel.send(f"<@{match.next_picker}>, use `/do_turn` to take the first move.")
                 match.turn_in_progress = False
                 break
-            else:
-                # Prompt next player
-                next_player = interaction.guild.get_member(match.next_picker)
-                next_player_name = next_player.display_name if next_player else "Next Player"
-                await channel.send(f"<@{match.next_picker}>, it's your turn! **{next_player_name}**, use `/choose` to pick your next god.")
-
 
     async def show_teams(self, channel, match):
         """Show the final teams."""
