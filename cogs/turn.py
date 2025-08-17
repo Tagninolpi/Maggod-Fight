@@ -141,7 +141,7 @@ def create_team_embeds(team1: list, team2: list, player1_name: str, player2_name
 
         return "```\n" + "\n".join(lines) + "\n```"
     
-    if player2_name == 123:
+    if player2_name == "bot":
         if not(action_text == "attack"):
             embed1 = discord.Embed(title=f"{player1_name}'s Team", color=discord.Color.green())
             embed1.description = format_team(team1)
@@ -171,9 +171,9 @@ def create_team_embeds(team1: list, team2: list, player1_name: str, player2_name
 
             embed2 = discord.Embed(title=f"{player2_name}'s Team", color=discord.Color.green())
             embed2.description = format_team(team1)
-        if allowed.display_name == player1_name:
+        if True : # change allowed == match.player1_id
             action_embed = discord.Embed(
-                title=f"🎯 {player1_name} select God to {action_text.title()}",
+                title=f"🎯 Player select God to {action_text.title()}",
                 color=0x00ff00
             )
         else:
@@ -185,7 +185,7 @@ def create_team_embeds(team1: list, team2: list, player1_name: str, player2_name
     
 
 class GodSelectionView(discord.ui.View):
-    def __init__(self, all_gods: list[God], selectable_gods: list[God], allowed_user: discord.Member, team_1):
+    def __init__(self, all_gods: list[God], selectable_gods: list[God], allowed_user: int, team_1):
         super().__init__(timeout=300)
         self.allowed_user = allowed_user
         self.selected_god = None
@@ -202,7 +202,7 @@ class GodSelectionView(discord.ui.View):
         button = discord.ui.Button(label=label, style=discord.ButtonStyle.primary)
 
         async def callback(interaction: discord.Interaction):
-            if interaction.user != self.allowed_user:
+            if interaction.user.id != self.allowed_user:
                 await interaction.response.send_message("You're not allowed to select a god.", ephemeral=True)
                 return
 
@@ -238,7 +238,7 @@ class Turn(commands.Cog):
         team2: list,
         selectable_gods: list,
         action_text: str,
-        allowed_user: discord.Member
+        allowed_user: int
     ) -> Optional[God]:
         """Send a god selection prompt and return the selected god."""
         from bot.utils import matchmaking_dict
@@ -294,7 +294,7 @@ class Turn(commands.Cog):
 
         return view.selected_god
 
-    async def execute_turn(self, channel: discord.TextChannel, attack_team: list, defend_team: list, current_player: discord.Member):
+    async def execute_turn(self, channel: discord.TextChannel, attack_team: list, defend_team: list, current_player: int):
         """Execute a complete turn for the attacking team."""
         from utils.game_test_on_discord import (
             get_visible, get_alive, get_dead, set_first_god_visible,
@@ -435,7 +435,7 @@ class Turn(commands.Cog):
             if match.solo_mode and  match.turn_state["current_player"] == 123:
                 color = discord.Color.red()
             else:
-                if current_player.id == match.player1_id:
+                if current_player == match.player1_id:
                     color = discord.Color.green()
                 else:
                     color = discord.Color.red()
@@ -625,7 +625,7 @@ class Turn(commands.Cog):
         while match.turn_in_progress and match:
             try:
                 # Determine which team is attacking
-                if interaction.user.id == match.player1_id and not(match.turn_state["current_player"] == 123):
+                if match.next_picker == match.player1_id and not(match.turn_state["current_player"] == 123):
                     attack_team = match.teams[match.player1_id]
                     defend_team = match.teams[match.player2_id]
                 else:
@@ -633,7 +633,7 @@ class Turn(commands.Cog):
                     defend_team = match.teams[match.player1_id]
 
                 # Execute the turn
-                game_ended = await self.execute_turn(channel, attack_team, defend_team, interaction.user)
+                game_ended = await self.execute_turn(channel, attack_team, defend_team, match.next_picker)
 
                 if not game_ended:
                     # Switch turns

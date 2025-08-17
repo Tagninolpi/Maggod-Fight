@@ -14,6 +14,7 @@ import asyncio
 
 logger = logging.getLogger(__name__)
 DEBUG_SKIP_BUILD = False  # global variable
+start_view = False
 class StartChoiceView(discord.ui.View):
     def __init__(self, match, initiator_id, timeout=60):
         super().__init__(timeout=timeout)
@@ -137,6 +138,7 @@ class BuildTeam(commands.Cog):
     
     @app_commands.command(name="start", description="Start team building for a Maggod Fight match.")
     async def start_build(self, interaction: discord.Interaction):
+        global start_view
         """Start the team building phase."""
         # At the start of your command
         channel = interaction.channel
@@ -175,7 +177,13 @@ class BuildTeam(commands.Cog):
                 ephemeral=True
             )
             return
-        
+        if start_view:
+            await interaction.response.send_message(
+                f"❌ You can't use this command now, opponent is choosing.",
+                ephemeral=True
+            )
+            return
+        start_view = True
         # start
         await interaction.response.defer(ephemeral=False)  # or ephemeral=True if needed
 
@@ -208,6 +216,7 @@ class BuildTeam(commands.Cog):
         await interaction.followup.send("Choose how to start the game:", view=view)
         try:
             await asyncio.wait_for(view.choice_made.wait(), timeout=60)
+            start_view = False
         except asyncio.TimeoutError:
             return await interaction.followup.send("⌛ No choice made. Do /start again.", ephemeral=True)
 
@@ -350,7 +359,7 @@ class BuildTeam(commands.Cog):
         from bot.utils import matchmaking_dict
 
         match = matchmaking_dict.get(channel_id)
-        # Inside your /choose command, replace the main selection logic with a while loop
+
         match.turn_in_progress = True
 
         while match.turn_in_progress and match:
@@ -416,10 +425,10 @@ class BuildTeam(commands.Cog):
                     return
 
                 chosen = view.selected_god
-                match.teams.setdefault(interaction.user.id, []).append(chosen)
-                match.picked_gods.setdefault(interaction.user.id, []).append(chosen.name)
+                match.teams.setdefault(match.next_picker, []).append(chosen)
+                match.picked_gods.setdefault(match.next_picker, []).append(chosen.name)
                 match.available_gods = [g for g in match.available_gods if g.name != chosen.name]
-                logger.info(f"Player {interaction.user.id} chose {chosen.name} in channel {channel_id}")
+                logger.info(f"Player {match.next_picker} chose {chosen.name} in channel {channel_id}")
 
             # Switch to next picker
             if match.solo_mode and match.next_picker == 123:
