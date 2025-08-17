@@ -182,6 +182,7 @@ class BuildTeam(commands.Cog):
                 f"❌ You can't use this command now, opponent is choosing.",
                 ephemeral=True
             )
+            start_view = True
             return
         start_view = True
         # start
