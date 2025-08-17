@@ -330,12 +330,7 @@ class Turn(commands.Cog):
             None
             )
 
-        if buffed_ally:
-            attacked = buffed_ally
-            await channel.send(
-                f"🐕 **{buffed_ally.name.capitalize()}** forces **{attacker.name.capitalize()}** to target it!"
-            )
-        else:
+        if not(buffed_ally):
             if not visible_defenders:
                 await channel.send("❌ No visible targets available. Turn skipped.")
                 return
@@ -417,9 +412,6 @@ class Turn(commands.Cog):
             damage = attacker.do_damage()
             attacked.get_dmg(value=damage)
                 
-            damage_dealt = attacked_hp_before - attacked.hp
-            await channel.send(f"💥 **{attacker.name}** deals {damage_dealt} damage to **{attacked.name}**! (HP: {attacked.hp}/{attacked.max_hp})")
-
             # Execute god ability
             ability_params = {
                 "visible_gods": get_visible(attack_team),
@@ -437,10 +429,34 @@ class Turn(commands.Cog):
                 ability_message = attacker.ability(ability_params)
             else:
                 ability_message = f"{attacker.name.capitalize()} abillity is on cooldown you can use it in {attacker.reload} turns"
-            if ability_message:
-                # Show ability effect
-                await channel.send(ability_message)
             
+            from bot.utils import matchmaking_dict
+            match = matchmaking_dict.get(channel.id)
+            if match.solo_mode and  match.turn_state["current_player"] == 123:
+                color = discord.Color.red()
+            else:
+                if current_player == match.player1_id:
+                    color = discord.Color.green()
+                else:
+                    color = discord.Color.red()
+
+            embed = discord.Embed(color=color)
+
+            desc = ""
+            # Case: Cerberus forces attacker
+            if buffed_ally:
+                desc += f"🐕 Cerberus Effect: **{buffed_ally.name.capitalize()}** forces **{attacker.name.capitalize()}** to target it!\n"
+            # Damage info
+            damage_dealt = attacked_hp_before - attacked.hp
+            desc += f"💥 Attack: **{attacker.name.capitalize()}** deals {damage_dealt} damage to **{attacked.name.capitalize()}** (HP: {attacked.hp}/{attacked.max_hp})\n"
+
+            # Ability effect
+            if ability_message:
+                desc += ability_message
+
+            embed.description = desc
+
+            await channel.send(embed=embed)
         except Exception as e:
             logger.error(f"Error executing ability for {attacker.name}: {e}")
             await channel.send(f"⚠️ Error executing {attacker.name}'s ability.")
@@ -485,14 +501,18 @@ class Turn(commands.Cog):
             winner_id = match.player1_id
             winner_name = match.player1_name
         elif team2_alive and not team1_alive:
-            winner_id = match.player2_id
-            winner_name = match.player2_name
+            if match.solo_mode:
+                winner_id = 123
+                winner_name = "bot"
+            else:
+                winner_id = match.player2_id
+                winner_name = match.player2_name
         else:
             winner_id = None
             winner_name = "Nobody"
 
         # Get winner's display name
-        if winner_id:
+        if winner_id and match.solo_mode:
             winner = channel.guild.get_member(winner_id)
             winner_name = winner.display_name if winner else winner_name
 
@@ -621,23 +641,9 @@ class Turn(commands.Cog):
                         match.player2_id if match.turn_state["current_player"] == match.player1_id else match.player1_id
                     )
                     match.turn_state["turn_number"] += 1
-                    
-                    # Announce next turn
-                    if match.solo_mode:
-                        next_player_id = interaction.user.id
-                    else:
-                        next_player_id = match.turn_state['current_player']
-                    
-                    embed = discord.Embed(
-                        title="🔄 Next Turn",
-                        description=f"Turn {match.turn_state['turn_number']}: <@{next_player_id}>, use `/do_turn`!",
-                        color=0x00bfff
-                    )
-
+                
                     # Update game save after each turn
                     #await db_manager.update_game_save(channel, match) #database
-
-                    await channel.send(embed=embed)
                     await asyncio.sleep(2)
                 else:
                     # Delete game save after match is over

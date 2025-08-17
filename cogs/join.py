@@ -112,7 +112,7 @@ class Join(commands.Cog):
 
                     embed = discord.Embed(
                         title="🤖 Solo Match Ready!",
-                        description="You do the /commands for the bot. But it decides on it's own.",
+                        description="You play against the Maggod bot",
                         color=0x9932CC
                     )
                     embed.add_field(
@@ -150,7 +150,7 @@ class Join(commands.Cog):
                 )
                 embed.add_field(
                     name="🎯 Next Step",
-                    value="Use `/start` to begin building your teams!\nEach player will choose 5 gods for their army.",
+                    value="Use `/start` to decide if you want random teams or you want to assemble your teams!\nEach player will choose 5 gods for their army.",
                     inline=False
                 )
                 embed.add_field(
