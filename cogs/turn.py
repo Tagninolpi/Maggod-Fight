@@ -626,14 +626,14 @@ class Turn(commands.Cog):
             try:
                 # Determine which team is attacking
                 if match.turn_state["current_player"] == 123:
-                    attack_team = match.teams[match.player1_id]
-                    defend_team = match.teams[match.player2_id]
-                elif match.next_picker == match.player1_id:
                     attack_team = match.teams[match.player2_id]
                     defend_team = match.teams[match.player1_id]
-                else:
+                elif match.next_picker == match.player1_id:
                     attack_team = match.teams[match.player1_id]
                     defend_team = match.teams[match.player2_id]
+                else:
+                    attack_team = match.teams[match.player2_id]
+                    defend_team = match.teams[match.player1_id]
 
                 # Execute the turn
                 game_ended = await self.execute_turn(channel, attack_team, defend_team, match.next_picker)
