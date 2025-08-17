@@ -126,7 +126,7 @@ def delete_effect(team, effect_name):
         if god.max_hp < god.hp:
             god.hp = god.max_hp
 
-def action_befor_delete_effect(attack_team, defend_team):
+def action_befor_delete_effect(attack_team):
     """Handle effects before they are deleted when gods die."""
     for god in attack_team:
         if god.hp < 1 and god.alive:
@@ -136,6 +136,16 @@ def action_befor_delete_effect(attack_team, defend_team):
             elif god.name == "ares":
                 delete_effect(attack_team, "ares_do_more_dmg")
             elif god.name == "athena":
+                delete_effect(attack_team, "athena_more_max_hp")
+
+def delete_passive_effect_when_hiding(attack_team,target):
+    """Handle effects before they are deleted when gods die."""
+    for god in attack_team:
+            if god.name == "poseidon" and target.name == "poseidon":
+                delete_effect(attack_team, "posi_shield")
+            elif god.name == "ares" and target.name == "ares":
+                delete_effect(attack_team, "ares_do_more_dmg")
+            elif god.name == "athena" and target.name == "athena":
                 delete_effect(attack_team, "athena_more_max_hp")
 
 def action_befor_die(defend_team, attack_team):
@@ -148,7 +158,7 @@ def action_befor_die(defend_team, attack_team):
             # Handle death abilities
             if god.name == "hera":
                 god.ability({
-                    "ennemy_team": get_alive(defend_team),
+                    "visible_ennemy_team": get_visible(defend_team),
                     "self": god
                 })
                 return "Hera died. She does revenge expolsion that does 3 dmg to all ennemies"
@@ -165,7 +175,7 @@ def action_befor_die(defend_team, attack_team):
             # Handle death abilities for defending team
             if god.name == "hera":
                 god.ability({
-                    "ennemy_team": get_alive(attack_team),
+                    "visible_ennemy_team": get_visible(attack_team),
                     "self": god
                 })
                 return "Hera does 3 dmg to all ennemies"

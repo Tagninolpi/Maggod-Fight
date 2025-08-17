@@ -310,12 +310,14 @@ def megaera(kwargs):
 
 def hecate(kwargs):
     """Hecate's magic - Makes self and target invisible."""
+    from utils.game_test_on_discord import delete_passive_effect_when_hiding
     if not kwargs.get("attacking_with_hermes", False):
         target = kwargs["target"]
         self = kwargs["self"]
         self.heal(1)
         target.heal(1)
         msg = f"Hacate heals herself and {target.name.capitalize()} by 1 hp\n"
+        delete_passive_effect_when_hiding(kwargs["visible_gods"],target)
         target.visible = False
         if target.name == "hecate":
             msg += "Hecate goes into hiding"

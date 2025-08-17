@@ -298,7 +298,7 @@ class Turn(commands.Cog):
         """Execute a complete turn for the attacking team."""
         from utils.game_test_on_discord import (
             get_visible, get_alive, get_dead, set_first_god_visible,
-            became_visible_gain_effect, action_befor_delete_effect, action_befor_die
+            became_visible_gain_effect, action_befor_delete_effect, action_befor_die,
         )
 
         # Ensure at least one god is visible on each team
@@ -435,7 +435,7 @@ class Turn(commands.Cog):
             if match.solo_mode and  match.turn_state["current_player"] == 123:
                 color = discord.Color.red()
             else:
-                if current_player == match.player1_id:
+                if current_player.id == match.player1_id:
                     color = discord.Color.green()
                 else:
                     color = discord.Color.red()
@@ -462,12 +462,12 @@ class Turn(commands.Cog):
             await channel.send(f"⚠️ Error executing {attacker.name}'s ability.")
 
         # Clean up effects and handle deaths
-        action_befor_delete_effect(attack_team, defend_team)
-        action_befor_delete_effect(defend_team, attack_team)
+        action_befor_delete_effect(attack_team)
+        action_befor_delete_effect(defend_team)
         msg = action_befor_die(defend_team, attack_team)
         if msg:
             await channel.send(msg)
-        action_befor_delete_effect(defend_team, attack_team)
+        action_befor_delete_effect(defend_team)
         
 
         # Update effects
@@ -481,7 +481,7 @@ class Turn(commands.Cog):
         if not team1_alive or not team2_alive:
             await self.end_game(channel, team1_alive, team2_alive)
             return True  # Game ended
-        
+
         return False  # Game continues
 
     async def end_game(self, channel: discord.TextChannel, team1_alive: bool, team2_alive: bool):
@@ -622,7 +622,7 @@ class Turn(commands.Cog):
 
         await interaction.response.defer()
         match.turn_in_progress = True
-        while match.turn_in_progress:
+        while match.turn_in_progress and match:
             try:
                 # Determine which team is attacking
                 if interaction.user.id == match.player1_id and not(match.turn_state["current_player"] == 123):

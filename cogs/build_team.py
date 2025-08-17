@@ -233,7 +233,7 @@ class BuildTeam(commands.Cog):
 
             # Send confirmation message
             await interaction.followup.send(
-                "✅ Debug: Teams auto-assigned. The battle begins now! Use `/do_turn` to play."
+                "✅ Debug: Teams auto-assigned. The battle begins now! Use `/do` to play."
             )
             await self.show_teams(interaction.channel, match)
             return  # skip the rest of /start normal flow
@@ -353,7 +353,7 @@ class BuildTeam(commands.Cog):
         # Inside your /choose command, replace the main selection logic with a while loop
         match.turn_in_progress = True
 
-        while match.turn_in_progress:
+        while match.turn_in_progress and match:
             if match.solo_mode and match.next_picker == 123:
                 chosen = random.choice(match.available_gods)
                 match.teams.setdefault(123, []).append(chosen)
@@ -371,9 +371,14 @@ class BuildTeam(commands.Cog):
                     player1_id=match.player1_id,
                     player2_id=match.player2_id
                 )
+                if match.solo_mode:
+                    msg = f"{match.player1_name} is Green and bot is Red"
+                else:
+                    msg = f"{match.player1_name} is Green and {match.player2_name} is Red"
+
                 embed = discord.Embed(
                     title=f"🏛️ <@{match.next_picker}> Choose Your God",
-                    description="Select a god for your team from the available options.",
+                    description=f"Select a god for your team from the available options. {msg}",
                     color=0x00ff00
                 )
                 
@@ -431,7 +436,7 @@ class BuildTeam(commands.Cog):
                 asyncio.create_task(update_lobby_status_embed(self.bot))
                 await channel.send("✅ **Both teams are complete! Let the battle begin!**")
                 await self.show_teams(channel, match)
-                await channel.send(f"<@{match.next_picker}>, use `/do_turn` to take the first move.")
+                await channel.send(f"<@{match.next_picker}>, use `/do` to take the first move.")
                 match.turn_in_progress = False
                 break
 
@@ -468,7 +473,7 @@ class BuildTeam(commands.Cog):
             
             embed.add_field(
                 name="🎯 Battle Rules",
-                value="• Take turns using `/do_turn`\n• Each god has unique abilities\n• Eliminate all enemy gods to win!\n• Gods become visible when they attack",
+                value="• Take turns using `/do`\n• Each god has unique abilities\n• Eliminate all enemy gods to win!\n• Gods become visible when they attack",
                 inline=False
             )
 
@@ -476,7 +481,7 @@ class BuildTeam(commands.Cog):
             
         except Exception as e:
             logger.error(f"Error showing teams: {e}")
-            await channel.send("✅ Teams are ready! Use `/do_turn` to start the battle.")
+            await channel.send("✅ Teams are ready! Use `/do` to start the battle.")
 
 async def setup(bot):
     """Setup function for the cog."""

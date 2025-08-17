@@ -64,12 +64,6 @@ class Leave(commands.Cog):
             other_player = interaction.guild.get_member(other_player_id)
             other_player_name = other_player.display_name if other_player else "the other player"
 
-        #remove the match
-        del matchmaking_dict[channel_id]
-        await update_lobby_status_embed(self.bot)
-        logger.info(f"Player {interaction.user.id} ({interaction.user.display_name}) left match in channel {channel_id}")
-        match.turn_in_progress = False
-
 
         # Create response embed
         embed = discord.Embed(
@@ -100,7 +94,7 @@ class Leave(commands.Cog):
         await interaction.followup.send(embed=embed)
         
         # Notify the other player if they exist
-        if other_player_id:
+        if other_player_id and not(match.solo_mode):
             try:
                 notification_embed = discord.Embed(
                     title="👋 Opponent Left",
@@ -120,6 +114,12 @@ class Leave(commands.Cog):
             except Exception as e:
                 logger.error(f"Error notifying other player: {e}")
 
+        #remove the match
+        del matchmaking_dict[channel_id]
+        await update_lobby_status_embed(self.bot)
+        logger.info(f"Player {interaction.user.id} ({interaction.user.display_name}) left match in channel {channel_id}")
+        match.turn_in_progress = False
+        
 async def setup(bot):
     """Setup function for the cog."""
     await bot.add_cog(Leave(bot))
