@@ -102,7 +102,7 @@ class Join(commands.Cog):
                 if interaction.user.id == match.player1_id:
                     # Same user joins again to play both sides
                     match.player2_id = 123
-                    match.player2_name = 123
+                    match.player2_name = "bot"
                     match.started = True
                     match.game_phase = "ready"
                     match.solo_mode = True

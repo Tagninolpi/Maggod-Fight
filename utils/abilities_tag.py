@@ -54,7 +54,6 @@ def ares(kwargs):
     """Ares's battle fury - Provides permanent damage boosts to allies."""
     visible_gods = kwargs["visible_gods"]
     attacking_with_hermes = kwargs.get("attacking_with_hermes", False)
-    
     if attacking_with_hermes:
         # Temporary boost when used with Hermes
         for god in visible_gods:
@@ -105,7 +104,6 @@ def athena(kwargs):
     """Athena's wisdom - Increases max HP of visible allies."""
     visible_gods = kwargs["visible_gods"]
     attacking_with_hermes = kwargs.get("attacking_with_hermes", False)
-    
     if attacking_with_hermes:
         # Temporary HP boost when used with Hermes
         for god in visible_gods:
@@ -155,7 +153,7 @@ def hermes(kwargs):
     msg = "attaking with Hermes :\n"
     if attacker_1:
         if attacker_1.check_abillity():
-            msg = attacker_1.ability({
+            msg += attacker_1.ability({
                 **kwargs,
                 "attacking_with_hermes": True,
                 "self": attacker_1

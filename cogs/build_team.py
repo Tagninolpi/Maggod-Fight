@@ -436,7 +436,10 @@ class BuildTeam(commands.Cog):
                 asyncio.create_task(update_lobby_status_embed(self.bot))
                 await channel.send("✅ **Both teams are complete! Let the battle begin!**")
                 await self.show_teams(channel, match)
-                await channel.send(f"<@{match.next_picker}>, use `/do` to take the first move.")
+                if match.solo_mode:
+                    await channel.send(f"<@{match.player1_id}>, use `/do` to start the fight.")
+                else:
+                    await channel.send(f"<@{match.next_picker}>, use `/do` to start the fight.")
                 match.turn_in_progress = False
                 break
 

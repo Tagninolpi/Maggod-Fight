@@ -329,7 +329,7 @@ class Turn(commands.Cog):
             if "cerberus_more_max_hp_per_visible_ally" in god.effects and god.alive),
             None
             )
-
+        attacked = buffed_ally
         if not(buffed_ally):
             if not visible_defenders:
                 await channel.send("❌ No visible targets available. Turn skipped.")
