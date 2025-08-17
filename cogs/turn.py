@@ -625,7 +625,10 @@ class Turn(commands.Cog):
         while match.turn_in_progress and match:
             try:
                 # Determine which team is attacking
-                if match.next_picker == match.player1_id and not(match.turn_state["current_player"] == 123):
+                if match.turn_state["current_player"] == 123:
+                    attack_team = match.teams[match.player2_id]
+                    defend_team = match.teams[match.player1_id]
+                elif match.next_picker == match.player1_id:
                     attack_team = match.teams[match.player1_id]
                     defend_team = match.teams[match.player2_id]
                 else:
@@ -641,7 +644,8 @@ class Turn(commands.Cog):
                         match.player2_id if match.turn_state["current_player"] == match.player1_id else match.player1_id
                     )
                     match.turn_state["turn_number"] += 1
-                
+                    match.next_picker = match.player1_id if match.next_picker == match.player2_id else match.player2_id
+
                     # Update game save after each turn
                     #await db_manager.update_game_save(channel, match) #database
                     await asyncio.sleep(2)
@@ -650,7 +654,7 @@ class Turn(commands.Cog):
                     pass #database
                     await db_manager.delete_game_save(channel, match)
                     match.turn_in_progress = False
-
+                
             except Exception as e:
                 logger.error(f"Error in do_turn: {e}")
                 await interaction.followup.send(
