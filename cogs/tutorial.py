@@ -5,7 +5,8 @@ import unicodedata
 from utils.gameplay_tag import God
 from bot.config import Config  # make sure this contains LOBBY_CATEGORY_NAME and allowed_channel_id
 from utils.game_test_on_discord import gods
-from tutorial_functions.tutorial_main_view import TutorialMainView
+from .tutorial_functions.tutorial_main_view import TutorialMainView
+
 
 
 class TutorialCog(commands.Cog):
