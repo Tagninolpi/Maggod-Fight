@@ -510,11 +510,18 @@ class Turn(commands.Cog):
         )
         
         if winner_id:
-            embed.add_field(
-                name="🎉 Congratulations!",
-                value=f"<@{winner_id}> has proven their tactical superiority in this epic battle of the gods!",
-                inline=False
-            )
+            if match.solo_mode:
+                embed.add_field(
+                    name="🎉 Congratulations!",
+                    value=f" The maggod bot has proven their tactical superiority in this epic battle of the gods!",
+                    inline=False
+                )
+            else:
+                embed.add_field(
+                    name="🎉 Congratulations!",
+                    value=f"<@{winner_id}> has proven their tactical superiority in this epic battle of the gods!",
+                    inline=False
+                )
         else:
             embed.add_field(
                 name="🤝 Epic Draw!",
