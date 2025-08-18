@@ -119,6 +119,7 @@ class Leave(commands.Cog):
         await update_lobby_status_embed(self.bot)
         logger.info(f"Player {interaction.user.id} ({interaction.user.display_name}) left match in channel {channel_id}")
         match.turn_in_progress = False
+        match.start_view
         
 async def setup(bot):
     """Setup function for the cog."""

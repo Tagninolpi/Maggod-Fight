@@ -44,6 +44,8 @@ class Match:
         }
         self.solo_mode = False
         self.turn_in_progress = False
+        self.start_view = False
+        self.DEBUG_SKIP_BUILD = False
 
 class MaggodFightBot(commands.Bot):
     """Main bot class for Maggod Fight."""

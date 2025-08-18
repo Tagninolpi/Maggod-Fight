@@ -13,10 +13,9 @@ from bot.config import Config
 import asyncio
 
 logger = logging.getLogger(__name__)
-DEBUG_SKIP_BUILD = False  # global variable
-start_view = False
 class StartChoiceView(discord.ui.View):
-    def __init__(self, match, initiator_id, timeout=60):
+
+    def __init__(self, match, initiator_id, timeout=860):
         super().__init__(timeout=timeout)
         self.match = match
         self.initiator_id = initiator_id
@@ -39,8 +38,9 @@ class StartChoiceView(discord.ui.View):
 
     @discord.ui.button(label="Skip Team Building", style=discord.ButtonStyle.red)
     async def skip_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        global DEBUG_SKIP_BUILD
-        DEBUG_SKIP_BUILD = True
+        from bot.utils import matchmaking_dict
+        match = matchmaking_dict.get(interaction.channel.id)
+        match.DEBUG_SKIP_BUILD = True
 
         self.disable_all_buttons()
         await interaction.response.edit_message(content="✅ Skipping team building phase!", view=self)
@@ -50,8 +50,9 @@ class StartChoiceView(discord.ui.View):
 
     @discord.ui.button(label="Do Team Building", style=discord.ButtonStyle.green)
     async def build_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        global DEBUG_SKIP_BUILD
-        DEBUG_SKIP_BUILD = False
+        from bot.utils import matchmaking_dict
+        match = matchmaking_dict.get(interaction.channel.id)
+        match.DEBUG_SKIP_BUILD = False
 
         self.disable_all_buttons()
         await interaction.response.edit_message(content="✅ Proceeding with team building phase!", view=self)
@@ -64,7 +65,7 @@ class GodSelectionView(discord.ui.View):
 
     def __init__(self, all_gods: list, available_gods: list, allowed_user: int,
                  picked_gods: dict, player1_id: int, player2_id: int):
-        super().__init__(timeout=300)
+        super().__init__(timeout=860)
         self.allowed_user = allowed_user
         self.selected_god = None
         self.picked_gods = picked_gods  # expected: {player_id: [god_names]}
@@ -138,7 +139,6 @@ class BuildTeam(commands.Cog):
     
     @app_commands.command(name="start", description="Start team building for a Maggod Fight match.")
     async def start_build(self, interaction: discord.Interaction):
-        global start_view
         """Start the team building phase."""
         # At the start of your command
         channel = interaction.channel
@@ -177,13 +177,13 @@ class BuildTeam(commands.Cog):
                 ephemeral=True
             )
             return
-        if start_view:
+        if match.start_view:
             await interaction.response.send_message(
                 f"❌ You can't use this command now, opponent is choosing.",
                 ephemeral=True
             )
             return
-        start_view = True
+        match.start_view = True
         # start
         await interaction.response.defer(ephemeral=False)  # or ephemeral=True if needed
 
@@ -215,13 +215,19 @@ class BuildTeam(commands.Cog):
         view = StartChoiceView(match, initiator_id=interaction.user.id)
         await interaction.followup.send("Choose how to start the game:", view=view)
         try:
-            await asyncio.wait_for(view.choice_made.wait(), timeout=60)
-            start_view = False
+            await asyncio.wait_for(view.choice_made.wait(), timeout=860)
+            match.start_view = False
         except asyncio.TimeoutError:
-            return await interaction.followup.send("⌛ No choice made. Do /start again.", ephemeral=True)
+            await channel.send("⏱️ Selection timed out. Match has been reset.")
+            match = matchmaking_dict[channel.id]
+            match.game_phase = "Waiting for first player"
+            asyncio.create_task(update_lobby_status_embed(self.bot))
+            # Reset the match
+            if channel.id in matchmaking_dict:
+                del matchmaking_dict[channel.id]
+            return None
 
-
-        if DEBUG_SKIP_BUILD:
+        if match.DEBUG_SKIP_BUILD:
             # Assign 5 gods per player (random or predefined)
             gods_list = match.gods
             random.shuffle(gods_list)
