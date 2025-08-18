@@ -85,21 +85,23 @@ class Tutorial(commands.Cog):
                 self.message = None  # Will store the sent message
 
             async def on_timeout(self):
-                if self.message:
-                    try:
-                        await self.message.delete()
-                    except discord.NotFound:
-                        pass  # Message already deleted
-
-            @discord.ui.button(label="I got it", style=discord.ButtonStyle.danger)
-            async def got_it(self, interaction_button: discord.Interaction, button: discord.ui.Button):
-                await interaction_button.response.send_message("✅ Tutorial closed.", ephemeral=True)
+                # Delete the message with embeds/buttons on timeout
                 if self.message:
                     try:
                         await self.message.delete()
                     except discord.NotFound:
                         pass
-                self.stop()
+
+            @discord.ui.button(label="I got it", style=discord.ButtonStyle.danger)
+            async def got_it(self, interaction_button: discord.Interaction, button: discord.ui.Button):
+                # Delete the message when the user presses "I got it"
+                if self.message:
+                    try:
+                        await self.message.delete()
+                    except discord.NotFound:
+                        pass
+                self.stop()  # Stop listening to the view
+                await interaction_button.response.send_message("✅ Tutorial closed.", ephemeral=True)
 
             @discord.ui.button(label="Next", style=discord.ButtonStyle.success)
             async def next_embed(self, interaction_button: discord.Interaction, button: discord.ui.Button):
