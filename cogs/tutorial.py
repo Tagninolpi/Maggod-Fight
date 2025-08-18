@@ -48,7 +48,7 @@ class TutorialCog(commands.Cog):
             description="Welcome! Press 'Gods Tutorial' to learn about gods or 'Exit' to close.",
             color=discord.Color.green()
         )
-        view = self.TutorialMainView(interaction.user, self)
+        view = TutorialMainView(interaction.user, self)
         await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
 
     # ---------------- God Embeds ----------------
