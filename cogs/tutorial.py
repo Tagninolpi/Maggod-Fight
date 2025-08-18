@@ -101,7 +101,6 @@ class Tutorial(commands.Cog):
                     except discord.NotFound:
                         pass
                 self.stop()  # Stop listening to the view
-                await interaction_button.response.send_message("✅ Tutorial closed.", ephemeral=True)
 
             @discord.ui.button(label="Next", style=discord.ButtonStyle.success)
             async def next_embed(self, interaction_button: discord.Interaction, button: discord.ui.Button):
