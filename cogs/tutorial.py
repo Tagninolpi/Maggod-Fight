@@ -45,8 +45,6 @@ class Tutorial(commands.Cog):
             ),
             color=discord.Color.gold()
         )
-        embed1.set_thumbnail(url="https://cdn-icons-png.flaticon.com/512/616/616408.png")  # Example sword icon
-
         # Embed 2: Channels overview
         embed2 = discord.Embed(
             title="📜 Channels Overview",
