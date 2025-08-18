@@ -45,6 +45,7 @@ class Tutorial(commands.Cog):
             ),
             color=discord.Color.gold()
         )
+
         # Embed 2: Channels overview
         embed2 = discord.Embed(
             title="📜 Channels Overview",
@@ -77,8 +78,39 @@ class Tutorial(commands.Cog):
             inline=False
         )
 
-        # Send tutorial embeds to player
-        await interaction.response.send_message(embeds=[embed1, embed2], ephemeral=True)
+        # Buttons
+        class TutorialView(discord.ui.View):
+            def __init__(self, *, timeout=120):
+                super().__init__(timeout=timeout)
+                self.message = None  # Will store the sent message
+
+            async def on_timeout(self):
+                if self.message:
+                    try:
+                        await self.message.delete()
+                    except discord.NotFound:
+                        pass  # Message already deleted
+
+            @discord.ui.button(label="I got it", style=discord.ButtonStyle.danger)
+            async def got_it(self, interaction_button: discord.Interaction, button: discord.ui.Button):
+                await interaction_button.response.send_message("✅ Tutorial closed.", ephemeral=True)
+                if self.message:
+                    try:
+                        await self.message.delete()
+                    except discord.NotFound:
+                        pass
+                self.stop()
+
+            @discord.ui.button(label="Next", style=discord.ButtonStyle.success)
+            async def next_embed(self, interaction_button: discord.Interaction, button: discord.ui.Button):
+                await interaction_button.response.send_message("➡️ Next tutorial section coming soon!", ephemeral=True)
+                # Later we will replace this with the actual next embed/buttons
+
+        view = TutorialView()
+        # Send the tutorial embeds with buttons (ephemeral)
+        view.message = await interaction.response.send_message(
+            embeds=[embed1, embed2], view=view, ephemeral=True
+        )
 
 
 async def setup(bot):
