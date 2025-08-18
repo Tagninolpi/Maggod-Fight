@@ -623,6 +623,7 @@ class Turn(commands.Cog):
         await interaction.response.defer()
         match.turn_in_progress = True
         while match.turn_in_progress and match:
+            match.next_picker = match.turn_state["current_player"]
             try:
                 # Determine which team is attacking
                 if match.turn_state["current_player"] == 123:
