@@ -141,7 +141,7 @@ def create_team_embeds(team1: list, team2: list, player1_name: str, player2_name
 
         return "```\n" + "\n".join(lines) + "\n```"
     
-    if player2_name == "bot":
+    if True:
         if not(action_text == "attack"):
             embed1 = discord.Embed(title=f"{player1_name}'s Team", color=discord.Color.green())
             embed1.description = format_team(team1)
