@@ -78,7 +78,8 @@ class MaggodFightBot(commands.Bot):
             'cogs.join',
             'cogs.leave',
             'cogs.build_team',
-            'cogs.turn'
+            'cogs.turn',
+            'cogs.tutorial'
         ]
     
         for cog in cogs_to_load:

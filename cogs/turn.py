@@ -451,6 +451,9 @@ class Turn(commands.Cog):
         if msg:
             await channel.send(msg)
         action_befor_delete_effect(defend_team)
+        msg = action_befor_die(attack_team, defend_team)
+        if msg:
+            await channel.send(msg)
         
 
         # Update effects

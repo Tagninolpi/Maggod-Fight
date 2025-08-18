@@ -121,6 +121,7 @@ def delete_effect(team, effect_name):
             # Handle special effect removals
             if effect_name == "athena_more_max_hp":
                 god.max_hp -= effect.value
+                god.hp -= effect.value
         
         # Ensure HP doesn't exceed max HP
         if god.max_hp < god.hp:
