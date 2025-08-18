@@ -1,27 +1,27 @@
 import discord
-from discord.ext import commands
 from discord import app_commands
-from bot.config import Config
-import logging
+from discord.ext import commands
 
-logger = logging.getLogger(__name__)
+from bot.config import Config  # make sure this contains LOBBY_CATEGORY_NAME and allowed_channel_id
 
-class Tutorial(commands.Cog):
-    """Cog for the Maggod Fight tutorial system."""
+GODS = [
+    "poseidon", "hephaestus", "aphrodite", "ares", "hera", "zeus", "athena",
+    "apollo", "artemis", "hermes", "hades_ow", "thanatos", "cerberus",
+    "charon", "persephone", "hades_uw", "tisiphone", "alecto", "megaera", "hecate"
+]
 
-    GODS = [
-        "poseidon", "hephaestus", "aphrodite", "ares", "hera",
-        "zeus", "athena", "apollo", "artemis", "hermes",
-        "hades_ow", "thanatos", "cerberus", "charon", "persephone",
-        "hades_uw", "tisiphone", "alecto", "megaera", "hecate"
-    ]
+class TutorialCog(commands.Cog):
+    """Self-contained tutorial system for Maggod Fight Arena."""
 
     def __init__(self, bot):
         self.bot = bot
 
+    # ---------------- Slash Command ----------------
     @app_commands.command(name="tutorial", description="Learn how the Maggod Fight Arena works.")
     async def tutorial(self, interaction: discord.Interaction):
         channel = interaction.channel
+
+        # ---------- Checks ----------
         if not isinstance(channel, discord.TextChannel):
             await interaction.response.send_message(
                 "❌ This command must be used in a text channel.",
@@ -43,174 +43,133 @@ class Tutorial(commands.Cog):
             )
             return
 
-        # --- Embeds ---
-        embed_intro = discord.Embed(
-            title="🏟️ Welcome to the Maggod Fight Arena!",
-            description=(
-                "This is a **turn-based combat game** where you can battle against "
-                "other players or bots to **win rewards** and prove your strength!"
-            ),
-            color=discord.Color.gold()
+        # ---------- Passed checks, show main tutorial ----------
+        embed = discord.Embed(
+            title="📚 Tutorial",
+            description="Welcome! Press 'Gods Tutorial' to learn about gods or 'Exit' to close.",
+            color=discord.Color.green()
         )
+        view = self.TutorialMainView(interaction.user, self)
+        await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
 
-        embed_channels = discord.Embed(
-            title="📜 Channels Overview",
+    # ---------------- God Embeds ----------------
+    def create_god_tutorial_embeds(self, god_name: str) -> list[discord.Embed]:
+        """Create tutorial embeds for a specific god."""
+        embeds = []
+
+        god_info = {
+            "poseidon": {
+                "description": "God of the sea. Controls water and storms.",
+                "abilities": ["Tidal Wave", "Ocean's Wrath", "Summon Kraken"]
+            },
+            "zeus": {
+                "description": "King of the gods. Controls thunder and lightning.",
+                "abilities": ["Thunderbolt", "Divine Wrath", "Storm Call"]
+            },
+            # Add all other gods here...
+        }
+
+        info = god_info.get(god_name, {"description": "No info available", "abilities": []})
+
+        embed_intro = discord.Embed(
+            title=f"📖 {god_name.title()} Tutorial",
+            description=info["description"],
             color=discord.Color.blue()
         )
-        embed_channels.add_field(
-            name="📊 lobby-status",
-            value="A text channel where you can **see active fights** and check if someone is looking for an opponent.",
-            inline=False
+        embed_abilities = discord.Embed(
+            title=f"{god_name.title()}'s Abilities",
+            description="\n".join(f"• {ability}" for ability in info["abilities"]) or "No abilities listed.",
+            color=discord.Color.dark_blue()
         )
-        embed_channels.add_field(
-            name="💬 information",
-            value=(
-                "The **main multipurpose text channel** for anything related to the game:\n"
-                "• Chat with other players\n"
-                "• Use `/tutorial`\n"
-                "• Get updates and announcements\n"
-                "• Report bugs and give feedback"
-            ),
-            inline=False
-        )
-        embed_channels.add_field(
-            name="🔘・maggod-fight-lobby-01 / 02",
-            value=(
-                "Dedicated **battle arenas** where you fight players or bots.\n"
-                "To join a match use `/join`.\n"
-                "If you want to fight a bot, use `/join` again.\n\n"
-                "Once you join, you’ll receive instructions on how to use other `/commands`."
-            ),
-            inline=False
-        )
+        embeds.append(embed_intro)
+        embeds.append(embed_abilities)
+        return embeds
 
-        # --- Views ---
-        class TutorialView(discord.ui.View):
-            def __init__(self, user_id: int):
-                super().__init__(timeout=120)
-                self.user_id = user_id
-                self.message = None
+    # ---------------- Views ----------------
+    class TutorialMainView(discord.ui.View):
+        """Main tutorial menu view."""
+        def __init__(self, user: discord.User, cog, timeout: int = 120):
+            super().__init__(timeout=timeout)
+            self.user = user
+            self.cog = cog
 
-            async def interaction_check(self, interaction_inner: discord.Interaction) -> bool:
-                return interaction_inner.user.id == self.user_id
+            # Main buttons
+            self.add_item(discord.ui.Button(label="Gods Tutorial", style=discord.ButtonStyle.green, custom_id="god_tutorial"))
+            self.add_item(discord.ui.Button(label="Exit", style=discord.ButtonStyle.red, custom_id="exit_tutorial"))
 
-            async def on_timeout(self):
-                if self.message:
-                    try:
-                        await self.message.edit(content="✅ Tutorial closed.", embeds=[], view=None)
-                    except discord.NotFound:
-                        pass
+        async def interaction_check(self, interaction: discord.Interaction) -> bool:
+            return interaction.user.id == self.user.id
 
-            @discord.ui.button(label="I got it", style=discord.ButtonStyle.danger)
-            async def got_it(self, interaction_button: discord.Interaction, button: discord.ui.Button):
-                await interaction_button.response.edit_message(content="✅ Tutorial closed.", embeds=[], view=None)
-                self.stop()
+        async def on_timeout(self) -> None:
+            for child in self.children:
+                child.disabled = True
+            if hasattr(self, "message"):
+                await self.message.edit(embed=discord.Embed(title="✅ Tutorial ended"), view=None)
 
-            @discord.ui.button(label="Gods Tutorial", style=discord.ButtonStyle.success)
-            async def gods_tutorial(self, interaction_button: discord.Interaction, button: discord.ui.Button):
-                await self.show_gods_menu(interaction_button)
+        @discord.ui.button(label="Gods Tutorial", style=discord.ButtonStyle.green, custom_id="god_tutorial")
+        async def god_tutorial(self, interaction: discord.Interaction, button: discord.ui.Button):
+            await interaction.response.defer()
+            view = self.cog.GodsMenuView(self.user, self.cog)
+            await interaction.message.edit(embed=discord.Embed(title="📜 Select a God to learn more"), view=view)
 
-            async def show_gods_menu(self, interaction_button: discord.Interaction):
-                """Display the gods selection menu."""
-                class GodsView(discord.ui.View):
-                    def __init__(self, user_id: int, message_ref):
-                        super().__init__(timeout=120)
-                        self.user_id = user_id
-                        self.message_ref = message_ref
+        @discord.ui.button(label="Exit", style=discord.ButtonStyle.red, custom_id="exit_tutorial")
+        async def exit_tutorial(self, interaction: discord.Interaction, button: discord.ui.Button):
+            await interaction.response.edit_message(embed=discord.Embed(title="✅ Tutorial ended"), view=None)
 
-                        # Add god buttons
-                        for god_name in Tutorial.GODS:
-                            self.add_item(discord.ui.Button(
-                                label=god_name.title(),
-                                style=discord.ButtonStyle.primary,
-                                custom_id=f"god_{god_name}"
-                            ))
+    class GodsMenuView(discord.ui.View):
+        """God selection menu."""
+        def __init__(self, user: discord.User, cog, timeout: int = 120):
+            super().__init__(timeout=timeout)
+            self.user = user
+            self.cog = cog
 
-                        # Exit button
-                        self.add_item(discord.ui.Button(
-                            label="Exit",
-                            style=discord.ButtonStyle.danger,
-                            custom_id="exit_gods"
-                        ))
+            # Add a button for each god
+            for god_name in GODS:
+                self.add_item(cog.GodButton(god_name, user, cog))
 
-                    async def interaction_check(self, interaction_inner: discord.Interaction) -> bool:
-                        return interaction_inner.user.id == self.user_id
+            # Exit & Return buttons
+            self.add_item(discord.ui.Button(label="Exit", style=discord.ButtonStyle.red, custom_id="exit_gods"))
+            self.add_item(discord.ui.Button(label="Return to Menu", style=discord.ButtonStyle.grey, custom_id="return_menu"))
 
-                    async def on_timeout(self):
-                        try:
-                            await self.message_ref.edit(content="✅ Tutorial closed.", embeds=[], view=None)
-                        except discord.NotFound:
-                            pass
+        async def interaction_check(self, interaction: discord.Interaction) -> bool:
+            return interaction.user.id == self.user.id
 
-                view_gods = GodsView(interaction_button.user.id, interaction_button.message)
+        async def on_timeout(self) -> None:
+            for child in self.children:
+                child.disabled = True
+            if hasattr(self, "message"):
+                await self.message.edit(embed=discord.Embed(title="✅ Tutorial ended"), view=None)
 
-                async def button_callback(interaction_inner: discord.Interaction):
-                    cid = interaction_inner.data["custom_id"]
+        @discord.ui.button(label="Exit", style=discord.ButtonStyle.red, custom_id="exit_gods")
+        async def exit_gods(self, interaction: discord.Interaction, button: discord.ui.Button):
+            await interaction.response.edit_message(embed=discord.Embed(title="✅ Tutorial ended"), view=None)
 
-                    if cid == "exit_gods":
-                        await interaction_inner.response.edit_message(content="✅ Tutorial closed.", embeds=[], view=None)
-                        return
+        @discord.ui.button(label="Return to Menu", style=discord.ButtonStyle.grey, custom_id="return_menu")
+        async def return_menu(self, interaction: discord.Interaction, button: discord.ui.Button):
+            embed = discord.Embed(
+                title="📚 Tutorial",
+                description="Welcome! Press 'Gods Tutorial' to learn about gods or 'Exit' to close.",
+                color=discord.Color.green()
+            )
+            view = self.cog.TutorialMainView(self.user, self.cog)
+            await interaction.response.edit_message(embed=embed, view=view)
 
-                    # God button pressed
-                    god_embed = discord.Embed(
-                        title=f"📖 {cid.replace('god_', '').title()} Tutorial",
-                        description="Tutorial content coming soon!",
-                        color=discord.Color.blue()
-                    )
+    class GodButton(discord.ui.Button):
+        """Button for a specific god."""
+        def __init__(self, god_name: str, user: discord.User, cog):
+            super().__init__(label=god_name.title(), style=discord.ButtonStyle.blurple)
+            self.god_name = god_name
+            self.user = user
+            self.cog = cog
 
-                    class GodDetailView(discord.ui.View):
-                        def __init__(self, user_id: int, message_ref):
-                            super().__init__(timeout=120)
-                            self.user_id = user_id
-                            self.message_ref = message_ref
-                            # Return to menu
-                            self.add_item(discord.ui.Button(
-                                label="Return to Menu",
-                                style=discord.ButtonStyle.secondary,
-                                custom_id="return_menu"
-                            ))
-                            # Exit
-                            self.add_item(discord.ui.Button(
-                                label="Exit",
-                                style=discord.ButtonStyle.danger,
-                                custom_id="exit_detail"
-                            ))
+        async def callback(self, interaction: discord.Interaction):
+            if interaction.user.id != self.user.id:
+                return await interaction.response.send_message("This is not your tutorial!", ephemeral=True)
 
-                        async def interaction_check(self, interaction_inner2: discord.Interaction) -> bool:
-                            return interaction_inner2.user.id == self.user_id
+            embeds = self.cog.create_god_tutorial_embeds(self.god_name)
+            view = self.cog.GodsMenuView(self.user, self.cog)
+            await interaction.response.edit_message(embeds=embeds, view=view)
 
-                        async def on_timeout(self):
-                            try:
-                                await self.message_ref.edit(content="✅ Tutorial closed.", embeds=[], view=None)
-                            except discord.NotFound:
-                                pass
-
-                    detail_view = GodDetailView(interaction_inner.user.id, interaction_inner.message)
-
-                    async def detail_callback(interaction_inner2: discord.Interaction):
-                        cid2 = interaction_inner2.data["custom_id"]
-                        if cid2 == "exit_detail":
-                            await interaction_inner2.response.edit_message(content="✅ Tutorial closed.", embeds=[], view=None)
-                        elif cid2 == "return_menu":
-                            await self.show_gods_menu(interaction_inner2)
-
-                    for item in detail_view.children:
-                        item.callback = detail_callback
-
-                    await interaction_inner.response.edit_message(embed=god_embed, view=detail_view)
-
-                for item in view_gods.children:
-                    item.callback = button_callback
-
-                await interaction_button.response.edit_message(content="📜 Select a god to learn more:", embeds=[], view=view_gods)
-
-        # Send initial tutorial embeds
-        view = TutorialView(interaction.user.id)
-        view.message = await interaction.response.send_message(
-            embeds=[embed_intro, embed_channels],
-            view=view,
-            ephemeral=True
-        )
 
 async def setup(bot):
-    await bot.add_cog(Tutorial(bot))
+    await bot.add_cog(TutorialCog(bot))
