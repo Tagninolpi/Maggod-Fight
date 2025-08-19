@@ -34,97 +34,102 @@ class GodTutorials:
         return [msg1,msg2,msg3,msg4,msg5,msg6,msg7]
 
     def hephaestus(self):
-        return create_god_tutorial_embeds(
-            ["hephaestus", "poseidon", "athena", "apollo", "ares"], success=True
+        msg1 = simple_embed("Hepaestus gives a 2 turn shield🛡️ to all visible when he attacks")
+        msg2 = create_god_tutorial_embeds(
+            ["poseidon", "hephaestus", "aphrodite", "ares", "hera"], success=True,
+            overrides={
+                "poseidon":{
+                "visible": True,"effects": {"hep_shield": 2}},
+                "hephaestus":{
+                "visible": True,"effects": {"hep_shield": 2},"reload":3},
+                "ares":{
+                "visible": True,"effects": {"hep_shield": 2}
+                }}
         )
+        msg3 = simple_embed("Hepaestus gives a 1 turn shield🛡️ to all visible when he attacks with hermes")
+        msg4 = create_god_tutorial_embeds(
+            ["poseidon", "hephaestus", "aphrodite", "hermes", "hera"], success=True,
+            overrides={
+                "poseidon":{
+                "visible": True,"effects": {"hep_shield": 1}},
+                "hephaestus":{
+                "visible": True,"effects": {"hep_shield": 1},"reload":3},
+                "hesmes":{
+                "visible": True,"effects": {"hep_shield": 1}
+                }}
+        )
+        msg5 = simple_embed("Hepaestus shield🛡️ value go down when attaked, when shield value = 0 god takes dmg")
+        return [msg1,msg2,msg3,msg4,msg5]
 
     def aphrodite(self):
-        return create_god_tutorial_embeds(
-            ["aphrodite", "zeus", "hera", "athena", "apollo"], success=True
-        )
+        msg1 = simple_embed("Ability description coming soon...")
+        return [msg1]
 
     def ares(self):
-        return create_god_tutorial_embeds(
-            ["ares", "athena", "hephaestus", "aphrodite", "poseidon"], success=True
-        )
+        msg1 = simple_embed("Ability description coming soon...")
+        return [msg1]
 
     def hera(self):
-        return create_god_tutorial_embeds(
-            ["hera", "zeus", "athena", "aphrodite", "charon"], success=True
-        )
+        msg1 = simple_embed("Ability description coming soon...")
+        return [msg1]
 
     def zeus(self):
-        return create_god_tutorial_embeds(
-            ["zeus", "poseidon", "aphrodite", "ares", "athena"], success=True
-        )
+        msg1 = simple_embed("Ability description coming soon...")
+        return [msg1]
 
     def athena(self):
-        return create_god_tutorial_embeds(
-            ["athena", "ares", "hera", "hephaestus", "apollo"], success=True
-        )
+        msg1 = simple_embed("Ability description coming soon...")
+        return [msg1]
 
     def apollo(self):
-        return create_god_tutorial_embeds(
-            ["apollo", "artemis", "athena", "zeus", "hermes"], success=True
-        )
+        msg1 = simple_embed("Ability description coming soon...")
+        return [msg1]
 
     def artemis(self):
-        return create_god_tutorial_embeds(
-            ["artemis", "apollo", "athena", "aphrodite", "hermes"], success=True
-        )
+        msg1 = simple_embed("Ability description coming soon...")
+        return [msg1]
 
     def hermes(self):
-        return create_god_tutorial_embeds(
-            ["hermes", "apollo", "athena", "ares", "artemis"], success=True
-        )
+        msg1 = simple_embed("Ability description coming soon...")
+        return [msg1]
 
     def hades_ow(self):
-        return create_god_tutorial_embeds(
-            ["hades_ow", "thanatos", "cerberus", "charon", "persephone"], success=True
-        )
+        msg1 = simple_embed("Ability description coming soon...")
+        return [msg1]
 
     def thanatos(self):
-        return create_god_tutorial_embeds(
-            ["thanatos", "hades_ow", "cerberus", "tisiphone", "alecto"], success=True
-        )
+        msg1 = simple_embed("Ability description coming soon...")
+        return [msg1]
 
     def cerberus(self):
-        return create_god_tutorial_embeds(
-            ["cerberus", "charon", "thanatos", "hades_uw", "tisiphone"], success=True
-        )
+        msg1 = simple_embed("Ability description coming soon...")
+        return [msg1]
 
     def charon(self):
-        return create_god_tutorial_embeds(
-            ["charon", "cerberus", "persephone", "alecto", "hades_uw"], success=True
-        )
+        msg1 = simple_embed("Ability description coming soon...")
+        return [msg1]
 
     def persephone(self):
-        return create_god_tutorial_embeds(
-            ["persephone", "tisiphone", "alecto", "charon", "megaera"], success=True
-        )
+        msg1 = simple_embed("Ability description coming soon...")
+        return [msg1]
 
     def hades_uw(self):
-        return create_god_tutorial_embeds(
-            ["hades_uw", "tisiphone", "alecto", "megaera", "cerberus"], success=True
-        )
+        msg1 = simple_embed("Ability description coming soon...")
+        return [msg1]
 
     def tisiphone(self):
-        return create_god_tutorial_embeds(
-            ["tisiphone", "alecto", "megaera", "hades_uw", "persephone"], success=True
-        )
+        msg1 = simple_embed("Ability description coming soon...")
+        return [msg1]
 
     def alecto(self):
-        return create_god_tutorial_embeds(
-            ["alecto", "tisiphone", "megaera", "hades_uw", "cerberus"], success=True
-        )
+        msg1 = simple_embed("Ability description coming soon...")
+        return [msg1]
 
     def megaera(self):
-        return create_god_tutorial_embeds(
-            ["megaera", "hecate", "alecto", "tisiphone", "hades_uw"], success=True
-        )
+        msg1 = simple_embed("Ability description coming soon...")
+        return [msg1]
 
     def hecate(self):
-        return create_god_tutorial_embeds(
-            ["hecate", "megaera", "tisiphone", "alecto", "hades_uw"], success=True
-        )
+        msg1 = simple_embed("Ability description coming soon...")
+        return [msg1]
 
