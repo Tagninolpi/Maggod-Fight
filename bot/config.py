@@ -30,7 +30,7 @@ class Config:
     LOBBY_CATEGORY_ID = 1407088161364115682
                             # me
     ALLOWED_PLAYER_IDS = [1360749637299998870] # allowed to use /create /delete (lobby)
-    allowed_channel_id = 1407094327573872723 # channel to use /create /delete (lobby)
+    allowed_channel_id = 1407094852709253302# channel to use /create /delete (lobby)
     ANNOUNCE_CHANNEL_ID = 1407094852709253302 # channel to annouce that the bot is online
     OWNER_ID = 1360749637299998870 # id of player that is pinged when bot is online
 
