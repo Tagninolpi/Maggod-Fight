@@ -1,10 +1,13 @@
 import discord
 from .god_embeds import GodTutorials
+from tutorial import embed1,embed2
 
 # ---------------- Helper ----------------
-async def switch_view(interaction: discord.Interaction, new_view: discord.ui.View, embed: discord.Embed):
-    """Helper to swap view and embed."""
-    await interaction.response.edit_message(embed=embed, view=new_view)
+async def switch_view(interaction: discord.Interaction, new_view: discord.ui.View, embeds: discord.Embed | list[discord.Embed]):
+    """Helper to swap view and embed(s)."""
+    if not isinstance(embeds, list):
+        embeds = [embeds]
+    await interaction.response.edit_message(embeds=embeds, view=new_view)
 
 
 # ---------------- Main Tutorial View ----------------
@@ -89,10 +92,5 @@ class GodsMenuView(discord.ui.View):
 
     @discord.ui.button(label="Return to Menu", style=discord.ButtonStyle.grey, custom_id="return_menu")
     async def return_menu(self, interaction: discord.Interaction, button: discord.ui.Button):
-        embed = discord.Embed(
-            title="📚 Tutorial",
-            description="Welcome! Press 'Gods Tutorial' to learn about gods or 'Exit' to close.",
-            color=discord.Color.green()
-        )
         view = TutorialMainView(self.user)
-        await switch_view(interaction, view, embed)
+        await switch_view(interaction, view, [embed1, embed2])  # now supports multiple embeds
