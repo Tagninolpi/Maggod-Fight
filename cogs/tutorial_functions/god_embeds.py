@@ -31,7 +31,17 @@ class GodTutorials:
                 "visible": True
                 }}
         )
-        return [msg1,msg2,msg3,msg4,msg5,msg6,msg7]
+        msg8 = simple_embed("Poseidon shield🔱 value go down when attaked, when shield value = 0 god takes dmg")
+        msg9 = create_god_tutorial_embeds(
+            ["poseidon", "hephaestus", "aphrodite", "hermes", "hera"], success=True,
+            overrides={
+                "poseidon":{
+                "visible": True},
+                "hephaestus":{
+                "visible": True,"effects": {"posi_shield": 0}},"hp":10,
+                }
+        )
+        return [msg1,msg2,msg3,msg4,msg5,msg6,msg7,msg8,msg9]
 
     def hephaestus(self):
         msg1 = simple_embed("Hepaestus gives a 2 turn shield🛡️ to all visible when he attacks")
