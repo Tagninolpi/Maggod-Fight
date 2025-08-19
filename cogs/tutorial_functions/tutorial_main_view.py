@@ -1,6 +1,6 @@
 import discord
 from .god_embeds import GodTutorials
-from tutorial import embed1,embed2
+from ..tutorial import embed1,embed2
 
 # ---------------- Helper ----------------
 async def switch_view(interaction: discord.Interaction, new_view: discord.ui.View, embeds: discord.Embed | list[discord.Embed]):
