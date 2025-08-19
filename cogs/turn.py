@@ -646,7 +646,7 @@ class Turn(commands.Cog):
                 else:
                     # Delete game save after match is over
                     pass #database
-                    await db_manager.delete_game_save(channel, match)
+                    #await db_manager.delete_game_save(channel, match)
                     match.turn_in_progress = False
                 
             except Exception as e:
