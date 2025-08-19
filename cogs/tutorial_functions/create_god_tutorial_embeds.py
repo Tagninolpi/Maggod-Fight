@@ -24,13 +24,13 @@ def create_god_tutorial_embeds(god_names: list[str], success: bool = True, overr
     for name in god_names:
         god = gods[name.lower()]
         # Make a copy
-        god_copy = god.__class__(god.name, god.hp, god.dmg, None, god.reload_time)
+        god_copy = god.__class__(god.name, god.hp, god.dmg, None, god.reload_max)
         god_copy.max_hp = god.max_hp
         # Copy effects as new Effect instances
         god_copy.effects = {k: Effect(v.value, v.duration) for k, v in god.effects.items()}
         god_copy.visible = god.visible
         god_copy.alive = god.alive
-        god_copy.reload = god.reload_time
+        god_copy.reload = god.reload
 
         # Apply overrides
         if name.lower() in overrides:
