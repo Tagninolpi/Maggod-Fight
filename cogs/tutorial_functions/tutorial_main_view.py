@@ -1,6 +1,47 @@
 import discord
 from .god_embeds import GodTutorials
-from ..tutorial import embed1,embed2
+
+# Embed 1: Introduction
+embed1 = discord.Embed(
+    title="🏟️ Welcome to the Maggod Fight Arena!",
+    description=(
+        "This is a **turn-based combat game** where you can battle against "
+        "other players or bots to **win rewards** and prove your strength!"
+    ),
+    color=discord.Color.gold()
+)
+
+# Embed 2: Channels overview
+embed2 = discord.Embed(
+    title="📜 Channels Overview",
+    color=discord.Color.blue()
+)
+embed2.add_field(
+    name="📊 lobby-status",
+    value="A text channel where you can **see active fights** and check if someone is looking for an opponent.",
+    inline=False
+)
+embed2.add_field(
+    name="💬 information",
+    value=(
+        "The **main multipurpose text channel** for anything related to the game:\n"
+        "• Chat with other players\n"
+        "• Use `/tutorial`\n"
+        "• Get updates and announcements\n"
+        "• Report bugs and give feedback"
+    ),
+    inline=False
+)
+embed2.add_field(
+    name="🔘・maggod-fight-lobby-01 / 02",
+    value=(
+        "Dedicated **battle arenas** where you fight players or bots.\n"
+        "To join a match use `/join`.\n"
+        "If you want to fight a bot, use `/join` again.\n\n"
+        "Once you join, you’ll receive instructions on how to use other `/commands`."
+    ),
+    inline=False
+)
 
 # ---------------- Helper ----------------
 async def switch_view(interaction: discord.Interaction, new_view: discord.ui.View, embeds: discord.Embed | list[discord.Embed]):
