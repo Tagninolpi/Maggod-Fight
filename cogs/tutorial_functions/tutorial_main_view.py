@@ -211,7 +211,7 @@ class GodsMenuView(discord.ui.View):
     @discord.ui.button(label="Return to Menu", style=discord.ButtonStyle.grey, row=4, custom_id="return_menu")
     async def return_menu(self, interaction: discord.Interaction, button: discord.ui.Button):
         view = TutorialMainView(self.user)
-        msg = await switch_view(interaction, view, [embed1, embed2])
+        msg = await switch_view(interaction, view, embeds)
         view.message = msg   # <-- add this
 
 
