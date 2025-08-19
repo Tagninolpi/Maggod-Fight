@@ -51,9 +51,5 @@ class TutorialCog(commands.Cog):
         view = TutorialMainView(interaction.user, self)
         await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
 
-    # ---------------- God Embeds ----------------
-    
-
-
 async def setup(bot):
     await bot.add_cog(TutorialCog(bot))

@@ -4,8 +4,6 @@ from .create_god_tutorial_embeds import create_god_tutorial_embeds
 # ---------------- God Functions ----------------
 class GodTutorials:
     """All god tutorial functions, each returning its embed(s)."""
-    def __init__(self, cog):
-        self.cog = cog
 
     def poseidon(self):
         return create_god_tutorial_embeds(
@@ -107,64 +105,3 @@ class GodTutorials:
             ["hecate", "megaera", "tisiphone", "alecto", "hades_uw"], success=True
         )
 
-# ---------------- Gods Menu View ----------------
-class GodsMenuView(discord.ui.View):
-    GODS = [
-        "poseidon", "hephaestus", "aphrodite", "ares", "hera",
-        "zeus", "athena", "apollo", "artemis", "hermes",
-        "hades_ow", "thanatos", "cerberus", "charon", "persephone",
-        "hades_uw", "tisiphone", "alecto", "megaera", "hecate"
-    ]
-
-    def __init__(self, user: discord.User, cog, timeout: int = 120):
-        super().__init__(timeout=timeout)
-        self.user = user
-        self.cog = cog
-        self.god_tutorials = GodTutorials(cog)
-        self.message: discord.Message | None = None
-
-        # Dynamically add god buttons
-        for i, god_name in enumerate(self.GODS):
-            button = discord.ui.Button(
-                label=god_name.title(),
-                style=discord.ButtonStyle.blurple,
-                custom_id=f"god_{god_name}",
-                row=i // 5
-            )
-            button.callback = self.make_god_callback(god_name)
-            self.add_item(button)
-
-    def make_god_callback(self, god_name: str):
-        async def callback(interaction: discord.Interaction):
-            if interaction.user.id != self.user.id:
-                return await interaction.response.send_message("This is not your tutorial!", ephemeral=True)
-
-            god_func = getattr(self.god_tutorials, god_name, None)
-            if god_func:
-                embeds = god_func()
-                new_view = GodsMenuView(self.user, self.cog)
-                await interaction.response.edit_message(embed=embeds[0], view=new_view)
-        return callback
-
-    async def interaction_check(self, interaction: discord.Interaction) -> bool:
-        return interaction.user.id == self.user.id
-
-    async def on_timeout(self) -> None:
-        for child in self.children:
-            child.disabled = True
-        if self.message:
-            await self.message.edit(embed=discord.Embed(title="✅ Tutorial ended"), view=None)
-
-    @discord.ui.button(label="Exit", style=discord.ButtonStyle.red, custom_id="exit_gods")
-    async def exit_gods(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await interaction.response.edit_message(embed=discord.Embed(title="✅ Tutorial ended"), view=None)
-
-    @discord.ui.button(label="Return to Menu", style=discord.ButtonStyle.grey, custom_id="return_menu")
-    async def return_menu(self, interaction: discord.Interaction, button: discord.ui.Button):
-        embed = discord.Embed(
-            title="📚 Tutorial",
-            description="Welcome! Press 'Gods Tutorial' to learn about gods or 'Exit' to close.",
-            color=discord.Color.green()
-        )
-        view = self.cog.TutorialMainView(self.user, self.cog)
-        await interaction.response.edit_message(embed=embed, view=view)
