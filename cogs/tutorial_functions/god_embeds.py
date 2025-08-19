@@ -54,12 +54,23 @@ class GodTutorials:
                 "visible": True,"effects": {"hep_shield": 1}},
                 "hephaestus":{
                 "visible": True,"effects": {"hep_shield": 1},"reload":3},
-                "hesmes":{
+                "hermes":{
                 "visible": True,"effects": {"hep_shield": 1}
                 }}
         )
         msg5 = simple_embed("Hepaestus shield🛡️ value go down when attaked, when shield value = 0 god takes dmg")
-        return [msg1,msg2,msg3,msg4,msg5]
+        msg6 = create_god_tutorial_embeds(
+            ["poseidon", "hephaestus", "aphrodite", "hermes", "hera"], success=True,
+            overrides={
+                "poseidon":{
+                "visible": True,"effects": {"hep_shield": 0},"hp":7},
+                "hephaestus":{
+                "visible": True,"effects": {"hep_shield": 1},"reload":3},
+                "hermes":{
+                "visible": True,"effects": {"hep_shield": 1}
+                }}
+        )
+        return [msg1,msg2,msg3,msg4,msg5,msg6]
 
     def aphrodite(self):
         msg1 = simple_embed("Ability description coming soon...")

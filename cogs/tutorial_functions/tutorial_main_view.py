@@ -140,7 +140,7 @@ class TutorialMainView(discord.ui.View):
 
     @discord.ui.button(label="Gods Tutorial", style=discord.ButtonStyle.green, custom_id="god_tutorial")
     async def god_tutorial(self, interaction: discord.Interaction, button: discord.ui.Button):
-        embed = discord.Embed(title="📜 Select a God to learn more")
+        embed = discord.Embed(title="📜 Select a God to learn more",description="scroll up to see the entire ability descriptionn")
         view = GodsMenuView(self.user)
         msg = await switch_view(interaction, view, embed)   # <-- store message
         view.message = msg
