@@ -38,18 +38,16 @@ class TutorialCog(commands.Cog):
             return
 
         # ---------- Passed checks, defer the response ----------
-        await interaction.response.defer(ephemeral=True)
-
-        # ---------- Tutorial view ----------
         view = TutorialMainView(interaction.user)
 
-        message = await interaction.followup.send(
+        message = await interaction.response.send_message(
             embeds=[embed1, embed2],
             view=view,
             ephemeral=True
         )
 
-        view.message = message  # store message for future edits
+        view.message = message
+
 
 
 async def setup(bot: commands.Bot):
