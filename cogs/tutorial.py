@@ -43,8 +43,13 @@ class TutorialCog(commands.Cog):
         # ---------- Tutorial view ----------
         view = TutorialMainView(interaction.user)
 
-        # Send the message using followup to avoid 404
-        await interaction.followup.send(embeds=[embed1, embed2], view=view, ephemeral=True)
+        message = await interaction.followup.send(
+            embeds=[embed1, embed2],
+            view=view,
+            ephemeral=True
+        )
+
+        view.message = message  # store message for future edits
 
 
 async def setup(bot: commands.Bot):

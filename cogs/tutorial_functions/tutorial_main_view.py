@@ -33,7 +33,7 @@ embed2.add_field(
     inline=False
 )
 embed2.add_field(
-    name="🔘・maggod-fight-lobby-01 / 02",
+    name="⚔️-maggod-lobby-1 / 2",
     value=(
         "Dedicated **battle arenas** where you fight players or bots.\n"
         "To join a match use `/join`.\n"
@@ -45,11 +45,14 @@ embed2.add_field(
 
 # ---------------- Helper ----------------
 async def switch_view(interaction: discord.Interaction, new_view: discord.ui.View, embeds: discord.Embed | list[discord.Embed]):
-    """Helper to swap view and embed(s)."""
     if not isinstance(embeds, list):
         embeds = [embeds]
-    await interaction.response.edit_message(embeds=embeds, view=new_view)
 
+    if interaction.response.is_done():
+        # Already responded, edit via followup
+        await interaction.followup.edit_message(message_id=interaction.message.id, embeds=embeds, view=new_view)
+    else:
+        await interaction.response.edit_message(embeds=embeds, view=new_view)
 
 # ---------------- Main Tutorial View ----------------
 class TutorialMainView(discord.ui.View):
@@ -76,7 +79,7 @@ class TutorialMainView(discord.ui.View):
 
     @discord.ui.button(label="Exit", style=discord.ButtonStyle.red, custom_id="exit_tutorial")
     async def exit_tutorial(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await interaction.response.edit_message(embed=discord.Embed(title="✅ Tutorial ended"), view=None)
+        await switch_view(interaction, None, discord.Embed(title="✅ Tutorial ended"))
 
 
 # ---------------- Gods Menu View ----------------
@@ -115,7 +118,7 @@ class GodsMenuView(discord.ui.View):
                 embeds = god_func()
                 # Keep the GodsMenuView for navigation after showing a god embed
                 new_view = GodsMenuView(self.user)
-                await interaction.response.edit_message(embed=embeds[0], view=new_view)
+                await switch_view(interaction, new_view, embeds)
         return callback
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
@@ -129,9 +132,9 @@ class GodsMenuView(discord.ui.View):
 
     @discord.ui.button(label="Exit", style=discord.ButtonStyle.red, custom_id="exit_gods")
     async def exit_gods(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await interaction.response.edit_message(embed=discord.Embed(title="✅ Tutorial ended"), view=None)
+        await switch_view(interaction, None, discord.Embed(title="✅ Tutorial ended"))
 
     @discord.ui.button(label="Return to Menu", style=discord.ButtonStyle.grey, custom_id="return_menu")
     async def return_menu(self, interaction: discord.Interaction, button: discord.ui.Button):
         view = TutorialMainView(self.user)
-        await switch_view(interaction, view, [embed1, embed2])  # now supports multiple embeds
+        await switch_view(interaction, view, [embed1, embed2])
