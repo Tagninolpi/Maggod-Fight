@@ -40,15 +40,62 @@ embed2.add_field(
     inline=False
 )
 
-# Embed 3: Placeholder for future content
+import discord
+
+# Embed 1: Action prompt
+embed1 = discord.Embed(
+    title="🎯 Player1: Choose a God to Attack",
+    description="Select one of your gods to perform an action.",
+    color=discord.Color.green()
+)
+
+# Example formatted enemy team (manually written)
+enemy_team_example = (
+"| Poseidon Hephaestus Aphrodite Hera Hermes| Names\n"
+"| 9/9      12/12      9/9       6/6  8/8   | HP\n"
+"| 🔱       🛡️        ⛑️                   | Shields/HP boosts\n"
+"| 5        2          3         4    2     | DMG\n"
+"|          +1🔥                            | DMG boosts\n"
+"| ❤️      ❤️        ❤️        ❤️   ❤️    | Alive status\n"
+"| 👁️      👁️        👁️        👁️   👁️    | Visibility\n"
+"| 💫      3⏳                         | Other effects/Reload \n"
+)
+
+# Example formatted player team (manually written)
+player_team_example = (
+"| Zeus  Athena Ares Apollo Artemis | Names\n"
+"| 14/14 10/10  8/8  10/10  9/9     | HP\n"
+"|        📯                       | Shields/HP boosts\n"
+"| 2     4       3   2      3       | DMG\n"
+"| +2💥  +0🔥                      | DMG boosts\n"
+"| ❤️    ❤️     ❤️  ❤️    ❤️     | Alive status\n"
+"| 👁️    👁️    👁️   👁️     👁️    | Visibility\n"
+"| 💫    0⏳                     | Other effects/Reload\n"
+)
+
+# Embed 2: Enemy team
+embed2 = discord.Embed(
+    title="🔥 Enemy Team: Player2",
+    color=discord.Color.red()
+)
+embed2.description = f"```\n{enemy_team_example}```"
+
+# Embed 3: Player team
 embed3 = discord.Embed(
+    title="🛡️ Your Team: Player1",
+    color=discord.Color.green()
+)
+embed3.description = f"```\n{player_team_example}```"
+
+# Embed 4: Coming Soon
+embed4 = discord.Embed(
     title="📝 Coming Soon",
     description="This section will be expanded in future updates!",
     color=discord.Color.purple()
 )
 
 # ---------------- Exports ----------------
-embeds: list[discord.Embed] = [embed1, embed2, embed3]
+embeds: list[discord.Embed] = [embed1, embed2, embed3, embed4]
 
 
 # ---------------- Helper ----------------
