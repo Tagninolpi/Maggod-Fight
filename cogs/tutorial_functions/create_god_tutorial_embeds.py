@@ -137,4 +137,4 @@ def create_god_tutorial_embeds(god_names: list[str], success: bool = True, overr
         color=embed_color
     )
 
-    return [embed]
+    return embed
