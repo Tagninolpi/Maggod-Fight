@@ -37,15 +37,18 @@ class TutorialCog(commands.Cog):
             )
             return
 
-        # ---------- Passed checks, defer the response ----------
+        # ---------- Passed checks ----------
         view = TutorialMainView(interaction.user)
 
-        message = await interaction.response.send_message(
+        # Send the ephemeral response
+        await interaction.response.send_message(
             embeds=embeds,
             view=view,
             ephemeral=True
         )
 
+        # Fetch the *real* message object from followup
+        message = await interaction.original_response()
         view.message = message
 
 
