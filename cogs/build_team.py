@@ -221,7 +221,7 @@ class BuildTeam(commands.Cog):
             await channel.send("⏱️ Selection timed out. Match has been reset.")
             match = matchmaking_dict[channel.id]
             match.game_phase = "Waiting for first player"
-            asyncio.create_task(update_lobby_status_embed(self.bot))
+            #asyncio.create_task(update_lobby_status_embed(self.bot))
             # Reset the match
             if channel.id in matchmaking_dict:
                 del matchmaking_dict[channel.id]
@@ -258,7 +258,7 @@ class BuildTeam(commands.Cog):
         match.next_picker = random.choice([match.player1_id, match.player2_id])
         match.teams_initialized = True
         match.game_phase = "building"
-        asyncio.create_task(update_lobby_status_embed(self.bot))
+        #asyncio.create_task(update_lobby_status_embed(self.bot))
 
         logger.info(f"Team building started in channel {channel_id}")
 
@@ -425,7 +425,7 @@ class BuildTeam(commands.Cog):
                         ephemeral=True
                     )
                     match.game_phase = "Waiting for first player"
-                    asyncio.create_task(update_lobby_status_embed(self.bot))
+                    #asyncio.create_task(update_lobby_status_embed(self.bot))
                     del matchmaking_dict[channel_id]
                     logger.info(f"Match timed out in channel {channel_id}")
                     return
@@ -448,7 +448,7 @@ class BuildTeam(commands.Cog):
 
             if len(p1_team) == 5 and len(p2_team) == 5:
                 match.game_phase = "playing"
-                asyncio.create_task(update_lobby_status_embed(self.bot))
+                #asyncio.create_task(update_lobby_status_embed(self.bot))
                 await channel.send("✅ **Both teams are complete! Let the battle begin!**")
                 await self.show_teams(channel, match)
                 if match.solo_mode:

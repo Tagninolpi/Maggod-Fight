@@ -50,7 +50,7 @@ class LobbyManager(commands.Cog):
 
         guild = interaction.guild
         category = discord.utils.get(guild.categories, id=Config.LOBBY_CATEGORY_ID)
-        existing = [ch for ch in category.channels if ch.name.startswith("🔘・maggod-fight-lobby-")]
+        existing = [ch for ch in category.channels if ch.name.startswith("⚔️-maggod-lobby-")]
 
         to_create = 2 - len(existing)
         if to_create <= 0:
@@ -59,7 +59,7 @@ class LobbyManager(commands.Cog):
 
         created = 0
         for i in range(1, 3):
-            name = f"🔘・maggod-fight-lobby-{i:02d}"
+            name = f"⚔️-maggod-lobby-{i}"
             if any(ch.name == name for ch in existing):
                 continue
             await guild.create_text_channel(
@@ -110,7 +110,7 @@ class LobbyManager(commands.Cog):
         guild = interaction.guild
         category = discord.utils.get(guild.categories, id=Config.LOBBY_CATEGORY_ID)
 
-        lobby_channels = [ch for ch in category.channels if ch.name.startswith("🔘・maggod-fight-lobby-")]
+        lobby_channels = [ch for ch in category.channels if ch.name.startswith("⚔️-maggod-lobby-")]
 
         for ch in lobby_channels:
             if ch.id in matchmaking_dict:

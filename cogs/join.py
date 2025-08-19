@@ -76,7 +76,7 @@ class Join(commands.Cog):
                 if hasattr(self.bot, 'stats'):
                     self.bot.stats.increment_match_started()
                 match.game_phase = "Waiting for second player"
-                asyncio.create_task(update_lobby_status_embed(self.bot))
+                #asyncio.create_task(update_lobby_status_embed(self.bot))
 
                 
                 
@@ -108,7 +108,7 @@ class Join(commands.Cog):
                     match.solo_mode = True
 
                     logger.info(f"Player {interaction.user.id} ({interaction.user.display_name}) joined as both players in channel {channel_id}")
-                    asyncio.create_task(update_lobby_status_embed(self.bot))
+                    #asyncio.create_task(update_lobby_status_embed(self.bot))
 
                     embed = discord.Embed(
                         title="🤖 Solo Match Ready!",
@@ -136,7 +136,7 @@ class Join(commands.Cog):
                 match = matchmaking_dict[channel_id]
                 match.player2_name = interaction.user.display_name
                 logger.info(f"Player {interaction.user.id} ({interaction.user.display_name}) joined as Player 2 in channel {channel_id}")
-                asyncio.create_task(update_lobby_status_embed(self.bot))
+                #asyncio.create_task(update_lobby_status_embed(self.bot))
                 
                 embed = discord.Embed(
                     title="🔴 Match Ready!",

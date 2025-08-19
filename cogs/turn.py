@@ -269,7 +269,7 @@ class Turn(commands.Cog):
             await channel.send("⏱️ Selection timed out. Match has been reset.")
             match = matchmaking_dict[channel.id]
             match.game_phase = "Waiting for first player"
-            asyncio.create_task(update_lobby_status_embed(self.bot))
+            #asyncio.create_task(update_lobby_status_embed(self.bot))
             # Reset the match
             if channel.id in matchmaking_dict:
                 del matchmaking_dict[channel.id]
@@ -551,7 +551,7 @@ class Turn(commands.Cog):
         await channel.send(embed=embed)
 
         del matchmaking_dict[channel.id]
-        asyncio.create_task(update_lobby_status_embed(self.bot))
+        #asyncio.create_task(update_lobby_status_embed(self.bot))
 
 
     @app_commands.command(name="do", description="Make your turn in the ongoing Maggod Fight battle.")
