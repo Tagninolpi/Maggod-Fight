@@ -136,12 +136,12 @@ class GodsMenuView(discord.ui.View):
             god_func = getattr(self.god_tutorials, god_name, None)
             if god_func:
                 embeds = god_func()
-                new_view = GodsMenuView(self.user)
+                new_view = GodDetailView(self.user)
 
-                # save actual message reference
                 msg = await switch_view(interaction, new_view, embeds)
                 new_view.message = msg
         return callback
+
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
         return interaction.user.id == self.user.id
@@ -164,3 +164,33 @@ class GodsMenuView(discord.ui.View):
         view = TutorialMainView(self.user)
         msg = await switch_view(interaction, view, [embed1, embed2])
         view.message = msg
+
+
+class GodDetailView(discord.ui.View):
+    """View shown when looking at a single god tutorial."""
+    def __init__(self, user: discord.User, timeout: int = 120):
+        super().__init__(timeout=timeout)
+        self.user = user
+        self.message: discord.Message | None = None
+
+    async def interaction_check(self, interaction: discord.Interaction) -> bool:
+        return interaction.user.id == self.user.id
+
+    async def on_timeout(self) -> None:
+        for child in self.children:
+            child.disabled = True
+        if self.message:
+            try:
+                await self.message.edit(embed=discord.Embed(title="✅ Tutorial ended"), view=None)
+            except discord.NotFound:
+                pass
+
+    @discord.ui.button(label="Return to Gods Menu", style=discord.ButtonStyle.grey, custom_id="return_gods")
+    async def return_gods(self, interaction: discord.Interaction, button: discord.ui.Button):
+        view = GodsMenuView(self.user)
+        msg = await switch_view(interaction, view, discord.Embed(title="📜 Select a God to learn more"))
+        view.message = msg
+
+    @discord.ui.button(label="Exit", style=discord.ButtonStyle.red, custom_id="exit_god_detail")
+    async def exit_detail(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await switch_view(interaction, None, discord.Embed(title="✅ Tutorial ended"))
