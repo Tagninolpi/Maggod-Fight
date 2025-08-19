@@ -121,17 +121,30 @@ class GodsMenuView(discord.ui.View):
         self.user = user
         self.cog = cog
         self.god_tutorials = GodTutorials(cog)
+        self.message: discord.Message | None = None
 
+        # Dynamically add god buttons
         for i, god_name in enumerate(self.GODS):
-            self.add_item(discord.ui.Button(
+            button = discord.ui.Button(
                 label=god_name.title(),
                 style=discord.ButtonStyle.blurple,
                 custom_id=f"god_{god_name}",
                 row=i // 5
-            ))
+            )
+            button.callback = self.make_god_callback(god_name)
+            self.add_item(button)
 
-        self.add_item(discord.ui.Button(label="Exit", style=discord.ButtonStyle.red, custom_id="exit_gods"))
-        self.add_item(discord.ui.Button(label="Return to Menu", style=discord.ButtonStyle.grey, custom_id="return_menu"))
+    def make_god_callback(self, god_name: str):
+        async def callback(interaction: discord.Interaction):
+            if interaction.user.id != self.user.id:
+                return await interaction.response.send_message("This is not your tutorial!", ephemeral=True)
+
+            god_func = getattr(self.god_tutorials, god_name, None)
+            if god_func:
+                embeds = god_func()
+                new_view = GodsMenuView(self.user, self.cog)
+                await interaction.response.edit_message(embed=embeds[0], view=new_view)
+        return callback
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
         return interaction.user.id == self.user.id
@@ -139,19 +152,8 @@ class GodsMenuView(discord.ui.View):
     async def on_timeout(self) -> None:
         for child in self.children:
             child.disabled = True
-        if hasattr(self, "message"):
+        if self.message:
             await self.message.edit(embed=discord.Embed(title="✅ Tutorial ended"), view=None)
-
-    async def on_button_click(self, interaction: discord.Interaction):
-        if interaction.user.id != self.user.id:
-            return await interaction.response.send_message("This is not your tutorial!", ephemeral=True)
-
-        god_name = interaction.data["custom_id"].replace("god_", "")
-        god_func = getattr(self.god_tutorials, god_name, None)
-        if god_func:
-            embeds = god_func()
-            view = GodsMenuView(self.user, self.cog)
-            await interaction.response.edit_message(embed=embeds[0], view=view)
 
     @discord.ui.button(label="Exit", style=discord.ButtonStyle.red, custom_id="exit_gods")
     async def exit_gods(self, interaction: discord.Interaction, button: discord.ui.Button):
