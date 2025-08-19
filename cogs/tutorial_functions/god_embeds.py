@@ -38,7 +38,7 @@ class GodTutorials:
                 "poseidon":{
                 "visible": True},
                 "hephaestus":{
-                "visible": True,"effects": {"posi_shield": 0}},"hp":10,
+                "visible": True,"effects": {"posi_shield": 0},"hp":10},
                 }
         )
         return [msg1,msg2,msg3,msg4,msg5,msg6,msg7,msg8,msg9]
