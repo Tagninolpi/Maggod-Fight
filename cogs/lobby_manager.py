@@ -25,7 +25,7 @@ class LobbyManager(commands.Cog):
             )
             return
 
-        if not channel.category or channel.category.name != Config.LOBBY_CATEGORY_NAME:
+        if not channel.category or channel.category.id != Config.LOBBY_CATEGORY_ID:
             await interaction.response.send_message(
                 f"❌ You must use this command in a `{Config.LOBBY_CATEGORY_NAME}` channel.",
                 ephemeral=True
@@ -84,7 +84,7 @@ class LobbyManager(commands.Cog):
             )
             return
 
-        if not channel.category or channel.category.name != Config.LOBBY_CATEGORY_NAME:
+        if not channel.category or channel.category.id != Config.LOBBY_CATEGORY_ID:
             await interaction.response.send_message(
                 f"❌ You must use this command in a `{Config.LOBBY_CATEGORY_NAME}` channel.",
                 ephemeral=True
