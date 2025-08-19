@@ -6,9 +6,32 @@ class GodTutorials:
     """All god tutorial functions, each returning its embed(s)."""
 
     def poseidon(self):
-        return create_god_tutorial_embeds(
+        msg1 = simple_embed("Poseidon has no ability when he attacks")
+        msg2 = simple_embed("He does nothing when he is hiden👻")
+        msg3 = create_god_tutorial_embeds(
             ["poseidon", "hephaestus", "aphrodite", "ares", "hera"], success=True
         )
+        msg4 = simple_embed("Poseidon gives shield to random ally when alive❤️ and visible👁️")
+        msg5 = create_god_tutorial_embeds(
+            ["poseidon", "hephaestus", "aphrodite", "ares", "hera"], success=True,
+            overrides={
+                "poseidon":{
+                "visible": True},
+                "hephaestus":{
+                "visible": True,"effects": {"posi_shield": 5}
+                }}
+        )
+        msg6 = simple_embed("When Poseidon dies the shield is lost")
+        msg7 = create_god_tutorial_embeds(
+            ["poseidon", "hephaestus", "aphrodite", "ares", "hera"], success=True,
+            overrides={
+                "poseidon":{
+                "visible": True,"alive": False},
+                "hephaestus":{
+                "visible": True
+                }}
+        )
+        return [msg1,msg2,msg3,msg4,msg5,msg6,msg7]
 
     def hephaestus(self):
         return create_god_tutorial_embeds(

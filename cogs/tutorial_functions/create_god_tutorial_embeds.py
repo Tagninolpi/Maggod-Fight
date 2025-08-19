@@ -1,63 +1,68 @@
 import discord
 import unicodedata
-from utils.game_test_on_discord import gods
+from utils.game_test_on_discord import gods, Effect
 
 def simple_embed(message: str) -> discord.Embed:
-    """
-    Returns a simple Discord Embed with a purple border and the given message as the title.
-    
-    message: The title of the embed.
-    """
-    embed = discord.Embed(
-        title=message,
-        color=discord.Color.purple()
-    )
-    return embed
+    """Returns a simple Discord Embed with a purple border and the given message as the title."""
+    return discord.Embed(title=message, color=discord.Color.purple())
 
-def create_god_tutorial_embeds(god_names: list[str], success: bool = True) -> list[discord.Embed]:
+def create_god_tutorial_embeds(god_names: list[str], success: bool = True, overrides: dict[str, dict] = None) -> list[discord.Embed]:
     """
-        Create a tutorial embed for a list of 5 gods using the global `gods` dictionary.
+    Create a tutorial embed for a list of 5 gods with optional overrides.
 
-        god_names: List of 5 god name strings.
-        success: If True, embed border is green; otherwise, red.
-        """
+    god_names: List of 5 god name strings.
+    success: If True, embed border is green; otherwise, red.
+    overrides: Dictionary mapping god names to dictionaries of attributes to override.
+               Example: {"poseidon": {"hp": 50, "visible": True, "effects": {"posi_shield": 5}}}
+    """
     if len(god_names) != 5:
         raise ValueError("Exactly 5 gods must be provided.")
 
-    gods_list = [gods[name.lower()] for name in god_names]
+    overrides = overrides or {}
+    gods_list = []
+
+    for name in god_names:
+        god = gods[name.lower()]
+        # Make a copy
+        god_copy = god.__class__(god.name, god.hp, god.dmg, god.reload_max)
+        god_copy.max_hp = god.max_hp
+        # Copy effects as new Effect instances
+        god_copy.effects = {k: Effect(v.value, v.duration) for k, v in god.effects.items()}
+        god_copy.visible = god.visible
+        god_copy.alive = god.alive
+        god_copy.reload = god.reload
+
+        # Apply overrides
+        if name.lower() in overrides:
+            for attr, val in overrides[name.lower()].items():
+                if attr == "effects":
+                    # Convert plain dict to proper Effect objects
+                    for effect_name, effect_val in val.items():
+                        god_copy.effects[effect_name] = Effect(effect_val, 2)  # default duration 2 for tutorial
+                else:
+                    setattr(god_copy, attr, val)
+
+        gods_list.append(god_copy)
 
     def visual_len(s: str) -> int:
-        width = 0
-        for c in s:
-            if unicodedata.east_asian_width(c) in "WF":
-                width += 2
-            else:
-                width += 1
-        return width
+        return sum(2 if unicodedata.east_asian_width(c) in "WF" else 1 for c in s)
 
     def pad(s: str, width: int = 11) -> str:
-        vis_length = visual_len(s)
-        padding = max(0, width - vis_length)
-        return s + " " * padding
+        return s + " " * max(0, width - visual_len(s))
 
     def get_shield(god):
         icons = []
-        if "posi_shield" in god.effects:
-            icons.append(f"🔱{god.effects['posi_shield'].value}")
-        if "hep_shield" in god.effects:
-            icons.append(f"🛡️{god.effects['hep_shield'].value}")
-        if "hades_uw_shield" in god.effects:
-            icons.append(f"☠️{god.effects['hades_uw_shield'].value}")
+        for effect in ["posi_shield", "hep_shield", "hades_uw_shield"]:
+            if effect in god.effects:
+                icons.append(f"{'🔱' if effect=='posi_shield' else '🛡️' if effect=='hep_shield' else '☠️'}{god.effects[effect].value}")
         return " ".join(icons)
 
     def get_dmg_boost(god):
         icons = []
-        if "ares_do_more_dmg" in god.effects:
-            icons.append(f"+{god.effects['ares_do_more_dmg'].value}🔥")
-        if "hades_ow_do_more_dmg" in god.effects:
-            icons.append(f"+{god.effects['hades_ow_do_more_dmg'].value}💥")
-        if "mega_do_less_dmg" in god.effects:
-            icons.append(f"-{god.effects['mega_do_less_dmg'].value}💚")
+        for effect, icon in [("ares_do_more_dmg","🔥"), ("hades_ow_do_more_dmg","💥"), ("mega_do_less_dmg","💚")]:
+            if effect in god.effects:
+                prefix = "+" if "more" in effect else "-"
+                icons.append(f"{prefix}{god.effects[effect].value}{icon}")
         return " ".join(icons)
 
     def get_hp_boost_icon(god):
@@ -69,19 +74,15 @@ def create_god_tutorial_embeds(god_names: list[str], success: bool = True) -> li
         return " ".join(icons)
 
     def get_misc_effects_icons(god):
-        icons = []
-        if "zeus_stun" in god.effects:
-            icons.append("💫")
-        if "aphro_charm" in god.effects:
-            icons.append("💘")
-        if "charon_invisible_duration" in god.effects:
-            icons.append("🧿")
-        if "tisi_freeze_timer" in god.effects:
-            icons.append("❄️")
-        if "cerberus_more_max_hp_per_visible_ally" in god.effects:
-            icons.append("🐶")
-        if "alecto_get_more_dmg" in god.effects:
-            icons.append("💢")
+        icons_map = {
+            "zeus_stun": "💫",
+            "aphro_charm": "💘",
+            "charon_invisible_duration": "🧿",
+            "tisi_freeze_timer": "❄️",
+            "cerberus_more_max_hp_per_visible_ally": "🐶",
+            "alecto_get_more_dmg": "💢"
+        }
+        icons = [icons_map[effect] for effect in god.effects if effect in icons_map]
         if god.reload > 0:
             icons.append(f"{god.reload}⏳")
         return " ".join(icons)
@@ -101,10 +102,7 @@ def create_god_tutorial_embeds(god_names: list[str], success: bool = True) -> li
 
         for god in team:
             hp_str = f"{god.hp}/"
-            is_hp_boosted = (
-                "athena_more_max_hp" in god.effects or
-                "cerberus_more_max_hp_per_visible_ally" in god.effects
-            )
+            is_hp_boosted = "athena_more_max_hp" in god.effects or "cerberus_more_max_hp_per_visible_ally" in god.effects
             max_hp_str = bold_digits(str(god.max_hp)) if is_hp_boosted else str(god.max_hp)
             hp_numbers.append(pad(hp_str + max_hp_str))
             hp_icons.append(pad(get_hp_boost_icon(god) + get_shield(god)))
@@ -138,6 +136,5 @@ def create_god_tutorial_embeds(god_names: list[str], success: bool = True) -> li
         description=format_team(gods_list),
         color=embed_color
     )
-
 
     return [embed]
