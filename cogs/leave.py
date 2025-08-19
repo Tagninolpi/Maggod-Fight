@@ -13,7 +13,7 @@ class Leave(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @app_commands.command(name="leave", description="Leave the current Maggod Fight lobby and reset the match.")
+    @app_commands.command(name="leave", description="Leave the current Maggod lobby and reset the match.")
     async def leave_lobby(self, interaction: discord.Interaction):
         """Leave the current lobby."""
         channel = interaction.channel
@@ -33,7 +33,7 @@ class Leave(commands.Cog):
 
         if not channel.name.startswith("⚔️-maggod-lobby-"):
             await interaction.response.send_message(
-                "❌ You must use this command in a Maggod Fight lobby channel.",
+                "❌ You must use this command in a Maggod lobby channel.",
                 ephemeral=True
             )
             return

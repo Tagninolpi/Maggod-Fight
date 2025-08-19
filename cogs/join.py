@@ -12,11 +12,11 @@ class Join(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @app_commands.command(name="join", description="Join a Maggod Fight Lobby")
+    @app_commands.command(name="join", description="Join a Maggod Lobby")
 
     async def join_lobby(self, interaction: discord.Interaction):
         global join_in_progress
-        """Join a Maggod Fight lobby."""
+        """Join a Maggod lobby."""
         # At the start of your command
         if interaction.response.is_done():
             return
@@ -37,7 +37,7 @@ class Join(commands.Cog):
 
         if not channel.name.startswith("⚔️-maggod-lobby-"):
             await interaction.response.send_message(
-                "❌ You must use this command in a Maggod Fight lobby channel.",
+                "❌ You must use this command in a Maggod lobby channel.",
                 ephemeral=True
             )
             return

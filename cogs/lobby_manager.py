@@ -5,14 +5,14 @@ from bot.config import Config
 from bot.utils import matchmaking_dict
 
 class LobbyManager(commands.Cog):
-    """Manage Maggod Fight lobby channels."""
+    """Manage Maggod lobby channels."""
 
     def __init__(self, bot):
         self.bot = bot
 
     @app_commands.command(
         name="create_maggod_lobbies",
-        description="Create 2 Maggod Fight Lobby channels under existing category."
+        description="Create 2 Maggod Lobby channels under existing category."
     )
     async def create_lobbies(self, interaction: discord.Interaction):
         # Defer the response for ephemeral reply
@@ -65,7 +65,7 @@ class LobbyManager(commands.Cog):
             await guild.create_text_channel(
                 name,
                 category=category,
-                topic="Maggod Fight Lobby - Build your team and fight!"
+                topic="Maggod Lobby - Build your team and fight!"
             )
             created += 1
 
@@ -73,7 +73,7 @@ class LobbyManager(commands.Cog):
 
     @app_commands.command(
         name="delete_maggod_lobbies",
-        description="Delete all Maggod Fight lobby channels in the lobby category."
+        description="Delete all Maggod lobby channels in the lobby category."
     )
     async def delete_lobbies(self, interaction: discord.Interaction):
         channel = interaction.channel

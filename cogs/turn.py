@@ -575,7 +575,7 @@ class Turn(commands.Cog):
 
         if not channel.name.startswith("⚔️-maggod-lobby-"):
             await interaction.response.send_message(
-                "❌ You must use this command in a Maggod Fight lobby channel.",
+                "❌ You must use this command in a Maggod lobby channel.",
                 ephemeral=True
             )
             return
