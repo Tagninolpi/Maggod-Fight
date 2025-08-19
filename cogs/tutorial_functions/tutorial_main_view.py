@@ -40,10 +40,8 @@ embed2.add_field(
     inline=False
 )
 
-import discord
-
-# Embed 1: Action prompt
-embed1 = discord.Embed(
+# Embed 3: Action prompt
+embed3 = discord.Embed(
     title="🎯 Player1: Choose a God to Attack",
     description="Select one of your gods to perform an action.",
     color=discord.Color.green()
@@ -53,12 +51,12 @@ embed1 = discord.Embed(
 enemy_team_example = (
 "| Poseidon Hephaestus Aphrodite Hera Hermes| Names\n"
 "| 9/9      12/12      9/9       6/6  8/8   | HP\n"
-"| 🔱       🛡️        ⛑️                   | Shields/HP boosts\n"
+"| 🔱       🛡️        ⛑️                    |/HP boosts\n"
 "| 5        2          3         4    2     | DMG\n"
 "|          +1🔥                            | DMG boosts\n"
-"| ❤️      ❤️        ❤️        ❤️   ❤️    | Alive status\n"
+"| ❤️      ❤️        ❤️        ❤️   ❤️    Alive status\n"
 "| 👁️      👁️        👁️        👁️   👁️    | Visibility\n"
-"| 💫      3⏳                         | Other effects/Reload \n"
+"| 💫      3⏳                   | Other effects/Reload \n"
 )
 
 # Example formatted player team (manually written)
@@ -73,29 +71,29 @@ player_team_example = (
 "| 💫    0⏳                     | Other effects/Reload\n"
 )
 
-# Embed 2: Enemy team
-embed2 = discord.Embed(
+# Embed 4: Enemy team
+embed4 = discord.Embed(
     title="🔥 Enemy Team: Player2",
     color=discord.Color.red()
 )
-embed2.description = f"```\n{enemy_team_example}```"
+embed4.description = f"```\n{enemy_team_example}```"
 
-# Embed 3: Player team
-embed3 = discord.Embed(
+# Embed 5: Player team
+embed5 = discord.Embed(
     title="🛡️ Your Team: Player1",
     color=discord.Color.green()
 )
-embed3.description = f"```\n{player_team_example}```"
+embed5.description = f"```\n{player_team_example}```"
 
-# Embed 4: Coming Soon
-embed4 = discord.Embed(
+# Embed 6: Coming Soon
+embed6 = discord.Embed(
     title="📝 Coming Soon",
     description="This section will be expanded in future updates!",
     color=discord.Color.purple()
 )
 
 # ---------------- Exports ----------------
-embeds: list[discord.Embed] = [embed1, embed2, embed3, embed4]
+embeds: list[discord.Embed] = [embed1, embed2, embed3, embed4, embed5]
 
 
 # ---------------- Helper ----------------
@@ -121,6 +119,7 @@ async def switch_view(
         )
     return msg
 
+
 # ---------------- Main Tutorial View ----------------
 class TutorialMainView(discord.ui.View):
     """Main tutorial menu view."""
@@ -135,14 +134,18 @@ class TutorialMainView(discord.ui.View):
     async def on_timeout(self) -> None:
         for child in self.children:
             child.disabled = True
-        if self.message:
-            await self.message.edit(embed=discord.Embed(title="✅ Tutorial ended"), view=None)
+        if self.message and isinstance(self.message, discord.Message):
+            try:
+                await self.message.edit(embed=discord.Embed(title="✅ Tutorial ended"), view=None)
+            except discord.NotFound:
+                pass
 
     @discord.ui.button(label="Gods Tutorial", style=discord.ButtonStyle.green, custom_id="god_tutorial")
     async def god_tutorial(self, interaction: discord.Interaction, button: discord.ui.Button):
         embed = discord.Embed(title="📜 Select a God to learn more")
         view = GodsMenuView(self.user)
-        await switch_view(interaction, view, embed)
+        msg = await switch_view(interaction, view, embed)
+        view.message = msg
 
     @discord.ui.button(label="Exit", style=discord.ButtonStyle.red, custom_id="exit_tutorial")
     async def exit_tutorial(self, interaction: discord.Interaction, button: discord.ui.Button):
@@ -162,7 +165,7 @@ class GodsMenuView(discord.ui.View):
         super().__init__(timeout=timeout)
         self.user = user
         self.god_tutorials = GodTutorials()
-        self.message: discord.Message | None = None  # must always be a Message
+        self.message: discord.Message | None = None
 
         # Dynamically add god buttons (5 per row, 4 rows total)
         for i, god_name in enumerate(self.GODS):
@@ -184,11 +187,9 @@ class GodsMenuView(discord.ui.View):
             if god_func:
                 embeds = god_func()
                 new_view = GodDetailView(self.user)
-
                 msg = await switch_view(interaction, new_view, embeds)
                 new_view.message = msg
         return callback
-
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
         return interaction.user.id == self.user.id
@@ -200,7 +201,7 @@ class GodsMenuView(discord.ui.View):
             try:
                 await self.message.edit(embed=discord.Embed(title="✅ Tutorial ended"), view=None)
             except discord.NotFound:
-                pass  # message deleted, safe to ignore
+                pass
 
     @discord.ui.button(label="Exit", style=discord.ButtonStyle.red, row=4, custom_id="exit_gods")
     async def exit_gods(self, interaction: discord.Interaction, button: discord.ui.Button):
@@ -213,6 +214,7 @@ class GodsMenuView(discord.ui.View):
         view.message = msg
 
 
+# ---------------- God Detail View ----------------
 class GodDetailView(discord.ui.View):
     """View shown when looking at a single god tutorial."""
     def __init__(self, user: discord.User, timeout: int = 120):
@@ -226,7 +228,7 @@ class GodDetailView(discord.ui.View):
     async def on_timeout(self) -> None:
         for child in self.children:
             child.disabled = True
-        if self.message:
+        if self.message and isinstance(self.message, discord.Message):
             try:
                 await self.message.edit(embed=discord.Embed(title="✅ Tutorial ended"), view=None)
             except discord.NotFound:
