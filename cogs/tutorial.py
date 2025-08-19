@@ -46,7 +46,7 @@ embed2.add_field(
     inline=False
 )
 
-class TutorialCog(commands.Cog):
+class Tutorial(commands.Cog):
     """Self-contained tutorial system for Maggod Fight Arena."""
 
     def __init__(self, bot: commands.Bot):
@@ -90,4 +90,4 @@ class TutorialCog(commands.Cog):
 
 
 async def setup(bot: commands.Bot):
-    await bot.add_cog(TutorialCog(bot))
+    await bot.add_cog(Tutorial(bot))
