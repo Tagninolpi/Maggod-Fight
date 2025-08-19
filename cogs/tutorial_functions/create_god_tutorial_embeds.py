@@ -1,6 +1,19 @@
 import discord
 import unicodedata
 from utils.game_test_on_discord import gods
+
+def simple_embed(message: str) -> discord.Embed:
+    """
+    Returns a simple Discord Embed with a purple border and the given message as the title.
+    
+    message: The title of the embed.
+    """
+    embed = discord.Embed(
+        title=message,
+        color=discord.Color.purple()
+    )
+    return embed
+
 def create_god_tutorial_embeds(god_names: list[str], success: bool = True) -> list[discord.Embed]:
     """
         Create a tutorial embed for a list of 5 gods using the global `gods` dictionary.
@@ -118,11 +131,13 @@ def create_god_tutorial_embeds(god_names: list[str], success: bool = True) -> li
         return "```\n" + "\n".join(lines) + "\n```"
 
     embed_color = discord.Color.green() if success else discord.Color.red()
+    embed_title = "🛡️ Your Team" if success else "🔥 Enemy Team"
 
     embed = discord.Embed(
-        title="📖 God Tutorial",
+        title=embed_title,
         description=format_team(gods_list),
         color=embed_color
     )
+
 
     return [embed]

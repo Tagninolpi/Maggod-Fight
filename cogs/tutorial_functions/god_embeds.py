@@ -1,5 +1,5 @@
 import discord
-from .create_god_tutorial_embeds import create_god_tutorial_embeds
+from .create_god_tutorial_embeds import create_god_tutorial_embeds, simple_embed
 
 # ---------------- God Functions ----------------
 class GodTutorials:
