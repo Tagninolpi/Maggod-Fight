@@ -476,7 +476,7 @@ class Turn(commands.Cog):
 
         match = matchmaking_dict.get(channel.id)
         if not match:
-            return
+            return None,True
  
         # Update bot stats
         if hasattr(self.bot, 'stats'):
