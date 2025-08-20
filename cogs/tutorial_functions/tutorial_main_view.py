@@ -128,7 +128,7 @@ async def switch_view(
 # ---------------- Main Tutorial View ----------------
 class TutorialMainView(discord.ui.View):
     """Main tutorial menu view."""
-    def __init__(self, user: discord.User, timeout: int = 400):
+    def __init__(self, user: discord.User, timeout: int = 900):
         super().__init__(timeout=timeout)
         self.user = user
         self.message: discord.Message | None = None
@@ -170,7 +170,7 @@ class GodsMenuView(discord.ui.View):
         "hades_uw", "tisiphone", "alecto", "megaera", "hecate"
     ]
 
-    def __init__(self, user: discord.User, timeout: int = 400):
+    def __init__(self, user: discord.User, timeout: int = 900):
         super().__init__(timeout=timeout)
         self.user = user
         self.god_tutorials = GodTutorials()
@@ -230,7 +230,7 @@ class GodsMenuView(discord.ui.View):
 
 class GodDetailView(discord.ui.View):
     """View shown when looking at a single god tutorial."""
-    def __init__(self, user: discord.User, timeout: int =400):
+    def __init__(self, user: discord.User, timeout: int =900):
         super().__init__(timeout=timeout)
         self.user = user
         self.message: discord.Message | None = None
