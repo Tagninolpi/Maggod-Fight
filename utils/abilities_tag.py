@@ -29,7 +29,7 @@ def hephaestus(kwargs):
     attacking_with_hermes = kwargs.get("attacking_with_hermes", False)
     value = 1 if attacking_with_hermes else 2
     duration = 1 if attacking_with_hermes else 2
-    msg = f"🛡️ Hephaestus gives {value} HP {duration}-turn shield to:\n ✨gods : "
+    msg = f"6999 Hephaestus gives {value} HP {duration}-turn shield to:\n ✨gods : "
     for god in visible_gods:
         god.add_effect("hep_shield", value=value, duration=duration)
         msg += f",{god.name.capitalize()} "

@@ -229,7 +229,7 @@ class Turn(commands.Cog):
         match = matchmaking_dict.get(channel.id)
         if not match:
             await channel.send("❌ No ongoing match.")
-            return None 
+            return None
 
 
         # Auto-select if in solo mode and it's the bot's turn
@@ -616,6 +616,8 @@ class Turn(commands.Cog):
         await interaction.response.defer()
         match.turn_in_progress = True
         while match.turn_in_progress and match:
+            if not match:
+                break
             match.next_picker = match.turn_state["current_player"]
             try:
                 # Determine which team is attacking
@@ -648,6 +650,7 @@ class Turn(commands.Cog):
                     pass #database
                     #await db_manager.delete_game_save(channel, match)
                     match.turn_in_progress = False
+                    break
                 
             except Exception as e:
                 logger.error(f"Error in do_turn: {e}")
@@ -655,6 +658,7 @@ class Turn(commands.Cog):
                     "❌ An error occurred during your turn. Please try again.",
                     ephemeral=True
                 )
+                break
                 match.turn_in_progress = False
                 
 
