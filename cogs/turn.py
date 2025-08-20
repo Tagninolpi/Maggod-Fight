@@ -65,8 +65,6 @@ def create_team_embeds(team1: list, team2: list, player1_name: str, player2_name
         icons = []
         if "athena_more_max_hp" in god.effects:
             icons.append("📯")
-        if "cerberus_more_max_hp_per_visible_ally" in god.effects:
-            icons.append("⛑️")
         return " ".join(icons)
 
 

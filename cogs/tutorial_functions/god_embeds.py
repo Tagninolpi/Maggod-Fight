@@ -365,8 +365,8 @@ class GodTutorials:
         return [msg1,msg2,msg3]
 
     def cerberus(self):
-        msg1 = simple_embed("Cerberus can give attract⛑️ to an ally for 2 turns (can't attack with hermes)")
-        msg2 = simple_embed("Attract⛑️ forces ennemy to attack this maggod, when given Cerberus looses 1hp and gives it to recipient")
+        msg1 = simple_embed("Cerberus can give attract🐶 to an ally for 2 turns (can't attack with hermes)")
+        msg2 = simple_embed("Attract🐶 forces ennemy to attack this maggod, when given Cerberus looses 1hp and gives it to recipient")
         msg3 = create_god_tutorial_embeds(
             ["athena","cerberus" , "ares", "alecto", "persephone"], success=True,
             overrides={"ares":{"hp":8,"visible":True,"effects":{"cerberus_more_max_hp_per_visible_ally":0}},
@@ -381,7 +381,7 @@ class GodTutorials:
         msg4 = simple_embed("Charon also removes all negative effects from visible allies")
         msg5 = create_god_tutorial_embeds(
             ["athena","charon" , "ares", "apollo", "persephone"], success=True,
-            overrides={"ares":{"visible":True,"effects":{"tisi_freeze_timer":0,"alecto_get_more_dmg":2,"mega_do_less_dmg":-4}},
+            overrides={"ares":{"visible":True,"effects":{"tisi_freeze_timer":0,"alecto_get_more_dmg":2,"mega_do_less_dmg":4}},
                        "apollo":{"visible":True,"alive":False,"hp":0,"effects":{"zeus_stun":0}},
                        "charon":{"visible":True,"hp":8,"reload":6,"effects":{"aphro_charm":0}},
                        "athena":{"visible":True,"alive":False,"hp":0},
@@ -398,16 +398,85 @@ class GodTutorials:
         return [msg1,msg2,msg3,msg4,msg5,msg6]
 
     def persephone(self):
-        msg1 = simple_embed("Ability description coming soon...")
+        msg1 = simple_embed("Aphrodite can revive or heal (can't attack with hermes)")
+        msg1 = simple_embed("She can target alive and dead ally")
+        msg1 = simple_embed("When targeting dead she has 50% chance to revive but take 3dmg")
+        msg1 = simple_embed("When targeting alive she heals ally by 2 hp")
         return [msg1]
 
     def hades_uw(self):
-        msg1 = simple_embed("Ability description coming soon...")
-        return [msg1]
+        msg1 = simple_embed("Hades underworld (Hades_uw) gives shield☠️ (nb of dead ally) to all allies")
+        msg2 = simple_embed("shield☠️ turn is also linked to nb of dead allies")
+        msg3 = simple_embed("nb dead ally  : 0,1,2,3,4")
+        msg4 = simple_embed("turn duration : 3,2,2,1,1")
+        msg5 = create_god_tutorial_embeds(
+            ["poseidon", "hephaestus", "aphrodite", "ares", "hades_uw"], success=True,
+            overrides={
+                "poseidon":{"visible": True,"effects": {"hades_uw_shield": 0}},
+                "hephaestus":{"visible": True,"effects": {"hades_uw_shield": 0}},
+                "ares":{"visible": True,"effects": {"hades_uw_shield": 0}},
+                "aphrodite":{"visible": True,"effects": {"hades_uw_shield": 0}},
+                "hades_uw":{"visible": True,"effects": {"hades_uw_shield": 0},"reload":4}
+                }
+        )
+        msg6 = create_god_tutorial_embeds(
+            ["poseidon", "hephaestus", "aphrodite", "ares", "hades_uw"], success=True,
+            overrides={
+                "poseidon":{"visible": True,"alive": False,"hp":0},
+                "hephaestus":{"visible": True,"effects": {"hades_uw_shield": 1}},
+                "ares":{"visible": True,"effects": {"hades_uw_shield": 1}},
+                "aphrodite":{"visible": True,"effects": {"hades_uw_shield": 1}},
+                "hades_uw":{"visible": True,"effects": {"hades_uw_shield": 1},"reload":4}
+                }
+        )
+        msg7 = create_god_tutorial_embeds(
+            ["poseidon", "hephaestus", "aphrodite", "ares", "hades_uw"], success=True,
+            overrides={
+                "poseidon":{"visible": True,"alive": False,"hp":0},
+                "hephaestus":{"visible": True,"effects": {"hades_uw_shield": 2}},
+                "ares":{"visible": True,"alive": False,"hp":0},
+                "aphrodite":{"visible": True,"effects": {"hades_uw_shield": 2}},
+                "hades_uw":{"visible": True,"effects": {"hades_uw_shield": 2},"reload":4}
+                }
+        )
+        msg8 = create_god_tutorial_embeds(
+            ["poseidon", "hephaestus", "aphrodite", "ares", "hades_uw"], success=True,
+            overrides={
+                "poseidon":{"visible": True,"alive": False,"hp":0},
+                "hephaestus":{"visible": True,"alive": False,"hp":0},
+                "ares":{"visible": True,"alive": False,"hp":0},
+                "aphrodite":{"visible": True,"effects": {"hades_uw_shield": 3}},
+                "hades_uw":{"visible": True,"effects": {"hades_uw_shield": 3},"reload":4}
+                }
+        )
+        msg9 = create_god_tutorial_embeds(
+            ["poseidon", "hephaestus", "aphrodite", "ares", "hades_uw"], success=True,
+            overrides={
+                "poseidon":{"visible": True,"alive": False,"hp":0},
+                "hephaestus":{"visible": True,"alive": False,"hp":0},
+                "ares":{"visible": True,"alive": False,"hp":0},
+                "aphrodite":{"visible": True,"alive": False,"hp":0},
+                "hades_uw":{"visible": True,"effects": {"hades_uw_shield": 4},"reload":4}
+                }
+        )
+        return [msg1,msg2,msg3,msg4,msg5,msg6,msg7,msg8,msg9]
 
     def tisiphone(self):
-        msg1 = simple_embed("Ability description coming soon...")
-        return [msg1]
+        msg1 = simple_embed("Tisiphone can freeze ennemy,heal,or deal more dmg (can attack wiht hermes)")
+        msg2 = simple_embed("if ennemy and ally have more than 2 maggods each Tisiphone uses freeze")
+        msg3 = simple_embed("When using freeze she freezes target and herself for 2 turns")
+        msg4 = create_god_tutorial_embeds(
+            ["athena","hephaestus" , "ares", "alecto", "persephone"], success=False,
+            overrides={"ares":{"visible":True,"effects":{"tisi_freeze_timer":0}}}
+        )
+        msg5 = create_god_tutorial_embeds(
+            ["zeus","thanatos" , "tisiphone", "hermes", "hera"], success=True,
+            overrides={
+                "tisiphone":{"visible": True,"effects":{"tisi_freeze_timer":0},"reload":6}}
+        )
+        msg6 = simple_embed("If each any team has less that 2 maggods left alive:")
+        msg7 = simple_embed("If she has max hp she does 1 more dmg, else she gain 1 hp")
+        return [msg1,msg2,msg3,msg4,msg5,msg6,msg7]
 
     def alecto(self):
         msg1 = simple_embed("Ability description coming soon...")
