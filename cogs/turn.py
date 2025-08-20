@@ -410,7 +410,7 @@ class Turn(commands.Cog):
                 ability_message = attacker.ability(ability_params)
             else:
                 ability_message = f"{attacker.name.capitalize()} abillity is on cooldown you can use it in {attacker.reload} turns"
-            
+             
             from bot.utils import matchmaking_dict
             match = matchmaking_dict.get(channel.id)
             if match.solo_mode and  match.turn_state["current_player"] == 123:
