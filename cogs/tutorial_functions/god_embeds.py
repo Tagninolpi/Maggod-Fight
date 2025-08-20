@@ -482,7 +482,7 @@ class GodTutorials:
         msg1 = simple_embed("Alecto gives take +2dmg 💢 for 3 turn when attacking alone and 2 turns when attacking wiht hermes")
         msg2 = create_god_tutorial_embeds(
             ["athena","hephaestus" , "ares", "hades_uw", "persephone"], success=False,
-            overrides={"ares":{"visible":True},"effects":{"alecto_get_more_dmg":2}}
+            overrides={"ares":{"visible":True,"effects":{"alecto_get_more_dmg":2}}}
         )
         msg3 = create_god_tutorial_embeds(
             ["zeus","thanatos" , "tisiphone", "alecto", "hera"], success=True,
@@ -495,7 +495,7 @@ class GodTutorials:
         msg1 = simple_embed("Megaera - 4 dmg reduction 💚 for 2 turn when attacking alone and 1 turns when attacking wiht hermes")
         msg2 = create_god_tutorial_embeds(
             ["athena","hephaestus" , "ares", "hades_uw", "persephone"], success=False,
-            overrides={"ares":{"visible":True},"effects":{"alecto_get_more_dmg":4}}
+            overrides={"ares":{"visible":True,"effects":{"alecto_get_more_dmg":4}}}
         )
         msg3 = create_god_tutorial_embeds(
             ["zeus","thanatos" , "tisiphone", "megaera", "hera"], success=True,
