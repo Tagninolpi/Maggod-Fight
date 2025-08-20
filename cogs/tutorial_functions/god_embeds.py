@@ -399,10 +399,10 @@ class GodTutorials:
 
     def persephone(self):
         msg1 = simple_embed("Aphrodite can revive or heal (can't attack with hermes)")
-        msg1 = simple_embed("She can target alive and dead ally")
-        msg1 = simple_embed("When targeting dead she has 50% chance to revive but take 3dmg")
-        msg1 = simple_embed("When targeting alive she heals ally by 2 hp")
-        return [msg1]
+        msg2 = simple_embed("She can target alive and dead ally")
+        msg3 = simple_embed("When targeting dead she has 50% chance to revive but take 3dmg")
+        msg4 = simple_embed("When targeting alive she heals ally by 2 hp")
+        return [msg1,msg2,msg3,msg4]
 
     def hades_uw(self):
         msg1 = simple_embed("Hades underworld (Hades_uw) gives shield☠️ (nb of dead ally) to all allies")
@@ -479,14 +479,33 @@ class GodTutorials:
         return [msg1,msg2,msg3,msg4,msg5,msg6,msg7]
 
     def alecto(self):
-        msg1 = simple_embed("Ability description coming soon...")
-        return [msg1]
+        msg1 = simple_embed("Alecto gives take +2dmg 💢 for 3 turn when attacking alone and 2 turns when attacking wiht hermes")
+        msg2 = create_god_tutorial_embeds(
+            ["athena","hephaestus" , "ares", "hade_uw", "persephone"], success=False,
+            overrides={"ares":{"visible":True},"effects":{"alecto_get_more_dmg":2}}
+        )
+        msg3 = create_god_tutorial_embeds(
+            ["zeus","thanatos" , "tisiphone", "alecto", "hera"], success=True,
+            overrides={
+                "alecto":{"visible": True,"reload":2}}
+        )
+        return [msg1,msg2,msg3]
 
     def megaera(self):
-        msg1 = simple_embed("Ability description coming soon...")
-        return [msg1]
+        msg1 = simple_embed("Megaera - 4 dmg reduction 💚 for 2 turn when attacking alone and 1 turns when attacking wiht hermes")
+        msg2 = create_god_tutorial_embeds(
+            ["athena","hephaestus" , "ares", "hade_uw", "persephone"], success=False,
+            overrides={"ares":{"visible":True},"effects":{"alecto_get_more_dmg":4}}
+        )
+        msg3 = create_god_tutorial_embeds(
+            ["zeus","thanatos" , "tisiphone", "megaera", "hera"], success=True,
+            overrides={
+                "alecto":{"visible": True,"reload":6}}
+        )
+        return [msg1,msg2,msg3]
 
     def hecate(self):
-        msg1 = simple_embed("Ability description coming soon...")
-        return [msg1]
+        msg1 = simple_embed("Hecate can force any 👁️visible ❤️alive ally into hiding 👻(invisible)")
+        msg2 = simple_embed("she also heals herself and target by 1hp")
+        return [msg1,msg2]
 
