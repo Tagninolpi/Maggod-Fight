@@ -53,24 +53,24 @@ embed3 = discord.Embed(
 enemy_team_example = (
 "| Poseidon Hephaestus Aphrodite Hera Hermes| Names\n"
 "| 9/9      12/12      9/9       6/6  8/8   | HP\n"
-"| 🔱       🛡️        ⛑️                    |/HP boosts\n"
+"| 🔱5       🛡️2        ⛑️                 |/HP boosts\n"
 "| 5        2          3         4    2     | DMG\n"
 "|          +1🔥                            | DMG boosts\n"
 "| ❤️      ❤️        ❤️        ❤️   ❤️    Alive status\n"
-"| 👁️      👁️        👁️        👁️   👁️    | Visibility\n"
+"| 👁️      👁️        👁️        👻   👻    | Visibility\n"
 "| 💫      3⏳                   | Other effects/Reload \n"
 )
 
 # Example formatted player team (manually written)
 player_team_example = (
 "| Zeus  Athena Ares Apollo Artemis | Names\n"
-"| 14/14 10/10  8/8  10/10  9/9     | HP\n"
+"| 14/14 10/12  8/8  0/10  9/9     | HP\n"
 "|        📯                       | Shields/HP boosts\n"
 "| 2     4       3   2      3       | DMG\n"
 "| +2💥  +0🔥                      | DMG boosts\n"
-"| ❤️    ❤️     ❤️  ❤️    ❤️     | Alive status\n"
-"| 👁️    👁️    👁️   👁️     👁️    | Visibility\n"
-"| 💫    0⏳                     | Other effects/Reload\n"
+"| ❤️    ❤️     ❤️  💀    ❤️     | Alive status\n"
+"| 👁️    👁️    👻   👁️     👻    | Visibility\n"
+"| 💫    2⏳                     | Other effects/Reload\n"
 )
 
 # Embed 4: Enemy team
@@ -114,12 +114,16 @@ async def switch_view(
             embeds=embeds,
             view=new_view
         )
+        return msg
     else:
-        msg = await interaction.response.edit_message(
+        # First response: edit and then fetch the message
+        await interaction.response.edit_message(
             embeds=embeds,
             view=new_view
         )
-    return msg
+        msg = await interaction.original_response()  # <-- this ensures it's a Message
+        return msg
+
 
 # ---------------- Main Tutorial View ----------------
 class TutorialMainView(discord.ui.View):
@@ -135,8 +139,14 @@ class TutorialMainView(discord.ui.View):
     async def on_timeout(self) -> None:
         for child in self.children:
             child.disabled = True
-        if self.message:
-            await self.message.edit(embed=discord.Embed(title="✅ Tutorial ended"), view=None)
+        if self.message and isinstance(self.message, discord.Message):
+            try:
+                await self.message.edit(
+                    embeds=[discord.Embed(title="✅ Tutorial ended")],
+                    view=None
+                )
+            except discord.NotFound:
+                pass  # message deleted, safe to ignore
 
     @discord.ui.button(label="Gods Tutorial", style=discord.ButtonStyle.green, custom_id="god_tutorial")
     async def god_tutorial(self, interaction: discord.Interaction, button: discord.ui.Button):
@@ -200,7 +210,10 @@ class GodsMenuView(discord.ui.View):
             child.disabled = True
         if self.message and isinstance(self.message, discord.Message):
             try:
-                await self.message.edit(embed=discord.Embed(title="✅ Tutorial ended"), view=None)
+                await self.message.edit(
+                    embeds=[discord.Embed(title="✅ Tutorial ended")],
+                    view=None
+                )
             except discord.NotFound:
                 pass  # message deleted, safe to ignore
 
@@ -228,11 +241,14 @@ class GodDetailView(discord.ui.View):
     async def on_timeout(self) -> None:
         for child in self.children:
             child.disabled = True
-        if self.message:
+        if self.message and isinstance(self.message, discord.Message):
             try:
-                await self.message.edit(embed=discord.Embed(title="✅ Tutorial ended"), view=None)
+                await self.message.edit(
+                    embeds=[discord.Embed(title="✅ Tutorial ended")],
+                    view=None
+                )
             except discord.NotFound:
-                pass
+                pass  # message deleted, safe to ignore
 
     @discord.ui.button(label="Return to Gods Menu", style=discord.ButtonStyle.grey, custom_id="return_gods")
     async def return_gods(self, interaction: discord.Interaction, button: discord.ui.Button):

@@ -26,7 +26,7 @@ class GodTutorials:
             ["poseidon", "hephaestus", "aphrodite", "ares", "hera"], success=True,
             overrides={
                 "poseidon":{
-                "visible": True,"alive": False},
+                "visible": True,"alive": False,"hp": 0},
                 "hephaestus":{
                 "visible": True
                 }}
@@ -77,7 +77,7 @@ class GodTutorials:
                 "hephaestus":{
                 "visible": True,"effects": {"hep_shield": 1},"reload":3},
                 "hermes":{
-                "visible": True,"effects": {"hep_shield": 1}
+                "visible": True,"effects": {"hep_shield": 1},"reload":6
                 }}
         )
         return [msg1,msg2,msg3,msg4,msg5,msg6]
