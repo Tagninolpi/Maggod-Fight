@@ -232,7 +232,7 @@ class Turn(commands.Cog):
 
         # Auto-select if in solo mode and it's the bot's turn
         if match.solo_mode and  match.turn_state["current_player"] == 123:
-            selected = random.choice(selectable_gods)
+            selected = random.choice(selectable_gods) #AI choice here
             return selected
         
         # Create embeds showing team status

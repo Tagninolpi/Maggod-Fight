@@ -14,7 +14,11 @@ class TutorialCog(commands.Cog):
     @app_commands.command(name="tutorial", description="Learn how the Maggod Fight Arena works.")
     async def tutorial(self, interaction: discord.Interaction):
         channel = interaction.channel
-
+        log_channel = self.bot.get_channel(Config.allowed_channel_id)
+        if log_channel:
+            await log_channel.send(
+                f"<@{Config.OWNER_ID}> Player **{interaction.user}** started the tutorial in {channel.mention}"
+            )
         # ---------- Checks ----------
         if not isinstance(channel, discord.TextChannel):
             await interaction.response.send_message(
