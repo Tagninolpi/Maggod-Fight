@@ -12,7 +12,7 @@ from bot.utils import update_lobby_status_embed
 from bot.config import Config
 import asyncio
 
-from cogs.bot_AI_functions.bot_class import BotClass,bot_configs
+from cogs.bot_ai_functions.bot_class import BotClass,bot_configs
 
 logger = logging.getLogger(__name__)
 class StartChoiceView(discord.ui.View):

@@ -13,7 +13,7 @@ import re
 import unicodedata
 from bot.config import Config
 
-from cogs.bot_AI_functions.bot_class import BotClass
+from cogs.bot_ai_functions.bot_class import BotClass
 
 logger = logging.getLogger(__name__)
 
