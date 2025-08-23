@@ -81,10 +81,10 @@ class BotClass:
     def choose_god(self, select,pre_game_choose = True,opp_team = None,my_team = None):
         # initialize scores
         self.init_dicts(select,self.select_team_gods)
-        self.set_true_dmg_done(select,self.my_team_dmg)
-        self.set_true_dmg_done(opp_team,self.opp_team_dmg)
-        self.set_true_dmg_received(select,self.my_team_dmg,9)
-        self.set_true_dmg_received(opp_team,self.opp_team_dmg,9)
+        #self.set_true_dmg_done(select,self.my_team_dmg)
+        #self.set_true_dmg_done(opp_team,self.opp_team_dmg)
+        #self.set_true_dmg_received(select,self.my_team_dmg,9)
+        #self.set_true_dmg_received(opp_team,self.opp_team_dmg,9)
 
 
         # random bot just picks one
