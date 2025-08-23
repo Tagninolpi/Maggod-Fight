@@ -12,8 +12,7 @@ import asyncio
 import re
 import unicodedata
 from bot.config import Config
-
-from .bot_ai_functions.bot_class import BotClass
+from bot_class import BotClass
 
 logger = logging.getLogger(__name__)
 
