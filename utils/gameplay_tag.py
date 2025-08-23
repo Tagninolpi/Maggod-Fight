@@ -82,9 +82,8 @@ class God:
         else:
             self.hp += value
 
-    def get_dmg(self, value: int):
+    def get_dmg(self, value: int,real = True):
         """Apply damage to this god, prioritizing shield effects with the lowest duration left."""
-
         # Apply damage boosts to incoming damage
         if "alecto_get_more_dmg" in self.effects:
             value += self.effects["alecto_get_more_dmg"].value
@@ -105,17 +104,21 @@ class God:
             if value <= 0:
                 return  # All damage blocked
 
-            if shield.value >= value:
+            if shield.value >= value and real:
                 shield.value -= value
                 return  # All damage absorbed
             else:
                 value -= shield.value
-                shield.value = 0
+                if real:
+                    shield.value = 0
 
         # Apply remaining damage to HP
-        self.hp -= value
-        if self.hp < 0:
-            self.hp = 0
+        if real:
+            self.hp -= value
+            if self.hp < 0:
+                self.hp = 0
+        else:
+            return value
 
 
     def do_damage(self):
