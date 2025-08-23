@@ -1,5 +1,5 @@
 import random
-from ...utils.gameplay_tag import God,Effect
+
 
 bot_configs = {
     "random": {},
