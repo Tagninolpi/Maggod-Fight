@@ -46,6 +46,7 @@ class Match:
         self.turn_in_progress = False
         self.start_view = False
         self.DEBUG_SKIP_BUILD = False
+        self.ai_bot_name = "random"
 
 class MaggodFightBot(commands.Bot):
     """Main bot class for Maggod Fight."""

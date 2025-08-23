@@ -13,6 +13,8 @@ import re
 import unicodedata
 from bot.config import Config
 
+from .bot_AI_functions.bot_class import BotClass
+
 
 logger = logging.getLogger(__name__)
 
@@ -232,7 +234,7 @@ class Turn(commands.Cog):
 
         # Auto-select if in solo mode and it's the bot's turn
         if match.solo_mode and  match.turn_state["current_player"] == 123:
-            selected = random.choice(selectable_gods) #AI choice here
+            selected = BotClass(match.ai_bot_name).choose_god(selectable_gods)
             return selected
         
         # Create embeds showing team status

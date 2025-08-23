@@ -27,19 +27,19 @@ class TutorialCog(commands.Cog):
             )
             return
 
-        #if not channel.category or channel.category.name != Config.LOBBY_CATEGORY_NAME:
-        #    await interaction.response.send_message(
-        #        f"❌ You must use this command in a `{Config.LOBBY_CATEGORY_NAME}` channel.",
-        #        ephemeral=True
-        #    )
-        #    return
+        if not channel.category or channel.category.name != Config.LOBBY_CATEGORY_NAME:
+            await interaction.response.send_message(
+                f"❌ You must use this command in a `{Config.LOBBY_CATEGORY_NAME}` channel.",
+                ephemeral=True
+            )
+            return
 
-       # if interaction.channel.id != Config.allowed_channel_id:
-        #    await interaction.response.send_message(
-        #        "❌ You can't use this command here.",
-        #        ephemeral=True
-        #    )
-        #    return
+        if interaction.channel.id != Config.allowed_channel_id:
+            await interaction.response.send_message(
+                "❌ You can't use this command here.",
+                ephemeral=True
+            )
+            return
 
         # ---------- Passed checks ----------
         view = TutorialMainView(interaction.user)

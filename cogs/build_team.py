@@ -12,6 +12,8 @@ from bot.utils import update_lobby_status_embed
 from bot.config import Config
 import asyncio
 
+from .bot_AI_functions.bot_class import BotClass,bot_configs
+
 logger = logging.getLogger(__name__)
 class StartChoiceView(discord.ui.View):
 
@@ -59,6 +61,45 @@ class StartChoiceView(discord.ui.View):
 
         self.choice_made.set()
         self.stop()
+
+class BotDifficultyView(discord.ui.View):
+    """View for choosing bot difficulty when in solo mode."""
+
+    def __init__(self, match, initiator_id, timeout=300):
+        super().__init__(timeout=timeout)
+        self.match = match
+        self.initiator_id = initiator_id
+        self.choice_made = asyncio.Event()
+
+        # Dynamically add up to 25 buttons (5 per row, 5 rows)
+        for i, bot_name in enumerate(bot_configs.keys()):
+            if i >= 25:
+                break  # Discord hard limit
+            row = i // 5
+            button = discord.ui.Button(label=bot_name, style=discord.ButtonStyle.primary, row=row)
+
+            async def callback(interaction: discord.Interaction, name=bot_name):
+                if interaction.user.id != self.initiator_id:
+                    await interaction.response.send_message(
+                        "❌ Only the match initiator can choose the bot difficulty.",
+                        ephemeral=True
+                    )
+                    return
+
+                self.match.ai_bot_name = name
+                await interaction.response.edit_message(
+                    content=f"✅ Bot difficulty set to **{name}**!",
+                    view=None
+                )
+                self.choice_made.set()
+                self.stop()
+
+            button.callback = callback
+            self.add_item(button)
+
+    async def interaction_check(self, interaction: discord.Interaction) -> bool:
+        return interaction.user.id == self.initiator_id
+
 
 class GodSelectionView(discord.ui.View):
     """View for selecting gods during team building."""
@@ -216,16 +257,29 @@ class BuildTeam(commands.Cog):
         await interaction.followup.send("Choose how to start the game:", view=view)
         try:
             await asyncio.wait_for(view.choice_made.wait(), timeout=860)
-            match.start_view = False
         except asyncio.TimeoutError:
             await channel.send("⏱️ Selection timed out. Match has been reset.")
             match = matchmaking_dict[channel.id]
             match.game_phase = "Waiting for first player"
-            #asyncio.create_task(update_lobby_status_embed(self.bot))
             # Reset the match
             if channel.id in matchmaking_dict:
                 del matchmaking_dict[channel.id]
             return None
+
+        # ✅ If solo mode, also ask for bot difficulty (initiator only)
+        if match.solo_mode:
+            difficulty_view = BotDifficultyView(match, initiator_id=interaction.user.id)
+            embed = discord.Embed(
+                title="🤖 Choose the Bot Difficulty",
+                description="Pick which AI bot you want to face.",
+                color=discord.Color.gold()
+            )
+            await interaction.followup.send(embed=embed, view=difficulty_view)
+            try:
+                await asyncio.wait_for(difficulty_view.choice_made.wait(), timeout=860)
+                match.start_view = False
+            except asyncio.TimeoutError:
+                await interaction.followup.send("⏱️ Bot difficulty selection timed out. Defaulting to **Normal**.")
 
         if match.DEBUG_SKIP_BUILD:
             # Assign 5 gods per player (random or predefined)
@@ -370,7 +424,7 @@ class BuildTeam(commands.Cog):
 
         while match.turn_in_progress and match:
             if match.solo_mode and match.next_picker == 123:
-                chosen = random.choice(match.available_gods)
+                chosen = BotClass(match.ai_bot_name).choose_god(match.available_gods)
                 match.teams.setdefault(123, []).append(chosen)
                 match.picked_gods.setdefault(123, []).append(chosen.name)
                 match.available_gods = [g for g in match.available_gods if g.name != chosen.name]
