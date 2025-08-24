@@ -59,7 +59,7 @@ class BotClass:
     def set_true_dmg_received(self,team,kwargs,init_dmg):
         for g in team:
             kwargs[g] = g.get_dmg(init_dmg,False)
-
+ 
 # get the biggest/smalest value and its key from any dict
     def get_biggest_value(self,dict):
         key = max(dict, key=dict.get)
