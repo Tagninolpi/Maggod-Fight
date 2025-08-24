@@ -232,7 +232,7 @@ class Turn(commands.Cog):
 
         # Auto-select if in solo mode and it's the bot's turn
         if match.solo_mode and  match.turn_state["current_player"] == 123:
-            selected = BotClass(match.ai_bot_name).choose_god(selectable_gods,pre_game_choose=False,other_team=team2,my_team=team1)
+            selected = BotClass(match.ai_bot_name).choose_god(selectable_gods,pre_game_choose=False,opp_team=team2,my_team=team1)
             return selected
         
         # Create embeds showing team status
