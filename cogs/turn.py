@@ -609,6 +609,7 @@ class Turn(commands.Cog):
             return
         
         # start
+        await db_manager.create_game_save(channel.id, match)
         # Check if it's the player's turn
         current_player_id = match.turn_state["current_player"]
         if interaction.user.id != current_player_id and not(match.solo_mode):
