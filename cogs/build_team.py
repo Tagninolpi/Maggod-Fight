@@ -509,6 +509,8 @@ class BuildTeam(commands.Cog):
                 else:
                     await channel.send(f"<@{match.next_picker}>, use `/do` to start the fight.")
                 match.turn_in_progress = False
+                # Create game save after finishing team building
+                await db_manager.create_game_save(channel, match)
                 break
 
     async def show_teams(self, channel, match):

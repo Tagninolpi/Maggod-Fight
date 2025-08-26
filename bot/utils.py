@@ -4,7 +4,7 @@ from datetime import datetime
 from bot.config import Config
 import discord
 from discord.ext import commands
-
+ 
 from database.manager import db_manager
 
 matchmaking_dict = db_manager.load_all()
