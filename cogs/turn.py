@@ -313,8 +313,11 @@ class Turn(commands.Cog):
             None
             )
         attacked = buffed_ally # add message to say it was auto selected
-        BotClass(match.ai_bot_name).choose_god(TurnContext(attack_cerbs=True))
-        if not(buffed_ally):
+        if buffed_ally:
+            from bot.utils import matchmaking_dict
+            match = matchmaking_dict.get(channel.id)
+            BotClass(match.ai_bot_name).choose_god(TurnContext(attack_cerbs=True))
+        else:
             if not visible_defenders:
                 await channel.send("❌ No visible targets available. Turn skipped.")
                 return
