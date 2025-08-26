@@ -254,7 +254,9 @@ class Turn(commands.Cog):
             await asyncio.wait_for(view.wait(), timeout=900)
         except asyncio.TimeoutError:
             # Handle timeout: no selection made
+            db_manager.delete_game_save(channel.id, match)  
             view.selected_god = None
+
 
         # Optionally delete the message
         if delete_UI:
@@ -664,9 +666,10 @@ class Turn(commands.Cog):
                     "❌ An error occurred during your turn. Please try again.",
                     ephemeral=True
                 )
+                db_manager.delete_game_save(channel.id, match)
                 break
                 match.turn_in_progress = False
-                
+        db_manager.delete_game_save(channel.id, match)                   
 
 async def setup(bot):
     """Setup function for the cog."""

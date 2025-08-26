@@ -4,6 +4,7 @@ from discord import app_commands
 from bot.config import Config
 import logging
 from bot.utils import update_lobby_status_embed
+from database.manager import db_manager
 
 logger = logging.getLogger(__name__)
 
@@ -54,6 +55,7 @@ class Leave(commands.Cog):
         from bot.utils import matchmaking_dict
 
         match = matchmaking_dict.get(channel_id)
+        db_manager.delete_game_save(channel.id, match)
 
         # Get the other player's info for notification
         other_player_id = None
