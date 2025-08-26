@@ -609,7 +609,7 @@ class Turn(commands.Cog):
             return
         
         # start
-        await db_manager.create_game_save(channel.id, match)
+        db_manager.create_game_save(channel.id, match)
         # Check if it's the player's turn
         current_player_id = match.turn_state["current_player"]
         if interaction.user.id != current_player_id and not(match.solo_mode):
@@ -649,12 +649,12 @@ class Turn(commands.Cog):
                     match.next_picker = match.player1_id if match.next_picker == match.player2_id else match.player2_id
 
                     # Update game save after each turn
-                    await db_manager.update_game_save(channel.id, match) #database
+                    db_manager.update_game_save(channel.id, match) #database
                     await asyncio.sleep(5)
                 else:
                     # Delete game save after match is over
                     pass #database
-                    await db_manager.delete_game_save(channel.id, match)
+                    db_manager.delete_game_save(channel.id, match)
                     match.turn_in_progress = False
                     break
                 
