@@ -254,7 +254,6 @@ class Turn(commands.Cog):
             await asyncio.wait_for(view.wait(), timeout=900)
         except asyncio.TimeoutError:
             # Handle timeout: no selection made
-            db_manager.delete_game_save(channel.id, match)  
             view.selected_god = None
 
 
