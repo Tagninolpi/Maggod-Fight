@@ -48,7 +48,8 @@ class LobbyManager(commands.Cog):
             return
 
         await interaction.response.defer(ephemeral=True)
-        MoneyManager.create_database()
+        money_manager = MoneyManager()
+        money_manager.create_database()
 
         guild = interaction.guild
         category = discord.utils.get(guild.categories, id=Config.LOBBY_CATEGORY_ID)
