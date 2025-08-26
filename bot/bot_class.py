@@ -1,103 +1,193 @@
 import random
 from utils.gameplay_tag import God
 
+# -------------------- BOT CONFIGS --------------------
 bot_configs = {
     "random": {},
-    "best_hp_dmg": {
-        "hp": 0.3,
-        "dmg": 1
-    },
-    "worst_hp_dmg": {
-        "hp": -0.3,
-        "dmg": -1
-    }
+    "worst_bot": {"hp": -0.3, "dmg": -1,"reload":-0.3},
+    "best_bot": {"hp": 0.3, "dmg": 1,"reload":0.3}
 }
 
 bot_choose_configs = {
     "random": {},
-    "best_hp_dmg": {
-        "hp": 0.3,
-        "dmg": 1
-    },
-    "worst_hp_dmg": {
-        "hp": -0.3,
-        "dmg": -1
-    }
+    "worst_bot": {"hp": -0.3, "dmg": -1,"reload":-0.3},
+    "best_bot": {"hp": 0.3, "dmg": 1,"reload":0.3}
 }
 
+# -------------------- TURN CONTEXT --------------------
+class TurnContext:
+    def __init__(self, select=None, my_team=None, opp_team=None, action_text=None, attack_cerbs: bool = False):
+        self.action_text = action_text
+        self.attack_cerbs = attack_cerbs
+        if action_text == "attack":
+            self.my_team = opp_team or []
+            self.opp_team = my_team or []
+            self.select = select or []
+        else:
+            self.my_team = my_team or []
+            self.opp_team = opp_team or []
+            self.select = select or []
+
+# -------------------- BOT CLASS --------------------
 class BotClass:
     def __init__(self, name: str):
         self.name = name
-        # bot identity
         self.config = bot_configs[name]
         self.choose_config = bot_choose_configs[name]
-        # selectable gods (value)
-        self.select_team_gods = {}
-        # needed ? 
-        self.opp_team_dmg = {}
-        self.my_team_dmg = {}
-        self.opp_team_dmg_recived = {}
-        self.my_team_dmg_recived = {}
+        self.true_dmg_list = []
+        self.ctx: TurnContext | None = None
 
-### init functions
-# populate dict (kwargs) with names in list and set to 0
-    def init_dicts(self, list,kwargs):
-        for g in list:
-            kwargs[g] = 0
+    def set_ctx(self, ctx: TurnContext):
+        self.ctx = ctx
 
-### Helper functions
-# add score to a team based on attribut value and mult
-    def add_score(self, atr, multi):
-        for god in self.select_team_gods:
-            value = getattr(god, atr, 0)
-            self.select_team_gods[god] += value * multi
+### Helper functions :
 
-# set value of key in dict to true dmg input and output
-    def set_true_dmg_done(self,team,kwargs):
-        for g in team:
-            kwargs[g] = g.do_damage()
-    def set_true_dmg_received(self,team,kwargs,init_dmg):
-        for g in team:
-            kwargs[g] = g.get_dmg(init_dmg,False)
- 
-# get the biggest/smalest value and its key from any dict
-    def get_biggest_value(self,dict):
-        key = max(dict, key=dict.get)
-        value = dict[key]
-        return key, value
-    def get_smallest_value(self,dict):
-        key = min(dict, key=dict.get)
-        value = dict[key]
-        return key, value
-
-
-
-### Bot functions
-#can i instakill?
-#get my biggest dmg, see the true dmg i can do, see if true dmg is bigger than hp left
-
-
-### Main function
-    def choose_god(self, select,pre_game_choose = True,opp_team = None,my_team = None):
-        # initialize scores
-        self.init_dicts(select,self.select_team_gods)
-        #self.set_true_dmg_done(select,self.my_team_dmg)
-        #self.set_true_dmg_done(opp_team,self.opp_team_dmg)
-        #self.set_true_dmg_received(select,self.my_team_dmg,9)
-        #self.set_true_dmg_received(opp_team,self.opp_team_dmg,9)
-
-
-        # random bot just picks one
-        if self.name == "random":
-            return random.choice(select)
-        if pre_game_choose:
-            # score-based bots
-            for atr, multi in self.choose_config.items():
-                self.add_score(atr, multi)
+    def filter_by_reload(self, gods):
+        """Return gods based on reload_time and the reload multiplier in config."""
+        if not gods:
+            return []
+        reload_multiplier = self.choose_config.get("reload", None)
+        # If reload multiplier exists and is negative, pick gods with reload > 0
+        if reload_multiplier is not None and reload_multiplier < 0:
+            with_reload = [g for g in gods if g.reload_time > 0]
+            return with_reload if with_reload else gods
+        # Normal behavior: pick gods ready to act (reload_time <= 0)
+        ready = [g for g in gods if g.reload_time <= 0]
+        return ready if ready else gods
+        # all have timer, return original list
+    
+    def max_damage_god(self):
+        # compute dmg for all selectable gods
+        dmg_values = {g: g.do_damage() for g in self.ctx.select}
+        dmg_multiplier = self.choose_config.get("dmg", None)
+        if dmg_values:
+            if dmg_multiplier is not None and dmg_multiplier < 0:
+                # pick gods with minimum damage
+                target_value = min(dmg_values.values())
+            else:
+                # pick gods with maximum damage
+                target_value = max(dmg_values.values())
+            
+            best_gods = [g for g, dmg in dmg_values.items() if dmg == target_value]
         else:
-                    # score-based bots
-            for atr, multi in self.config.items():
-                self.add_score(atr, multi)
+            best_gods = []
+            target_value = 0
+        # filter based on reload_time
+        best_gods = self.filter_by_reload(best_gods)
+        chosen = random.choice(best_gods) if best_gods else None
+        self.true_dmg_list = [target_value] if target_value else []
+        return chosen
 
-        return max(self.select_team_gods, key=self.select_team_gods.get)
+    def minimize_damage_god(self):
+        """
+        Picks a god for 'attack' that minimizes damage taken and factors in hp lost,
+        true damage, and reload multipliers from config.
+        """
+        if not self.ctx.select:
+            return None
 
+        scores = {}
+        hp_multiplier = self.choose_config.get("hp", None)
+        dmg_multiplier = self.choose_config.get("dmg", None)
+        reload_multiplier = self.choose_config.get("reload", None)
+
+        for g in self.ctx.select:
+            # hp lost: assume self.true_dmg_list contains expected damage to this god
+            total_received = sum([g.get_dmg(d, False) for d in self.true_dmg_list])
+            hp_lost = max(g.hp - total_received, 0)  # cannot be negative
+
+            score = 0
+            if hp_multiplier is not None:
+                score += hp_lost * hp_multiplier
+            if dmg_multiplier is not None:
+                score += g.do_damage() * dmg_multiplier
+            if reload_multiplier is not None:
+                reload_time = getattr(g, "reload_time", 0)
+                if reload_multiplier < 0:
+                    # negative multiplier: pick gods with reload > 0
+                    score += (reload_time if reload_time > 0 else 0) * reload_multiplier
+                else:
+                    # positive multiplier: pick gods ready to act
+                    score += ((10 if reload_time <= 0 else (10 - reload_time)) * reload_multiplier)
+            scores[g] = score
+        self.true_dmg_list.clear()
+        if not scores:
+            return random.choice(self.ctx.select)
+
+        max_score = max(scores.values())
+        top_gods = [g for g, score in scores.items() if score == max_score]
+        return random.choice(top_gods)
+
+    def instakill_god(self):
+        best_gods = []
+        scores = {}
+
+        # Iterate over selectable gods and check which can be instakilled
+        for g in self.ctx.select:
+            total_received = sum([g.get_dmg(d, False) for d in self.true_dmg_list])
+            if g.hp <= total_received:
+                best_gods.append(g)
+
+        # Clear true damage list after using it
+        self.true_dmg_list.clear()
+
+        if not best_gods:
+            return None
+
+        # Calculate scores based on hp, dmg, and reload multipliers if they exist
+        for g in best_gods:
+            score = 0
+            if "hp" in self.choose_config:
+                score += g.hp * self.choose_config["hp"]
+            if "dmg" in self.choose_config:
+                score += g.do_damage() * self.choose_config["dmg"]
+            if "reload" in self.choose_config:
+                reload_time = getattr(g, "reload_time", 0)
+                if reload_time <= 0:
+                    score += 10 * self.choose_config["reload"]
+                else:
+                    score += (10 - reload_time) * self.choose_config["reload"]
+            scores[g] = score
+
+        # Pick god(s) with the highest score
+        max_score = max(scores.values())
+        top_gods = [g for g, score in scores.items() if score == max_score]
+
+        # Return one god randomly if multiple tie
+        return random.choice(top_gods)
+
+
+    # -------------------- MAIN BOT FUNCTION --------------------
+    def choose_god(self, ctx: TurnContext):
+        self.set_ctx(ctx)
+
+        if self.name == "random":
+            return random.choice(ctx.select)
+        
+        if getattr(ctx, "attack_cerbs", False):
+            self.true_dmg_list = []
+            return None
+
+        # --- "attack with" logic ---
+        if ctx.action_text and ctx.action_text.startswith("attack with"):
+            return self.max_damage_god()
+
+        # --- "attack" logic ---
+        if ctx.action_text == "attack":
+            dmg_multiplier = self.choose_config.get("dmg", None)
+            if dmg_multiplier is not None and dmg_multiplier < 0:
+                # pick god using minimize_damage_god
+                return self.minimize_damage_god()
+            
+            god = self.instakill_god()
+            if god:
+                return god
+            return random.choice(ctx.select)
+
+        # --- fallback score-based system ---
+        if self.choose_config:
+            scores = {g: sum(getattr(g, atr, 0) * multi for atr, multi in self.choose_config.items())
+                    for g in ctx.select}
+            return max(scores, key=scores.get)
+
+        return random.choice(ctx.select)

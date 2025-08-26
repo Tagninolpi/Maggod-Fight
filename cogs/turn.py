@@ -12,7 +12,7 @@ import asyncio
 import re
 import unicodedata
 from bot.config import Config
-from bot.bot_class import BotClass
+from bot.bot_class import BotClass,TurnContext
 
 logger = logging.getLogger(__name__)
 
@@ -232,8 +232,10 @@ class Turn(commands.Cog):
 
         # Auto-select if in solo mode and it's the bot's turn
         if match.solo_mode and  match.turn_state["current_player"] == 123:
-            selected = BotClass(match.ai_bot_name).choose_god(selectable_gods,pre_game_choose=False,opp_team=team2,my_team=team1)
-            return selected
+           selected = BotClass(match.ai_bot_name).choose_god(
+    TurnContext(selectable_gods, team1, team2, action_text, pre_game_choose=False)
+)
+           return selected
         
         # Create embeds showing team status
         embeds = create_team_embeds(team1, team2, match.player1_name, match.player2_name,action_text,allowed_user)
@@ -310,7 +312,8 @@ class Turn(commands.Cog):
             if "cerberus_more_max_hp_per_visible_ally" in god.effects and god.alive),
             None
             )
-        attacked = buffed_ally
+        attacked = buffed_ally # add message to say it was auto selected
+        BotClass(match.ai_bot_name).choose_god(TurnContext(attack_cerbs=True))
         if not(buffed_ally):
             if not visible_defenders:
                 await channel.send("❌ No visible targets available. Turn skipped.")
@@ -642,7 +645,7 @@ class Turn(commands.Cog):
 
                     # Update game save after each turn
                     #await db_manager.update_game_save(channel, match) #database
-                    await asyncio.sleep(2)
+                    await asyncio.sleep(5)
                 else:
                     # Delete game save after match is over
                     pass #database

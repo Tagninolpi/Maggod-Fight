@@ -11,7 +11,7 @@ from utils.game_test_on_discord import gods as all_gods_template
 from bot.utils import update_lobby_status_embed
 from bot.config import Config
 import asyncio
-from bot.bot_class import BotClass,bot_configs
+from bot.bot_class import BotClass,bot_configs,TurnContext
 
 logger = logging.getLogger(__name__)
 class StartChoiceView(discord.ui.View):
@@ -423,7 +423,7 @@ class BuildTeam(commands.Cog):
 
         while match.turn_in_progress and match:
             if match.solo_mode and match.next_picker == 123:
-                chosen = BotClass(match.ai_bot_name).choose_god(match.available_gods)
+                chosen = BotClass(match.ai_bot_name).choose_god(TurnContext(match.available_gods))
                 match.teams.setdefault(123, []).append(chosen)
                 match.picked_gods.setdefault(123, []).append(chosen.name)
                 match.available_gods = [g for g in match.available_gods if g.name != chosen.name]
