@@ -76,7 +76,7 @@ class DB_Manager:
 
         self.cursor.execute(f"""
             CREATE TABLE IF NOT EXISTS {SAVE_TABLE_NAME} (
-                channel_id STRING PRIMARY KEY,
+                channel STRING PRIMARY KEY,
                 player1 STRING,
                 player1_team STRING,
                 player2 STRING,
@@ -147,7 +147,7 @@ class DB_Manager:
 
         return team
 
-    def create_game_save(self, channel_id, match):
+    def create_game_save(self, channel, match):
         player1_id = match.player1_id
         player2_id = match.player2_id
         player1_team = match.teams[player1_id]
@@ -161,12 +161,12 @@ class DB_Manager:
         player2_team_string = self.encrypt_team(player2_team)
 
         self.cursor.execute(f"""
-            INSERT INTO {SAVE_TABLE_NAME}(channel_id, player1, player1_team, player2, player2_team, current_turn_player_id, turn_nr, game_phase, solo_mode) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?);
-        """, [channel_id, player1_id, player1_team_string, player2_id, player2_team_string, current_turn_player_id, turn_nr, game_phase, solo_mode])
+            INSERT INTO {SAVE_TABLE_NAME}(channel, player1, player1_team, player2, player2_team, current_turn_player_id, turn_nr, game_phase, solo_mode) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?);
+        """, [channel, player1_id, player1_team_string, player2_id, player2_team_string, current_turn_player_id, turn_nr, game_phase, solo_mode])
 
         self.conn.commit()
 
-    def update_game_save(self, channel_id, match):
+    def update_game_save(self, channel, match):
         player1_id = match.player1_id
         player2_id = match.player2_id
         player1_team = match.teams[player1_id]
@@ -178,27 +178,27 @@ class DB_Manager:
         player2_team_string = self.encrypt_team(player2_team)
 
         self.cursor.execute(f"""
-            UPDATE {SAVE_TABLE_NAME} SET player1_team=? WHERE channel_id=? AND player1=? AND player2=?
-        """, [player1_team_string, channel_id, player1_id, player2_id])
+            UPDATE {SAVE_TABLE_NAME} SET player1_team=? WHERE channel=? AND player1=? AND player2=?
+        """, [player1_team_string, channel, player1_id, player2_id])
         self.cursor.execute(f"""
-            UPDATE {SAVE_TABLE_NAME} SET player2_team=? WHERE channel_id=? AND player1=? AND player2=?
-        """, [player2_team_string, channel_id, player1_id, player2_id])
+            UPDATE {SAVE_TABLE_NAME} SET player2_team=? WHERE channel=? AND player1=? AND player2=?
+        """, [player2_team_string, channel, player1_id, player2_id])
         self.cursor.execute(f"""
-            UPDATE {SAVE_TABLE_NAME} SET current_turn_player_id=? WHERE channel_id=? AND player1=? AND player2=?
-        """, [current_turn_player_id, channel_id, player1_id, player2_id])
+            UPDATE {SAVE_TABLE_NAME} SET current_turn_player_id=? WHERE channel=? AND player1=? AND player2=?
+        """, [current_turn_player_id, channel, player1_id, player2_id])
         self.cursor.execute(f"""
-            UPDATE {SAVE_TABLE_NAME} SET turn_nr=? WHERE channel_id=? AND player1=? AND player2=?
-        """, [turn_nr, channel_id, player1_id, player2_id])
+            UPDATE {SAVE_TABLE_NAME} SET turn_nr=? WHERE channel=? AND player1=? AND player2=?
+        """, [turn_nr, channel, player1_id, player2_id])
 
         self.conn.commit()
 
-    def delete_game_save(self, channel_id, match):
+    def delete_game_save(self, channel, match):
         player1_id = match.player1_id
         player2_id = match.player2_id
 
         self.cursor.execute(f"""
-            DELETE FROM {SAVE_TABLE_NAME} WHERE channel_id=? AND player1=? AND player2=?
-        """, [channel_id, player1_id, player2_id])
+            DELETE FROM {SAVE_TABLE_NAME} WHERE channel=? AND player1=? AND player2=?
+        """, [channel, player1_id, player2_id])
 
         self.conn.commit()
 
@@ -210,7 +210,7 @@ class DB_Manager:
         matches = {}
 
         for game in data:
-            channel_id = game[0]
+            channel = game[0]
             player_1_id = game[1]
             player_1_team = self.decrypt_team(game[2])
             player_2_id = game[3]
@@ -232,7 +232,7 @@ class DB_Manager:
             match.solo_mode = solo_mode
             match.turn_in_progress = turn_in_progress
 
-            matches[channel_id] = match
+            matches[channel] = match
 
         return matches
 
