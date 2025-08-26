@@ -43,16 +43,16 @@ class BotClass:
 ### Helper functions :
 
     def filter_by_reload(self, gods):
-        """Return gods based on reload_time and the reload multiplier in config."""
+        """Return gods based on reload and the reload multiplier in config."""
         if not gods:
             return []
         reload_multiplier = self.choose_config.get("reload", None)
         # If reload multiplier exists and is negative, pick gods with reload > 0
         if reload_multiplier is not None and reload_multiplier < 0:
-            with_reload = [g for g in gods if g.reload_time > 0]
+            with_reload = [g for g in gods if g.reload > 0]
             return with_reload if with_reload else gods
-        # Normal behavior: pick gods ready to act (reload_time <= 0)
-        ready = [g for g in gods if g.reload_time <= 0]
+        # Normal behavior: pick gods ready to act (reload <= 0)
+        ready = [g for g in gods if g.reload <= 0]
         return ready if ready else gods
         # all have timer, return original list
     
@@ -72,7 +72,7 @@ class BotClass:
         else:
             best_gods = []
             target_value = 0
-        # filter based on reload_time
+        # filter based on reload
         best_gods = self.filter_by_reload(best_gods)
         chosen = random.choice(best_gods) if best_gods else None
         self.true_dmg_list = [target_value] if target_value else []
@@ -102,13 +102,13 @@ class BotClass:
             if dmg_multiplier is not None:
                 score += g.do_damage() * dmg_multiplier
             if reload_multiplier is not None:
-                reload_time = getattr(g, "reload_time", 0)
+                reload = getattr(g, "reload", 0)
                 if reload_multiplier < 0:
                     # negative multiplier: pick gods with reload > 0
-                    score += (reload_time if reload_time > 0 else 0) * reload_multiplier
+                    score += (reload if reload > 0 else 0) * reload_multiplier
                 else:
                     # positive multiplier: pick gods ready to act
-                    score += ((10 if reload_time <= 0 else (10 - reload_time)) * reload_multiplier)
+                    score += ((10 if reload <= 0 else (10 - reload)) * reload_multiplier)
             scores[g] = score
         self.true_dmg_list.clear()
         if not scores:
@@ -142,11 +142,11 @@ class BotClass:
             if "dmg" in self.choose_config:
                 score += g.do_damage() * self.choose_config["dmg"]
             if "reload" in self.choose_config:
-                reload_time = getattr(g, "reload_time", 0)
-                if reload_time <= 0:
+                reload = getattr(g, "reload", 0)
+                if reload <= 0:
                     score += 10 * self.choose_config["reload"]
                 else:
-                    score += (10 - reload_time) * self.choose_config["reload"]
+                    score += (10 - reload) * self.choose_config["reload"]
             scores[g] = score
 
         # Pick god(s) with the highest score
