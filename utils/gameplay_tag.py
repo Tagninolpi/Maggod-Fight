@@ -140,8 +140,6 @@ class God:
             dmg = -1
 
         # Make god visible when attacking
-        self.visible = True
-
         return dmg
 
 #used ?

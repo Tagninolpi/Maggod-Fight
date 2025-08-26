@@ -159,6 +159,7 @@ def hermes(kwargs):
                 "self": attacker_1
                 })
         dmg = attacker_1.do_damage()
+        attacker_1.visible = True
         msg+= f"\n{attacker_1.name.capitalize()} does {dmg} dmg to {target.name.capitalize()}\n"
         target.get_dmg(value=dmg)
     
@@ -170,6 +171,7 @@ def hermes(kwargs):
                 "self": attacker_2
             })
         dmg = attacker_2.do_damage()
+        attacker_2.visible = True
         msg+= f"\n{attacker_2.name.capitalize()} does {dmg} dmg to {target.name.capitalize()}"
         target.get_dmg(value=dmg)
     return msg

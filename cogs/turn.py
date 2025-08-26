@@ -397,6 +397,7 @@ class Turn(commands.Cog):
             
             # Basic damage
             damage = attacker.do_damage()
+            attacker.visible = True
             attacked.get_dmg(value=damage)
                 
             # Execute god ability
