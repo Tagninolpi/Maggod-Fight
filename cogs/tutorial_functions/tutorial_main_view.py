@@ -186,9 +186,19 @@ class TutorialMainView(discord.ui.View):
     async def open_god_tutorials(self, interaction: discord.Interaction):
         if interaction.user.id != self.user.id:
             return await interaction.response.send_message("❌ This is not your tutorial!", ephemeral=True)
+
         view = GodsMenuView(self.user, self.god_tutorials)
-        msg = await switch_view(interaction, view, main_embeds[0])
+
+        # Neutral embed for God Tutorials menu
+        menu_embed = discord.Embed(
+            title="🧙 God Tutorials Menu",
+            description="Select a god to view their tutorial.",
+            color=discord.Color.blurple
+        )
+
+        msg = await switch_view(interaction, view, menu_embed)
         view.message = msg
+
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
         return interaction.user.id == self.user.id
@@ -228,10 +238,6 @@ class GodsMenuView(discord.ui.View):
             button.callback = self.make_god_callback(god_name)
             self.add_item(button)
 
-        # Add Return to Main Menu & Exit buttons
-        self.add_item(discord.ui.Button(label="Return to Main Menu", style=discord.ButtonStyle.grey, row=4, custom_id="return_main"))
-        self.add_item(discord.ui.Button(label="Exit", style=discord.ButtonStyle.red, row=4, custom_id="exit_gods"))
-
     def make_god_callback(self, god_name: str):
         async def callback(interaction: discord.Interaction):
             if interaction.user.id != self.user.id:
@@ -257,15 +263,18 @@ class GodsMenuView(discord.ui.View):
             except discord.NotFound:
                 pass
 
+    # Decorated buttons only (no duplicates)
     @discord.ui.button(label="Return to Main Menu", style=discord.ButtonStyle.grey, row=4)
     async def return_main(self, interaction: discord.Interaction, button: discord.ui.Button):
         view = TutorialMainView(self.user, self.god_tutorials)
-        msg = await switch_view(interaction, view, main_embeds[0])
+        # Skip intro embed in main menu
+        msg = await switch_view(interaction, view, main_embeds[1])
         view.message = msg
 
     @discord.ui.button(label="Exit", style=discord.ButtonStyle.red, row=4)
     async def exit_gods(self, interaction: discord.Interaction, button: discord.ui.Button):
         await switch_view(interaction, None, discord.Embed(title="✅ Tutorial ended"))
+
 
 
 # ---------------- God Detail View ----------------
