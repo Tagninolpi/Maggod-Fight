@@ -99,6 +99,16 @@ tutorial_embed.add_field(
     ),
     inline=False
 )
+tutorial_embed.add_field(
+    name="⚔️ Bot multipliers :",
+    value=(
+        "your gain will be multiplied by:"
+        "x0.1 if you play worst_bot" \
+        "x0.3 if you play random" \
+        "x1 if you play best_bot"
+    ),
+    inline=False
+)
 
 # ---------------- Global main_embeds ----------------
 main_embeds = [embed1, embed2, battle_view_embed, tutorial_embed]
