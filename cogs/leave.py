@@ -57,7 +57,7 @@ class Leave(commands.Cog):
 
         match = matchmaking_dict.get(channel_id)
 
-        db_manager.delete_game_save(channel.id, match)
+        #db_manager.delete_game_save(channel.id, match)
 
         # Get the other player's info for notification
         other_player_id = None

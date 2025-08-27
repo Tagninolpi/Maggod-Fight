@@ -681,7 +681,7 @@ class Turn(commands.Cog):
             return
         
         # start
-        db_manager.create_game_save(channel.id, match)
+        #db_manager.create_game_save(channel.id, match)
         # Check if it's the player's turn
         current_player_id = match.turn_state["current_player"]
         if interaction.user.id != current_player_id and not(match.solo_mode):
@@ -721,12 +721,12 @@ class Turn(commands.Cog):
                     match.next_picker = match.player1_id if match.next_picker == match.player2_id else match.player2_id
 
                     # Update game save after each turn
-                    db_manager.update_game_save(channel.id, match) #database
+                    #db_manager.update_game_save(channel.id, match) #database
                     await asyncio.sleep(4)
                 else:
                     # Delete game save after match is over
                     pass #database
-                    db_manager.delete_game_save(channel.id, match)
+                    #db_manager.delete_game_save(channel.id, match)
                     match.turn_in_progress = False
                     break
                 
@@ -737,7 +737,7 @@ class Turn(commands.Cog):
                     f"Both players get 5000 {Config.coin} in compensation",
                     ephemeral=True
                 )
-                db_manager.delete_game_save(channel.id, match)
+                #db_manager.delete_game_save(channel.id, match)
                 money = MoneyManager()
                 money.update_balance(match.player1_id,5000)
                 money.update_balance(match.player2_id,5000)
@@ -745,7 +745,7 @@ class Turn(commands.Cog):
                 #remove the match
                 del matchmaking_dict[channel.id]
                 break
-        db_manager.delete_game_save(channel.id, match)                   
+        #db_manager.delete_game_save(channel.id, match)                   
 
 async def setup(bot):
     """Setup function for the cog."""
