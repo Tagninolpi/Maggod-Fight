@@ -110,8 +110,6 @@ class MaggodFightBot(commands.Bot):
         activity = discord.Game(name="Maggod Fight | /help")
         await self.change_presence(activity=activity)
         # Announce bot online
-        money_manager = MoneyManager()
-        money_manager.create_database()
         try:
             channel = self.get_channel(Config.ANNOUNCE_CHANNEL_ID)
             if channel:
