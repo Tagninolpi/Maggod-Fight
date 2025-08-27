@@ -562,6 +562,13 @@ class Turn(commands.Cog):
             else:
                 gain += 2500
                 gain += team1_survivors * 1250
+            if match.bot_type == "random":
+                gain *= 0.3
+            elif match.bot_type == "worst_bot":
+                gain *= 0.1
+            else:
+                gain *= 1
+            gain = round(gain)
             p1_new_bal = money.update_balance(match.player1_id,gain)
 
         elif match.money_sys_type == "2 players":

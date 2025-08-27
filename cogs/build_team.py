@@ -86,6 +86,7 @@ class BotDifficultyView(discord.ui.View):
                     return
 
                 self.match.ai_bot_name = name
+                self.match.bot_type = name
                 await interaction.response.edit_message(
                     content=f"✅ Bot difficulty set to **{name}**!",
                     view=None

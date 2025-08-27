@@ -50,6 +50,7 @@ class Match:
         self.DEBUG_SKIP_BUILD = False
         self.ai_bot_name = "random"
         self.money_sys_type = "2 players"
+        self.bot_type = "random"
 
 class MaggodFightBot(commands.Bot):
     """Main bot class for Maggod Fight."""
