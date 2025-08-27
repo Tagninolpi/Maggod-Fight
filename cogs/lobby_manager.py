@@ -3,7 +3,7 @@ from discord.ext import commands
 from discord import app_commands
 from bot.config import Config
 from bot.utils import matchmaking_dict
-from currency.money_manager import MoneyManager
+
 
 class LobbyManager(commands.Cog):
     """Manage Maggod lobby channels."""
@@ -48,8 +48,7 @@ class LobbyManager(commands.Cog):
             return
 
         await interaction.response.defer(ephemeral=True)
-        money_manager = MoneyManager()
-        money_manager.create_database()
+
 
         guild = interaction.guild
         category = discord.utils.get(guild.categories, id=Config.LOBBY_CATEGORY_ID)

@@ -15,6 +15,8 @@ from bot.commands import setup_commands
 # Import keep alive
 from keep_alive import keep_alive
 
+from currency.money_manager import MoneyManager
+
 # Initialize logging
 setup_logging()
 logger = logging.getLogger(__name__)
@@ -107,6 +109,8 @@ class MaggodFightBot(commands.Bot):
         activity = discord.Game(name="Maggod Fight | /help")
         await self.change_presence(activity=activity)
         # Announce bot online
+        money_manager = MoneyManager()
+        money_manager.create_database()
         try:
             channel = self.get_channel(Config.ANNOUNCE_CHANNEL_ID)
             if channel:
