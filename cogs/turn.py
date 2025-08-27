@@ -732,8 +732,9 @@ class Turn(commands.Cog):
                     ephemeral=True
                 )
                 db_manager.delete_game_save(channel.id, match)
-                MoneyManager.update_balance(match.player1_id,5000)
-                MoneyManager.update_balance(match.player2_id,5000)
+                money = MoneyManager()
+                money.update_balance(match.player1_id,5000)
+                money.update_balance(match.player2_id,5000)
                 match.turn_in_progress = False
                 #remove the match
                 del matchmaking_dict[channel.id]
