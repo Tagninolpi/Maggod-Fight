@@ -4,7 +4,7 @@ from utils.gameplay_tag import God
 # -------------------- BOT CONFIGS --------------------
 bot_configs = {
     "random": {},
-    "worst_bot": {"hp": -0.3, "dmg": -1,"reload":-0.3},
+    "worst_bot": {"hp": -1, "dmg": -1,"reload":-0.3},
     "best_bot": {"hp": 0.3, "dmg": 1,"reload":0.3}
 }
 

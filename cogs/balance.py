@@ -8,13 +8,13 @@ import logging
 logger = logging.getLogger(__name__)
 
 class Balance(commands.Cog):
-    """Cog for seeing player balance in Maggod Fight lobbies."""
-    
+    """Cog for seeing player balances in Maggod Fight lobbies."""
+
     def __init__(self, bot):
         self.bot = bot
         self.money_manager = MoneyManager()  # Initialize your MoneyManager
 
-    @app_commands.command(name="balance", description="See your money balance.")
+    @app_commands.command(name="balance", description="See the leaderboard of all balances.")
     async def balance(self, interaction: discord.Interaction):
         channel = interaction.channel
         user_id = interaction.user.id
@@ -34,18 +34,43 @@ class Balance(commands.Cog):
             )
             return
 
-        # Get the user's balance from MoneyManager
-        balance = self.money_manager.get_balance(user_id)
+        # Fetch all balances
+        all_users = self.money_manager.get_balance(all=True)  # List of dicts [{"user_id": ..., "balance": ...}]
+        if not all_users:
+            await interaction.response.send_message("No balances found in the database.", ephemeral=True)
+            return
 
-        # Create an embed to display the balance
+        # Sort descending by balance
+        sorted_users = sorted(all_users, key=lambda x: x["balance"], reverse=True)
+
+        # Build leaderboard string
+        description = ""
+        for idx, user in enumerate(sorted_users, start=1):
+            uid = user["user_id"]
+            balance = user["balance"]
+            member = interaction.guild.get_member(uid)
+            name = member.display_name if member else f"User ID {uid}"
+
+            # Format balance with spaces for thousands
+            balance_str = f"{balance:,}".replace(",", " ")
+
+            # Highlight the command user
+            if uid == user_id:
+                line = f"**{idx}. {name} — {balance_str} {Config.coin} 👈 You**\n"
+            else:
+                line = f"{idx}. {name} — {balance_str} {Config.coin}\n"
+
+            description += line
+
+        # Create embed
         embed = discord.Embed(
-            title="💰 Your Balance",
-            description=f"You currently have **{balance}** {Config.coin}.",
+            title="💰 Leaderboard",
+            description=description,
             color=discord.Color.gold()
         )
         embed.set_footer(text=f"Requested by {interaction.user.display_name}", icon_url=interaction.user.avatar.url)
 
-        await interaction.response.send_message(embed=embed, ephemeral=True)
+        await interaction.response.send_message(embed=embed, ephemeral=False)
 
 
 async def setup(bot):
