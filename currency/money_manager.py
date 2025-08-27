@@ -1,18 +1,17 @@
-import sqlite3
-from pathlib import Path
+import psycopg2
+import os
 
 class MoneyManager:
     def __init__(self):
-        # Path to the database file inside the money folder
-        self.db_path = Path(__file__).parent / "money" / "money.db"
-        self.conn = sqlite3.connect(self.db_path)
+        # Connect to your Supabase Postgres database
+        self.conn = psycopg2.connect(os.getenv("DATABASE_URL"))
         self.cursor = self.conn.cursor()
 
     def create_database(self):
         """Create the money table if it doesn't exist."""
         self.cursor.execute("""
             CREATE TABLE IF NOT EXISTS money (
-                user_id INTEGER PRIMARY KEY,
+                user_id BIGINT PRIMARY KEY,
                 balance INTEGER DEFAULT 0
             )
         """)
@@ -39,10 +38,13 @@ class MoneyManager:
             return self.cursor.fetchall()
         
         # Check if user exists, if not add them with default balance 0
-        self.cursor.execute("SELECT balance FROM money WHERE user_id = ?", (user_id,))
+        self.cursor.execute("SELECT balance FROM money WHERE user_id = %s", (user_id,))
         result = self.cursor.fetchone()
         if result is None:
-            self.cursor.execute("INSERT INTO money(user_id, balance) VALUES(?, ?)", (user_id, 0))
+            self.cursor.execute(
+                "INSERT INTO money(user_id, balance) VALUES(%s, %s)", 
+                (user_id, 0)
+            )
             self.conn.commit()
             return 0
         return result[0]
@@ -50,9 +52,15 @@ class MoneyManager:
     def set_balance(self, user_id, value):
         """Set the balance for a user. Create user if they don't exist."""
         # Ensure the user exists
-        self.cursor.execute("INSERT OR IGNORE INTO money(user_id, balance) VALUES(?, ?)", (user_id, 0))
+        self.cursor.execute(
+            "INSERT INTO money(user_id, balance) VALUES(%s, %s) ON CONFLICT(user_id) DO NOTHING", 
+            (user_id, 0)
+        )
         # Update the balance
-        self.cursor.execute("UPDATE money SET balance = ? WHERE user_id = ?", (value, user_id))
+        self.cursor.execute(
+            "UPDATE money SET balance = %s WHERE user_id = %s", 
+            (value, user_id)
+        )
         self.conn.commit()
 
     def update_balance(self, user_id, amount: int):
@@ -62,14 +70,20 @@ class MoneyManager:
         - amount: positive to add, negative to subtract
         """
         # Ensure the user exists
-        self.cursor.execute("INSERT OR IGNORE INTO money(user_id, balance) VALUES(?, ?)", (user_id, 0))
+        self.cursor.execute(
+            "INSERT INTO money(user_id, balance) VALUES(%s, %s) ON CONFLICT(user_id) DO NOTHING", 
+            (user_id, 0)
+        )
         
         # Update balance by adding amount
-        self.cursor.execute("UPDATE money SET balance = balance + ? WHERE user_id = ?", (amount, user_id))
+        self.cursor.execute(
+            "UPDATE money SET balance = balance + %s WHERE user_id = %s", 
+            (amount, user_id)
+        )
         self.conn.commit()
 
         # Return the new balance
-        self.cursor.execute("SELECT balance FROM money WHERE user_id = ?", (user_id,))
+        self.cursor.execute("SELECT balance FROM money WHERE user_id = %s", (user_id,))
         return self.cursor.fetchone()[0]
 
     def close(self):
