@@ -38,7 +38,7 @@ class MoneyManager:
             self.cursor.execute("SELECT user_id, balance FROM money")
             return self.cursor.fetchall()
         
-        # Check if user exists, if not add them with default balance 1000
+        # Check if user exists, if not add them with default balance 0
         self.cursor.execute("SELECT balance FROM money WHERE user_id = ?", (user_id,))
         result = self.cursor.fetchone()
         if result is None:
@@ -54,7 +54,7 @@ class MoneyManager:
         # Update the balance
         self.cursor.execute("UPDATE money SET balance = ? WHERE user_id = ?", (value, user_id))
         self.conn.commit()
-        
+
     def update_balance(self, user_id, amount: int):
         """
         Add or subtract from a user's balance.
