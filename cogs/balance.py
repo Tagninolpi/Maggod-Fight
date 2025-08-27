@@ -35,7 +35,6 @@ class Balance(commands.Cog):
             return
 
         # Get the user's balance from MoneyManager
-        self.money_manager.set_balance(user_id,0)
         balance = self.money_manager.get_balance(user_id)
 
         # Create an embed to display the balance
