@@ -81,7 +81,6 @@ tutorial_embed.add_field(
         f"- **For each enemy god defeated:** You earn **+500 {Config.coin}**.\n"
         "- **If you win against the bot:**\n"
         f"   • Base reward: **+2500 {Config.coin}**\n"
-        f"   • Extra for each enemy god defeated: **+750 {Config.coin}**\n"
         f"   • Bonus for each surviving god on your team: **+1250 {Config.coin}**"
     ),
     inline=False

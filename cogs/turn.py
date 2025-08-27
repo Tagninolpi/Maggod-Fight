@@ -561,7 +561,6 @@ class Turn(commands.Cog):
                 gain += (5-team2_survivors) * 500
             else:
                 gain += 2500
-                gain += (5-team2_survivors) * 750
                 gain += team1_survivors * 1250
             p1_new_bal = money.update_balance(match.player1_id,gain)
 
