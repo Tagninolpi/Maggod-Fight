@@ -2,7 +2,7 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 from bot.config import Config
-from .tutorial_functions.tutorial_main_view import TutorialMainView,main_embeds,god_tutorials  
+from .tutorial_functions.tutorial_main_view import TutorialMainView,main_embeds,GodTutorials
 
 class TutorialCog(commands.Cog):
     """Self-contained tutorial system for Maggod Fight Arena."""
@@ -42,16 +42,18 @@ class TutorialCog(commands.Cog):
             return
 
         # ---------- Passed checks ----------
+        # Instantiate GodTutorials
+        god_tutorials = GodTutorials()
+
+        # Create the main tutorial view
         view = TutorialMainView(interaction.user, god_tutorials)
 
-        # Send the ephemeral response
         await interaction.response.send_message(
             embeds=[main_embeds[0]],
             view=view,
             ephemeral=True
         )
 
-        # Fetch the *real* message object from followup
         message = await interaction.original_response()
         view.message = message
 
