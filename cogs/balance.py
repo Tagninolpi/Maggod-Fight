@@ -40,7 +40,7 @@ class Balance(commands.Cog):
         # Create an embed to display the balance
         embed = discord.Embed(
             title="💰 Your Balance",
-            description=f"You currently have **{balance}** coins.",
+            description=f"You currently have **{balance}** {Config.coin}.",
             color=discord.Color.gold()
         )
         embed.set_footer(text=f"Requested by {interaction.user.display_name}", icon_url=interaction.user.avatar.url)

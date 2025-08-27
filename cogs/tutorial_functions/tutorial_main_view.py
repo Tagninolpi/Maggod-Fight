@@ -1,6 +1,6 @@
 import discord
 from .god_embeds import GodTutorials
-
+from bot.config import Config
 # ---------------- Embeds ----------------
 
 ### Embed 1: Introduction
@@ -77,12 +77,12 @@ tutorial_embed = discord.Embed(title="📖 Battle Rewards Tutorial",description=
 tutorial_embed.add_field(
     name="🤖 Playing Against the Bot",
     value=(
-        "- **If you lose to the bot:** You pay **1000 coins**.\n"
-        "- **For each enemy god defeated:** You earn **+500 coins**.\n"
+        f"- **If you lose to the bot:** You pay **1000 {Config.coin}**.\n"
+        f"- **For each enemy god defeated:** You earn **+500 {Config.coin}**.\n"
         "- **If you win against the bot:**\n"
-        "   • Base reward: **+2500 coins**\n"
-        "   • Extra for each enemy god defeated: **+750 coins**\n"
-        "   • Bonus for each surviving god on your team: **+1250 coins**"
+        f"   • Base reward: **+2500 {Config.coin}**\n"
+        f"   • Extra for each enemy god defeated: **+750 {Config.coin}**\n"
+        f"   • Bonus for each surviving god on your team: **+1250 {Config.coin}**"
     ),
     inline=False
 )
@@ -92,11 +92,11 @@ tutorial_embed.add_field(
     name="⚔️ Playing Against Another Player",
     value=(
         "- **Winner’s Rewards:**\n"
-        "   • Base reward: **+5000 coins**\n"
-        "   • Bonus for each surviving god: **+1000 coins**\n\n"
+        f"   • Base reward: **+5000 {Config.coin}**\n"
+        f"   • Bonus for each surviving god: **+1000 {Config.coin}**\n\n"
         "- **Loser’s Penalties:**\n"
-        "   • Base penalty: **-2500 coins**\n"
-        "   • Bonus for each enemy god defeated: **+850 coins**"
+        f"   • Base penalty: **-2500 {Config.coin}**\n"
+        f"   • Bonus for each enemy god defeated: **+850 {Config.coin}**"
     ),
     inline=False
 )

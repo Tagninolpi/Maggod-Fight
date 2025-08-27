@@ -34,6 +34,8 @@ class Config:
     ANNOUNCE_CHANNEL_ID = 1407094852709253302 # channel to annouce that the bot is online
     OWNER_ID = 1360749637299998870 # id of player that is pinged when bot is online
 
+    coin = "<:maggot_coin:1281718478054887476>"
+
     @classmethod
     def validate(cls):
         """Validate required configuration."""

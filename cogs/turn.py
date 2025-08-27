@@ -592,29 +592,29 @@ class Turn(commands.Cog):
             if winner_id == match.player1_id:
                 rewards_embed.add_field(
                     name=f"🏆 {match.player1_name} (Winner)",
-                    value=f"**Gains:** {gain} coins\n**New Balance:** {p1_new_bal}",
+                    value=f"**Gains:** {gain} {Config.coin}\n**New Balance:** {p1_new_bal}",
                     inline=False
                 )
                 rewards_embed.add_field(
                     name=f"💀 {match.player2_name} (Loser)",
-                    value=f"**Losses:** {loss} coins\n**New Balance:** {p2_new_bal}",
+                    value=f"**Losses:** {loss} {Config.coin}\n**New Balance:** {p2_new_bal}",
                     inline=False
                 )
             else:
                 rewards_embed.add_field(
                     name=f"🏆 {match.player2_name} (Winner)",
-                    value=f"**Gains:** {gain} coins\n**New Balance:** {p2_new_bal}",
+                    value=f"**Gains:** {gain} {Config.coin}\n**New Balance:** {p2_new_bal}",
                     inline=False
                 )
                 rewards_embed.add_field(
                     name=f"💀 {match.player1_name} (Loser)",
-                    value=f"**Losses:** {loss} coins\n**New Balance:** {p1_new_bal}",
+                    value=f"**Losses:** {loss} {Config.coin}\n**New Balance:** {p1_new_bal}",
                     inline=False
                 )
         else:
             rewards_embed.add_field(
                 name="Player Rewards",
-                value=f"**Gains:** {gain} coins\n**New Balance:** {p1_new_bal}",
+                value=f"**Gains:** {gain} {Config.coin}\n**New Balance:** {p1_new_bal}",
                 inline=False
             )
 
@@ -728,7 +728,7 @@ class Turn(commands.Cog):
                 logger.error(f"Error in do_turn: {e}")
                 await interaction.followup.send(
                     "❌ An error occurred during your turn. Please try again." \
-                    "Both players get 5000 coins in compensation",
+                    f"Both players get 5000 {Config.coin} in compensation",
                     ephemeral=True
                 )
                 db_manager.delete_game_save(channel.id, match)
