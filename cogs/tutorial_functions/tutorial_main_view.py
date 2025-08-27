@@ -193,7 +193,7 @@ class TutorialMainView(discord.ui.View):
         menu_embed = discord.Embed(
             title="🧙 God Tutorials Menu",
             description="Select a god to view their tutorial.",
-            color=discord.Color.blurple
+            color=discord.Color.blurple()
         )
 
         msg = await switch_view(interaction, view, menu_embed)
