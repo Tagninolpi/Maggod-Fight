@@ -148,7 +148,7 @@ class TutorialEmbedView(discord.ui.View):
         # Show full main menu (all steps)
         msg = await switch_view(interaction, view, main_embeds[0])  # skip welcome embed
         view.message = msg
-
+ 
     @discord.ui.button(label="Exit", style=discord.ButtonStyle.red)
     async def exit_tutorial(self, interaction: discord.Interaction, button: discord.ui.Button):
         await switch_view(interaction, None, discord.Embed(title="✅ Tutorial ended"))
