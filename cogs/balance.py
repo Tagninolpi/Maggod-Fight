@@ -44,23 +44,26 @@ class Balance(commands.Cog):
         sorted_users = sorted(all_users, key=lambda x: x["balance"], reverse=True)
 
         # Build leaderboard string
-        description = ""
+        description_lines = []
         for idx, user in enumerate(sorted_users, start=1):
             uid = user["user_id"]
             balance = user["balance"]
             member = interaction.guild.get_member(uid)
-            name = member.display_name if member else f"User ID {uid}"
+            name = member.display_name if member else "Unknown"
 
             # Format balance with spaces for thousands
             balance_str = f"{balance:,}".replace(",", " ")
 
             # Highlight the command user
             if uid == user_id:
-                line = f"**{idx}. {name} — {balance_str} {Config.coin} 👈 You**\n"
+                line = f"**{idx}. {name} — {balance_str} {Config.coin} 👈 You**"
             else:
-                line = f"{idx}. {name} — {balance_str} {Config.coin}\n"
+                line = f"{idx}. {name} — {balance_str} {Config.coin}"
 
-            description += line
+            description_lines.append(line)
+
+        # Join lines without extra blank lines
+        description = "\n".join(description_lines)
 
         # Create embed
         embed = discord.Embed(
