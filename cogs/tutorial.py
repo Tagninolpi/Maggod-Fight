@@ -2,7 +2,7 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 from bot.config import Config
-from .tutorial_functions.tutorial_main_view import TutorialMainView,embeds
+from .tutorial_functions.tutorial_main_view import TutorialMainView,main_embeds
 
 class TutorialCog(commands.Cog):
     """Self-contained tutorial system for Maggod Fight Arena."""
@@ -46,7 +46,7 @@ class TutorialCog(commands.Cog):
 
         # Send the ephemeral response
         await interaction.response.send_message(
-            embeds=embeds,
+            embeds=[main_embeds[0]],
             view=view,
             ephemeral=True
         )

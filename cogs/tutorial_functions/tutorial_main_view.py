@@ -121,92 +121,74 @@ tutorial_embed.add_field(
     inline=False
 )
 
-# ---------------- Exports ----------------
-embeds: list[discord.Embed] = [embed1, embed2, embed3, embed4, embed5,tutorial_embed]
-
+# ---------------- Global main_embeds ----------------
+main_embeds = [embed1, embed2, embed3, embed4, embed5, tutorial_embed]
 
 # ---------------- Helper ----------------
-async def switch_view(
-    interaction: discord.Interaction,
-    new_view: discord.ui.View | None,
-    embeds: discord.Embed | list[discord.Embed]
-) -> discord.Message:
+async def switch_view(interaction: discord.Interaction, new_view: discord.ui.View | None, embeds: discord.Embed | list[discord.Embed]):
     if not isinstance(embeds, list):
         embeds = [embeds]
 
     if interaction.response.is_done():
-        msg = await interaction.followup.edit_message(
+        return await interaction.followup.edit_message(
             message_id=interaction.message.id,
             embeds=embeds,
             view=new_view
         )
-        return msg
     else:
         await interaction.response.edit_message(
             embeds=embeds,
             view=new_view
         )
-        msg = await interaction.original_response()
-        return msg
+        return await interaction.original_response()
 
-# ---------------- Tutorial Embed Views ----------------
+# ---------------- Tutorial Views ----------------
 class TutorialEmbedView(discord.ui.View):
-    """View shown when a specific tutorial embed is selected."""
-    def __init__(self, user: discord.User, embed: discord.Embed, main_embeds: list[discord.Embed], timeout: int = 900):
+    def __init__(self, user: discord.User, embed: discord.Embed, timeout: int = 900):
         super().__init__(timeout=timeout)
         self.user = user
         self.embed = embed
-        self.main_embeds = main_embeds
         self.message: discord.Message | None = None
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
         return interaction.user.id == self.user.id
 
-    async def on_timeout(self) -> None:
+    async def on_timeout(self):
         for child in self.children:
             child.disabled = True
         if self.message:
             try:
-                await self.message.edit(
-                    embeds=[discord.Embed(title="✅ Tutorial ended")],
-                    view=None
-                )
+                await self.message.edit(embeds=[discord.Embed(title="✅ Tutorial ended")], view=None)
             except discord.NotFound:
                 pass
 
     @discord.ui.button(label="Return to Menu", style=discord.ButtonStyle.grey)
     async def return_menu(self, interaction: discord.Interaction, button: discord.ui.Button):
-        view = TutorialMainView(self.user, self.main_embeds)
-        msg = await switch_view(interaction, view, self.main_embeds[0])
+        view = TutorialMainView(self.user)
+        msg = await switch_view(interaction, view, main_embeds[0])
         view.message = msg
 
     @discord.ui.button(label="Exit", style=discord.ButtonStyle.red)
     async def exit_tutorial(self, interaction: discord.Interaction, button: discord.ui.Button):
         await switch_view(interaction, None, discord.Embed(title="✅ Tutorial ended"))
 
-# ---------------- Main Tutorial View ----------------
 class TutorialMainView(discord.ui.View):
-    """Main tutorial menu with buttons for each embed."""
-    def __init__(self, user: discord.User, main_embeds: list[discord.Embed], timeout: int = 900):
+    def __init__(self, user: discord.User, timeout: int = 900):
         super().__init__(timeout=timeout)
         self.user = user
-        self.main_embeds = main_embeds
         self.message: discord.Message | None = None
 
-        # Add a button for each embed except the first (welcome embed1)
+        # Add a button for each embed except the first (welcome)
         for i, embed in enumerate(main_embeds[1:], start=2):
             self.add_item(self.make_embed_button(i, embed))
 
     def make_embed_button(self, index: int, embed: discord.Embed) -> discord.ui.Button:
-        button = discord.ui.Button(
-            label=f"Step {index}: {embed.title}",
-            style=discord.ButtonStyle.blurple
-        )
+        button = discord.ui.Button(label=f"Step {index}: {embed.title}", style=discord.ButtonStyle.blurple)
 
         async def callback(interaction: discord.Interaction):
             if interaction.user.id != self.user.id:
                 return await interaction.response.send_message("❌ This is not your tutorial!", ephemeral=True)
-            view = TutorialEmbedView(self.user, embed, self.main_embeds)
+            view = TutorialEmbedView(self.user, embed)
             msg = await switch_view(interaction, view, embed)
             view.message = msg
 
@@ -216,15 +198,12 @@ class TutorialMainView(discord.ui.View):
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
         return interaction.user.id == self.user.id
 
-    async def on_timeout(self) -> None:
+    async def on_timeout(self):
         for child in self.children:
             child.disabled = True
         if self.message:
             try:
-                await self.message.edit(
-                    embeds=[discord.Embed(title="✅ Tutorial ended")],
-                    view=None
-                )
+                await self.message.edit(embeds=[discord.Embed(title="✅ Tutorial ended")], view=None)
             except discord.NotFound:
                 pass
 
@@ -232,7 +211,7 @@ class TutorialMainView(discord.ui.View):
     async def exit_tutorial(self, interaction: discord.Interaction, button: discord.ui.Button):
         await switch_view(interaction, None, discord.Embed(title="✅ Tutorial ended"))
 
-# ---------------- Gods Menu View ----------------
+# ---------------- Gods Views ----------------
 class GodsMenuView(discord.ui.View):
     GODS = [
         "poseidon", "hephaestus", "aphrodite", "ares", "hera",
@@ -241,20 +220,15 @@ class GodsMenuView(discord.ui.View):
         "hades_uw", "tisiphone", "alecto", "megaera", "hecate"
     ]
 
-    def __init__(self, user: discord.User, timeout: int = 900):
+    def __init__(self, user: discord.User, god_tutorials, timeout: int = 900):
         super().__init__(timeout=timeout)
         self.user = user
-        self.god_tutorials = GodTutorials()
-        self.message: discord.Message | None = None  # must always be a Message
+        self.god_tutorials = god_tutorials
+        self.message: discord.Message | None = None
 
-        # Dynamically add god buttons (5 per row, 4 rows total)
+        # Dynamically add god buttons
         for i, god_name in enumerate(self.GODS):
-            button = discord.ui.Button(
-                label=god_name.title(),
-                style=discord.ButtonStyle.blurple,
-                custom_id=f"god_{god_name}",
-                row=i // 5
-            )
+            button = discord.ui.Button(label=god_name.title(), style=discord.ButtonStyle.blurple, row=i//5)
             button.callback = self.make_god_callback(god_name)
             self.add_item(button)
 
@@ -267,41 +241,34 @@ class GodsMenuView(discord.ui.View):
             if god_func:
                 embeds = god_func()
                 new_view = GodDetailView(self.user)
-
                 msg = await switch_view(interaction, new_view, embeds)
                 new_view.message = msg
         return callback
 
-
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
         return interaction.user.id == self.user.id
 
-    async def on_timeout(self) -> None:
+    async def on_timeout(self):
         for child in self.children:
             child.disabled = True
-        if self.message and isinstance(self.message, discord.Message):
+        if self.message:
             try:
-                await self.message.edit(
-                    embeds=[discord.Embed(title="✅ Tutorial ended")],
-                    view=None
-                )
+                await self.message.edit(embeds=[discord.Embed(title="✅ Tutorial ended")], view=None)
             except discord.NotFound:
-                pass  # message deleted, safe to ignore
+                pass
 
-    @discord.ui.button(label="Exit", style=discord.ButtonStyle.red, row=4, custom_id="exit_gods")
+    @discord.ui.button(label="Return to Menu", style=discord.ButtonStyle.grey, row=4)
+    async def return_menu(self, interaction: discord.Interaction, button: discord.ui.Button):
+        view = TutorialMainView(self.user)
+        msg = await switch_view(interaction, view, main_embeds[0])
+        view.message = msg
+
+    @discord.ui.button(label="Exit", style=discord.ButtonStyle.red, row=4)
     async def exit_gods(self, interaction: discord.Interaction, button: discord.ui.Button):
         await switch_view(interaction, None, discord.Embed(title="✅ Tutorial ended"))
 
-    @discord.ui.button(label="Return to Menu", style=discord.ButtonStyle.grey, row=4, custom_id="return_menu")
-    async def return_menu(self, interaction: discord.Interaction, button: discord.ui.Button):
-        view = TutorialMainView(self.user)
-        msg = await switch_view(interaction, view, embeds)
-        view.message = msg   # <-- add this
-
-
 class GodDetailView(discord.ui.View):
-    """View shown when looking at a single god tutorial."""
-    def __init__(self, user: discord.User, timeout: int =900):
+    def __init__(self, user: discord.User, timeout: int = 900):
         super().__init__(timeout=timeout)
         self.user = user
         self.message: discord.Message | None = None
@@ -309,25 +276,27 @@ class GodDetailView(discord.ui.View):
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
         return interaction.user.id == self.user.id
 
-    async def on_timeout(self) -> None:
+    async def on_timeout(self):
         for child in self.children:
             child.disabled = True
-        if self.message and isinstance(self.message, discord.Message):
+        if self.message:
             try:
-                await self.message.edit(
-                    embeds=[discord.Embed(title="✅ Tutorial ended")],
-                    view=None
-                )
+                await self.message.edit(embeds=[discord.Embed(title="✅ Tutorial ended")], view=None)
             except discord.NotFound:
-                pass  # message deleted, safe to ignore
+                pass
 
-    @discord.ui.button(label="Return to Gods Menu", style=discord.ButtonStyle.grey, custom_id="return_gods")
+    @discord.ui.button(label="Return to Gods Menu", style=discord.ButtonStyle.grey)
     async def return_gods(self, interaction: discord.Interaction, button: discord.ui.Button):
-        view = GodsMenuView(self.user)
-        msg = await switch_view(interaction, view, discord.Embed(title="📜 Select a God to learn more"))
-        view.message = msg   # <-- add this
+        view = GodsMenuView(self.user, god_tutorials=None)
+        msg = await switch_view(interaction, view, main_embeds[0])
+        view.message = msg
 
+    @discord.ui.button(label="Return to Main Menu", style=discord.ButtonStyle.grey)
+    async def return_main(self, interaction: discord.Interaction, button: discord.ui.Button):
+        view = TutorialMainView(self.user)
+        msg = await switch_view(interaction, view, main_embeds[0])
+        view.message = msg
 
-    @discord.ui.button(label="Exit", style=discord.ButtonStyle.red, custom_id="exit_god_detail")
-    async def exit_detail(self, interaction: discord.Interaction, button: discord.ui.Button):
+    @discord.ui.button(label="Exit", style=discord.ButtonStyle.red)
+    async def exit_view(self, interaction: discord.Interaction, button: discord.ui.Button):
         await switch_view(interaction, None, discord.Embed(title="✅ Tutorial ended"))
