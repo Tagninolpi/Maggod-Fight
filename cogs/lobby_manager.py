@@ -49,6 +49,7 @@ class LobbyManager(commands.Cog):
 
         await interaction.response.defer(ephemeral=True)
         money_manager = MoneyManager()
+        money_manager.delete_database()
         money_manager.create_database()
 
         guild = interaction.guild

@@ -106,6 +106,7 @@ class Join(commands.Cog):
                     match.started = True
                     match.game_phase = "ready"
                     match.solo_mode = True
+                    match.money_sys_type = "bot"
 
                     logger.info(f"Player {interaction.user.id} ({interaction.user.display_name}) joined as both players in channel {channel_id}")
                     #asyncio.create_task(update_lobby_status_embed(self.bot))

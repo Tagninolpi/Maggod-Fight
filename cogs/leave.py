@@ -5,6 +5,7 @@ from bot.config import Config
 import logging
 from bot.utils import update_lobby_status_embed
 from database.manager import db_manager
+from currency.money_manager import MoneyManager
 
 logger = logging.getLogger(__name__)
 
@@ -55,6 +56,7 @@ class Leave(commands.Cog):
         from bot.utils import matchmaking_dict
 
         match = matchmaking_dict.get(channel_id)
+
         db_manager.delete_game_save(channel.id, match)
 
         # Get the other player's info for notification
@@ -116,12 +118,12 @@ class Leave(commands.Cog):
             except Exception as e:
                 logger.error(f"Error notifying other player: {e}")
 
-        #remove the match
-        del matchmaking_dict[channel_id]
         #await update_lobby_status_embed(self.bot)
         logger.info(f"Player {interaction.user.id} ({interaction.user.display_name}) left match in channel {channel_id}")
         match.turn_in_progress = False
         match.start_view
+        #remove the match
+        del matchmaking_dict[channel_id]
         
 async def setup(bot):
     """Setup function for the cog."""

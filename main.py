@@ -47,6 +47,7 @@ class Match:
         self.start_view = False
         self.DEBUG_SKIP_BUILD = False
         self.ai_bot_name = "random"
+        self.money_sys_type = "2 players"
 
 class MaggodFightBot(commands.Bot):
     """Main bot class for Maggod Fight."""
@@ -80,7 +81,8 @@ class MaggodFightBot(commands.Bot):
             'cogs.leave',
             'cogs.build_team',
             'cogs.turn',
-            'cogs.tutorial'
+            'cogs.tutorial',
+            'cogs.balance'
         ]
     
         for cog in cogs_to_load:

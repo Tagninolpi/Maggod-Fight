@@ -13,6 +13,7 @@ import re
 import unicodedata
 from bot.config import Config
 from bot.bot_class import BotClass,TurnContext
+from currency.money_manager import MoneyManager
 
 logger = logging.getLogger(__name__)
 
@@ -503,11 +504,6 @@ class Turn(commands.Cog):
             winner_id = None
             winner_name = "Nobody"
 
-        # Get winner's display name
-        if winner_id and match.solo_mode:
-            winner = channel.guild.get_member(winner_id)
-            winner_name = winner.display_name if winner else winner_name
-
         # Create victory embed
         embed = discord.Embed(
             title="🏆 Victory!",
@@ -515,8 +511,8 @@ class Turn(commands.Cog):
             color=discord.Color.gold()
         )
         
-        if winner_id:
-            if match.solo_mode:
+        if winner_id :
+            if winner_id == 123:
                 embed.add_field(
                     name="🎉 Congratulations!",
                     value=f" The maggod bot has proven their tactical superiority in this epic battle of the gods!",
@@ -553,8 +549,77 @@ class Turn(commands.Cog):
             value="Use `/join` in any lobby to start a new match!",
             inline=False
         )
-
         await channel.send(embed=embed)
+
+        #calculate_money:
+        money = MoneyManager()
+        gain = 0
+        loss = 0
+        if match.money_sys_type == "bot":
+            if winner_id == 123:
+                gain -= 1000
+                gain += (5-team2_survivors) * 500
+            else:
+                gain += 2500
+                gain += (5-team2_survivors) * 750
+                gain += team1_survivors * 1250
+            p1_new_bal = money.update_balance(match.player1_id,gain)
+
+        elif match.money_sys_type == "2 players":
+            if winner_id == match.player1_id:
+                gain += 5000
+                gain += team1_survivors * 1000
+                loss -= 2500
+                loss += (5 - team1_survivors) * 850
+                p1_new_bal = money.update_balance(match.player1_id,gain)
+                p2_new_bal = money.update_balance(match.player2_id,loss)
+            else:
+                gain += 5000
+                gain += team2_survivors * 1000
+                loss -= 2500
+                loss += (5 - team2_survivors) * 850
+                p2_new_bal = money.update_balance(match.player2_id,gain)
+                p1_new_bal = money.update_balance(match.player1_id,loss)
+        
+        # --- Second embed: Rewards/Balance ---
+        rewards_embed = discord.Embed(
+            title="💰 Battle Rewards",
+            description="Here are the final results with updated balances:",
+            color=discord.Color.green()  # Always green
+        )
+
+        if match.money_sys_type == "2 players":
+            if winner_id == match.player1_id:
+                rewards_embed.add_field(
+                    name=f"🏆 {match.player1_name} (Winner)",
+                    value=f"**Gains:** {gain} coins\n**New Balance:** {p1_new_bal}",
+                    inline=False
+                )
+                rewards_embed.add_field(
+                    name=f"💀 {match.player2_name} (Loser)",
+                    value=f"**Losses:** {loss} coins\n**New Balance:** {p2_new_bal}",
+                    inline=False
+                )
+            else:
+                rewards_embed.add_field(
+                    name=f"🏆 {match.player2_name} (Winner)",
+                    value=f"**Gains:** {gain} coins\n**New Balance:** {p2_new_bal}",
+                    inline=False
+                )
+                rewards_embed.add_field(
+                    name=f"💀 {match.player1_name} (Loser)",
+                    value=f"**Losses:** {loss} coins\n**New Balance:** {p1_new_bal}",
+                    inline=False
+                )
+        else:
+            rewards_embed.add_field(
+                name="Player Rewards",
+                value=f"**Gains:** {gain} coins\n**New Balance:** {p1_new_bal}",
+                inline=False
+            )
+
+        await channel.send(embed=rewards_embed)
+
 
         del matchmaking_dict[channel.id]
         #asyncio.create_task(update_lobby_status_embed(self.bot))
@@ -651,7 +716,7 @@ class Turn(commands.Cog):
 
                     # Update game save after each turn
                     db_manager.update_game_save(channel.id, match) #database
-                    await asyncio.sleep(5)
+                    await asyncio.sleep(4)
                 else:
                     # Delete game save after match is over
                     pass #database
@@ -662,12 +727,17 @@ class Turn(commands.Cog):
             except Exception as e:
                 logger.error(f"Error in do_turn: {e}")
                 await interaction.followup.send(
-                    "❌ An error occurred during your turn. Please try again.",
+                    "❌ An error occurred during your turn. Please try again." \
+                    "Both players get 5000 coins in compensation",
                     ephemeral=True
                 )
                 db_manager.delete_game_save(channel.id, match)
-                break
+                MoneyManager.update_balance(match.player1_id,5000)
+                MoneyManager.update_balance(match.player2_id,5000)
                 match.turn_in_progress = False
+                #remove the match
+                del matchmaking_dict[channel.id]
+                break
         db_manager.delete_game_save(channel.id, match)                   
 
 async def setup(bot):
