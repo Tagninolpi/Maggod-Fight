@@ -99,7 +99,7 @@ class MaggodFightBot(commands.Bot):
         setup_events(self)
         #await setup_commands(self)
         logger.info("Commands loaded successfully")
-
+ 
     async def on_ready(self):
         """Called when the bot is ready."""
         self.start_time = datetime.utcnow()
