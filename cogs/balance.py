@@ -48,8 +48,13 @@ class Balance(commands.Cog):
         for idx, user in enumerate(sorted_users, start=1):
             uid = user["user_id"]
             balance = user["balance"]
-            member = interaction.guild.get_member(uid)
-            name = member.display_name if member else "Unknown"
+
+            # Try to fetch member from guild
+            try:
+                member = await interaction.guild.fetch_member(uid)
+                name = member.display_name
+            except discord.NotFound:
+                name = f"User {uid}"  # User left the server
 
             # Format balance with spaces for thousands
             balance_str = f"{balance:,}".replace(",", " ")
