@@ -147,7 +147,7 @@ class TutorialEmbedView(discord.ui.View):
     async def return_menu(self, interaction: discord.Interaction, button: discord.ui.Button):
         view = TutorialMainView(self.user, self.god_tutorials)
         # Show full main menu (all steps)
-        msg = await switch_view(interaction, view, main_embeds[1:])  # skip welcome embed
+        msg = await switch_view(interaction, view, main_embeds[0])  # skip welcome embed
         view.message = msg
 
     @discord.ui.button(label="Exit", style=discord.ButtonStyle.red)
@@ -265,7 +265,7 @@ class GodsMenuView(discord.ui.View):
     @discord.ui.button(label="Return to Main Menu", style=discord.ButtonStyle.grey, row=4)
     async def return_main(self, interaction: discord.Interaction, button: discord.ui.Button):
         view = TutorialMainView(self.user, self.god_tutorials)
-        msg = await switch_view(interaction, view, main_embeds[1:])  # show main menu
+        msg = await switch_view(interaction, view, main_embeds[0])  # show main menu
         view.message = msg
 
     @discord.ui.button(label="Exit", style=discord.ButtonStyle.red, row=4)
@@ -307,7 +307,7 @@ class GodDetailView(discord.ui.View):
     @discord.ui.button(label="Return to Main Menu", style=discord.ButtonStyle.grey)
     async def return_main(self, interaction: discord.Interaction, button: discord.ui.Button):
         view = TutorialMainView(self.user, self.god_tutorials)
-        msg = await switch_view(interaction, view, main_embeds[1:])  # show main menu
+        msg = await switch_view(interaction, view, main_embeds[0])  # show main menu
         view.message = msg
 
     @discord.ui.button(label="Exit", style=discord.ButtonStyle.red)
