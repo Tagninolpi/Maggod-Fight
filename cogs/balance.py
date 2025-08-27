@@ -54,7 +54,12 @@ class Balance(commands.Cog):
                 member = await interaction.guild.fetch_member(uid)
                 name = member.display_name
             except discord.NotFound:
-                name = f"User {uid}"  # User left the server
+                # If not in guild, fetch global user
+                try:
+                    user_obj = await interaction.client.fetch_user(uid)
+                    name = str(user_obj)  # username#1234
+                except discord.NotFound:
+                    name = f"User {uid}"  # fallback
 
             # Format balance with spaces for thousands
             balance_str = f"{balance:,}".replace(",", " ")
