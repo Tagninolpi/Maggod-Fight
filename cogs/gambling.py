@@ -153,7 +153,7 @@ class Gambling(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
     
-    @app_commands.command(name="gambling", description="")
+    @app_commands.command(name="gambling", description="Open the gambling menu")
     async def gambling(self, interaction: discord.Interaction):
         # At the start of your command
         channel = interaction.channel
@@ -200,7 +200,6 @@ class Gambling(commands.Cog):
             return
         match.start_view = True
         # start
-        await interaction.response.defer(ephemeral=False)  # or ephemeral=True if needed
 
         channel = interaction.channel
         channel_id = channel.id
