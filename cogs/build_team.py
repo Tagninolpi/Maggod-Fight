@@ -6,7 +6,6 @@ import copy
 import logging
 import asyncio
 
-
 from utils.game_test_on_discord import gods as all_gods_template
 from bot.utils import update_lobby_status_embed
 from bot.config import Config
@@ -15,7 +14,6 @@ from bot.bot_class import BotClass,bot_configs,TurnContext
 
 logger = logging.getLogger(__name__)
 class StartChoiceView(discord.ui.View):
-
     def __init__(self, match, initiator_id, timeout=860):
         super().__init__(timeout=timeout)
         self.match = match
@@ -32,7 +30,6 @@ class StartChoiceView(discord.ui.View):
         return True
 
     def disable_all_buttons(self):
-        """Manually disable all buttons in this view."""
         for item in self.children:
             if isinstance(item, discord.ui.Button):
                 item.disabled = True
@@ -60,6 +57,24 @@ class StartChoiceView(discord.ui.View):
 
         self.choice_made.set()
         self.stop()
+
+    @discord.ui.button(label="Gambling", style=discord.ButtonStyle.blurple)
+    async def gambling_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        from bot.utils import matchmaking_dict
+        match = matchmaking_dict.get(interaction.channel.id)
+        match.game_phase = "gambling"
+
+        self.disable_all_buttons()
+        embed = discord.Embed(
+            title="🎲 Gambling Phase Activated",
+            description="Do `/gambling` to open the gambling menu.",
+            color=discord.Color.purple()
+        )
+        await interaction.response.edit_message(embed=embed, view=self)
+
+        self.choice_made.set()
+        self.stop()
+
 
 class BotDifficultyView(discord.ui.View):
     """View for choosing bot difficulty when in solo mode."""
@@ -265,7 +280,15 @@ class BuildTeam(commands.Cog):
             if channel.id in matchmaking_dict:
                 del matchmaking_dict[channel.id]
             return None
-
+  
+        # Check if Gambling was chosen
+        if match.game_phase == "gambling":
+            await interaction.followup.send(
+                "🎲 Gambling phase activated! Use `/gambling` to proceed."
+            )
+            match.start_view = False
+            return
+        
         # ✅ If solo mode, also ask for bot difficulty (initiator only)
         if match.solo_mode:
             difficulty_view = BotDifficultyView(match, initiator_id=interaction.user.id)
