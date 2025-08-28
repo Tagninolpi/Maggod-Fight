@@ -40,23 +40,26 @@ class GamblingView(discord.ui.View):
         # Storage for button groups so we can reset styles later
         self.button_groups = {"your_good": [], "your_bad": [], "enemy_good": [], "enemy_bad": []}
 
-        # --- Your Team Header ---
+        # --- Your Team + Good Gods in row 0 ---
         self.add_item(discord.ui.Button(label="⚔️ Your Team", style=discord.ButtonStyle.secondary, disabled=True, row=0))
-        self.add_item(discord.ui.Button(label="Good Gods (5)", style=discord.ButtonStyle.secondary, disabled=True, row=1))
-        self.add_button_row(range(1, 6), "your", True, "your_good", row=2)
+        self.add_button_row(range(1, 6), "your", True, "your_good", row=0)
+
+        # --- Your Bad Gods in row 1 ---
+        self.add_item(discord.ui.Button(label="Bad Gods (5)", style=discord.ButtonStyle.secondary, disabled=True, row=1))
+        self.add_button_row(range(1, 6), "your", False, "your_bad", row=1)
+
+        # --- Enemy Team + Good Gods in row 2 ---
+        self.add_item(discord.ui.Button(label="🤖 Enemy Team", style=discord.ButtonStyle.secondary, disabled=True, row=2))
+        self.add_button_row(range(1, 6), "enemy", False, "enemy_good", row=2)
+
+        # --- Enemy Bad Gods in row 3 ---
         self.add_item(discord.ui.Button(label="Bad Gods (5)", style=discord.ButtonStyle.secondary, disabled=True, row=3))
-        self.add_button_row(range(1, 6), "your", False, "your_bad", row=4)
+        self.add_button_row(range(1, 6), "enemy", True, "enemy_bad", row=3)
 
-        # --- Enemy Team Header ---
-        self.add_item(discord.ui.Button(label="🤖 Enemy Team", style=discord.ButtonStyle.secondary, disabled=True, row=5))
-        self.add_item(discord.ui.Button(label="Good Gods (5)", style=discord.ButtonStyle.secondary, disabled=True, row=6))
-        self.add_button_row(range(1, 6), "enemy", False, "enemy_good", row=7)
-        self.add_item(discord.ui.Button(label="Bad Gods (5)", style=discord.ButtonStyle.secondary, disabled=True, row=8))
-        self.add_button_row(range(1, 6), "enemy", True, "enemy_bad", row=9)
-
-        # Bet + Start buttons
+        # --- Bet + Start buttons in row 4 ---
         self.add_item(self.SetBetButton(self))
         self.add_item(self.StartButton())
+
 
     def add_button_row(self, values, team, positive, group_name, row):
         """Dynamically create a row of toggle buttons for a team."""
