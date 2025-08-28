@@ -153,7 +153,7 @@ class Gambling(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
     
-    @app_commands.command(name="Gambling", description="")
+    @app_commands.command(name="gambling", description="")
     async def gambling(self, interaction: discord.Interaction):
         # At the start of your command
         channel = interaction.channel
