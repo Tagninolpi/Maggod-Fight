@@ -40,38 +40,30 @@ class GamblingView(discord.ui.View):
         # Storage for button groups so we can reset styles later
         self.button_groups = {"your_good": [], "your_bad": [], "enemy_good": [], "enemy_bad": []}
 
-        # Dynamically add rows of buttons
-        self.add_button_row("Your Good",  range(1, 6), "your", True, "your_good", row=0)
-        self.add_button_row("Your Bad",   range(1, 6), "your", False, "your_bad", row=1)
-        self.add_button_row("Enemy Good", range(1, 6), "enemy", False, "enemy_good", row=2)
-        self.add_button_row("Enemy Bad",  range(1, 6), "enemy", True, "enemy_bad", row=3)
+        # --- Your Team Header ---
+        self.add_item(discord.ui.Button(label="⚔️ Your Team", style=discord.ButtonStyle.secondary, disabled=True, row=0))
+        self.add_item(discord.ui.Button(label="Good Gods (5)", style=discord.ButtonStyle.secondary, disabled=True, row=1))
+        self.add_button_row(range(1, 6), "your", True, "your_good", row=2)
+        self.add_item(discord.ui.Button(label="Bad Gods (5)", style=discord.ButtonStyle.secondary, disabled=True, row=3))
+        self.add_button_row(range(1, 6), "your", False, "your_bad", row=4)
+
+        # --- Enemy Team Header ---
+        self.add_item(discord.ui.Button(label="🤖 Enemy Team", style=discord.ButtonStyle.secondary, disabled=True, row=5))
+        self.add_item(discord.ui.Button(label="Good Gods (5)", style=discord.ButtonStyle.secondary, disabled=True, row=6))
+        self.add_button_row(range(1, 6), "enemy", False, "enemy_good", row=7)
+        self.add_item(discord.ui.Button(label="Bad Gods (5)", style=discord.ButtonStyle.secondary, disabled=True, row=8))
+        self.add_button_row(range(1, 6), "enemy", True, "enemy_bad", row=9)
 
         # Bet + Start buttons
         self.add_item(self.SetBetButton(self))
         self.add_item(self.StartButton())
 
-    async def update_message(self, interaction: discord.Interaction):
-        v = self.your_var + self.enemy_var
-        gain = true_gain(v, self.bet, self.wealth)
-
-        embed = discord.Embed(
-            title="🎲 Gambling Menu",
-            description="Welcome to the gambling menu",
-            color=discord.Color.gold()
-        )
-        embed.add_field(name="Your Team", value=str(self.your_var), inline=True)
-        embed.add_field(name="Enemy Team", value=str(self.enemy_var), inline=True)
-        embed.add_field(name="Bet", value=f"{self.bet}", inline=True)
-        embed.add_field(name="Potential Gain", value=f"{gain:.2f}", inline=False)
-
-        await interaction.response.edit_message(embed=embed, view=self)
-
-    def add_button_row(self, label_prefix, values, team, positive, group_name, row):
+    def add_button_row(self, values, team, positive, group_name, row):
         """Dynamically create a row of toggle buttons for a team."""
         for v in values:
             label = f"{v}"
             value = v if positive else -v
-            style = discord.ButtonStyle.success if positive else discord.ButtonStyle.danger
+            style = discord.ButtonStyle.success  # <-- always green
 
             async def callback(interaction: discord.Interaction, value=value, group_name=group_name, team=team):
                 if interaction.user.id != self.user.id:
@@ -87,16 +79,15 @@ class GamblingView(discord.ui.View):
 
                 # Reset styles in this group
                 for btn in self.button_groups[group_name]:
-                    btn.style = discord.ButtonStyle.success if positive else discord.ButtonStyle.danger
+                    btn.style = discord.ButtonStyle.success  # always reset to green
 
                 if already_selected:
-                    # Turn off selection
                     if team == "your":
                         self.your_var = 0
                     else:
                         self.enemy_var = 0
                 else:
-                    # Highlight selected
+                    # Highlight selected button
                     for btn in self.button_groups[group_name]:
                         if btn.label == str(abs(value)):
                             btn.style = discord.ButtonStyle.blurple
@@ -192,13 +183,6 @@ class Gambling(commands.Cog):
                 ephemeral=True
             )
             return
-        if match.start_view:
-            await interaction.response.send_message(
-                f"❌ You can't use this command now, opponent is choosing.",
-                ephemeral=True
-            )
-            return
-        match.start_view = True
         # start
 
         channel = interaction.channel
