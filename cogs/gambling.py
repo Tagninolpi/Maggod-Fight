@@ -223,83 +223,76 @@ class GamblingView(discord.ui.View):
         super().__init__(timeout=None)
         self.user = user
         self.wealth = wealth
-        self.bet = 100  # default bet
+        self.bet = 100
         self.your_var = 0
         self.enemy_var = 0
 
-        # Storage for button groups so we can reset styles later
-        self.button_groups = {"your_good": [], "your_bad": [], "enemy_good": [], "enemy_bad": []}
+        # Store buttons by team
+        self.button_groups = {"your": [], "enemy": []}
 
-        # --- Your Team + Good Gods in row 0 ---
-        self.add_button_row(range(1, 6), "your", True, "your_good", discord.ButtonStyle.success, row=0)
-        self.add_button_row(range(1, 6), "your", False, "your_bad", discord.ButtonStyle.success, row=1)
+        # --- Your Team rows ---
+        self.add_button_row(range(1, 6), "your", True, discord.ButtonStyle.success, row=0)
+        self.add_button_row(range(1, 6), "your", False, discord.ButtonStyle.success, row=1)
 
-        # --- Enemy Team (Red) row 2 & 3 ---
-        self.add_button_row(range(1, 6), "enemy", True, "enemy_good", discord.ButtonStyle.danger, row=2)
-        self.add_button_row(range(1, 6), "enemy", False, "enemy_bad", discord.ButtonStyle.danger, row=3)
+        # --- Enemy Team rows ---
+        self.add_button_row(range(1, 6), "enemy", True, discord.ButtonStyle.danger, row=2)
+        self.add_button_row(range(1, 6), "enemy", False, discord.ButtonStyle.danger, row=3)
 
-        # --- Bet + Start buttons in row 4 ---
+        # --- Bet + Start buttons ---
         self.add_item(self.SetBetButton(self))
         self.add_item(self.StartButton(self))
 
     async def update_message(self, interaction: discord.Interaction):
-            # Rebuild the embed with updated values
-            embed = discord.Embed(
-                title="🎲 Gambling Menu",
-                description="Welcome to the gambling menu",
-                color=discord.Color.gold()
-            )
-            embed.add_field(name="Your Team", value=str(self.your_var), inline=True)
-            embed.add_field(name="Enemy Team", value=str(self.enemy_var), inline=True)
-            embed.add_field(name="Bet", value=str(self.bet), inline=True)
-            embed.add_field(name="Potential Gain", value=f"{true_gain(self.your_var + self.enemy_var, self.bet, self.wealth):.2f}", inline=False)
+        embed = discord.Embed(
+            title="🎲 Gambling Menu",
+            description="Welcome to the gambling menu",
+            color=discord.Color.gold()
+        )
+        embed.add_field(name="Your Team", value=str(self.your_var), inline=True)
+        embed.add_field(name="Enemy Team", value=str(self.enemy_var), inline=True)
+        embed.add_field(name="Bet", value=str(self.bet), inline=True)
+        embed.add_field(name="Potential Gain", value=f"{true_gain(self.your_var + self.enemy_var, self.bet, self.wealth):.2f}", inline=False)
 
-            # Edit the original message with updated embed
-            await interaction.response.edit_message(embed=embed, view=self)
+        await interaction.response.edit_message(embed=embed, view=self)
 
-    def add_button_row(self, values, team, positive, group_name,style, row):
-        """Dynamically create a row of toggle buttons for a team."""
+    def add_button_row(self, values, team, positive, style, row):
+        """Create buttons and toggle per team."""
         for v in values:
-            label = f"{v}"
             value = v if positive else -v
-            style = style
-
-            async def callback(interaction: discord.Interaction, value=value, group_name=group_name, team=team):
+            async def callback(interaction: discord.Interaction, value=value, team=team):
                 if interaction.user.id != self.user.id:
                     await interaction.response.send_message("❌ This menu isn’t for you!", ephemeral=True)
                     return
 
-                # Toggle: if same button clicked again → reset to 0
-                already_selected = False
-                for btn in self.button_groups[group_name]:
-                    if btn.label == str(abs(value)) and btn.style == discord.ButtonStyle.blurple:
-                        already_selected = True
-                        break
+                # Check if the clicked button is already selected
+                current_value = self.your_var if team == "your" else self.enemy_var
+                is_same = current_value == value
 
-                # Reset styles in this group
-                for btn in self.button_groups[group_name]:
-                    btn.style = discord.ButtonStyle.success  # always reset to green
+                # Reset all buttons in this team
+                for btn in self.button_groups[team]:
+                    btn.style = discord.ButtonStyle.success if team == "your" else discord.ButtonStyle.danger
 
-                if already_selected:
-                    if team == "your":
-                        self.your_var = 0
-                    else:
-                        self.enemy_var = 0
-                else:
-                    # Highlight selected button
-                    for btn in self.button_groups[group_name]:
-                        if btn.label == str(abs(value)):
+                # If it wasn’t already selected, select it
+                if not is_same:
+                    for btn in self.button_groups[team]:
+                        if int(btn.label) == abs(value):
                             btn.style = discord.ButtonStyle.blurple
                     if team == "your":
                         self.your_var = value
                     else:
                         self.enemy_var = value
+                else:
+                    # Deselecting → set team value to 0
+                    if team == "your":
+                        self.your_var = 0
+                    else:
+                        self.enemy_var = 0
 
                 await self.update_message(interaction)
 
-            button = discord.ui.Button(label=label, style=style, row=row)
+            button = discord.ui.Button(label=str(abs(value)), style=style, row=row)
             button.callback = callback
-            self.button_groups[group_name].append(button)
+            self.button_groups[team].append(button)
             self.add_item(button)
 
     # --- Bet button ---
@@ -314,11 +307,16 @@ class GamblingView(discord.ui.View):
                 return
 
             class BetModal(discord.ui.Modal, title="Set Your Bet"):
-                bet_input = discord.ui.TextInput(label="Bet Amount", style=discord.TextStyle.short)
+                bet_input = discord.ui.TextInput(
+                    label=f"Bet Amount (max {self.parent_view.wealth})",
+                    style=discord.TextStyle.short
+                )
 
                 async def on_submit(inner_self, modal_interaction: discord.Interaction):
                     try:
-                        self.parent_view.bet = int(inner_self.bet_input.value)
+                        bet = int(inner_self.bet_input.value)
+                        bet = max(1, min(bet, self.parent_view.wealth))
+                        self.parent_view.bet = bet
                     except ValueError:
                         self.parent_view.bet = 100
                     await self.parent_view.update_message(modal_interaction)
@@ -336,20 +334,15 @@ class GamblingView(discord.ui.View):
                 await interaction.response.send_message("❌ This menu isn’t for you!", ephemeral=True)
                 return
 
-            # Store the result in the view
             self.parent_view.result = {
                 "bet": self.parent_view.bet,
                 "your_var": self.parent_view.your_var,
                 "enemy_var": self.parent_view.enemy_var
             }
 
-            await interaction.response.edit_message(
-                content="✅ Gambling menu closed.",
-                embed=None,
-                view=None
-            )
-            # Stop the view
+            await interaction.response.edit_message(content="✅ Gambling menu closed.", embed=None, view=None)
             self.parent_view.stop()
+
 
 
 class Gambling(commands.Cog):
