@@ -303,16 +303,22 @@ class GamblingView(discord.ui.View):
                 return
 
             class BetModal(discord.ui.Modal, title="Set Your Bet"):
-                bet_input = discord.ui.TextInput(label="Bet Amount", style=discord.TextStyle.short)
+                bet_input = discord.ui.TextInput(
+                    label=f"Bet Amount (max {self.parent_view.wealth})",
+                    style=discord.TextStyle.short
+                )
 
                 async def on_submit(inner_self, modal_interaction: discord.Interaction):
                     try:
-                        self.parent_view.bet = int(inner_self.bet_input.value)
+                        bet = int(inner_self.bet_input.value)
+                        bet = max(1, min(bet, self.parent_view.wealth))
+                        self.parent_view.bet = bet
                     except ValueError:
                         self.parent_view.bet = 100
                     await self.parent_view.update_message(modal_interaction)
 
             await interaction.response.send_modal(BetModal())
+
 
     # --- Start button ---
     class StartButton(discord.ui.Button):
@@ -391,8 +397,9 @@ class Gambling(commands.Cog):
 
         channel = interaction.channel
         channel_id = channel.id
-
-        wealth = 10000  # hard-coded for now
+        from currency.money_manager import MoneyManager
+        money_manager = MoneyManager()
+        wealth = money_manager.get_balance(user_id=match.player1_id)
         view = GamblingView(interaction.user, wealth)
 
         embed = discord.Embed(
@@ -436,6 +443,7 @@ class Gambling(commands.Cog):
 
         match.teams_initialized = True
         match.game_phase = "playing"
+        match.money_sys_type = "gambling"
 
         match.turn_state = {
             "current_player": random.choice([match.player1_id, match.player2_id]),

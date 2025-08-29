@@ -614,6 +614,14 @@ class Turn(commands.Cog):
                 loss += (5 - team2_survivors) * 850
                 p2_new_bal = money.update_balance(match.player2_id,gain)
                 p1_new_bal = money.update_balance(match.player1_id,loss)
+                
+        elif match.money_sys_type == "gambling":
+            if winner_id == match.player1_id:
+                gain += match.gamb_gain
+            else:
+                gain -= match.gamb_bet
+            p1_new_bal = money.update_balance(match.player1_id,gain)
+
         
         # --- Second embed: Rewards/Balance ---
         rewards_embed = discord.Embed(
