@@ -259,42 +259,32 @@ class GamblingView(discord.ui.View):
     def add_button_row(self, values, team, positive, group_name, row):
         """Dynamically create a row of toggle buttons for a team (toggle per team, not per row)."""
         for v in values:
-            label = f"{v}"
             value = v if positive else -v
-            style = discord.ButtonStyle.success  # always green
+            label = f"{v}"
+            style = discord.ButtonStyle.success if positive else discord.ButtonStyle.danger
 
-            async def callback(interaction: discord.Interaction, value=value, team=team):
+            button = discord.ui.Button(label=label, style=style, row=row)
+            button.value = value  # store signed value in the button
+
+            async def callback(interaction: discord.Interaction, btn=button, team=team):
                 if interaction.user.id != self.user.id:
                     await interaction.response.send_message("❌ This menu isn’t for you!", ephemeral=True)
                     return
 
-                # Determine the variable for this team
-                team_var = self.your_var if team == "your" else self.enemy_var
-
-                # Check if this button is already selected
-                if team_var == value:
-                    # Deselect
-                    if team == "your":
-                        self.your_var = 0
-                    else:
-                        self.enemy_var = 0
+                # Select/deselect this button for the team
+                if team == "your":
+                    self.your_var = btn.value if self.your_var != btn.value else 0
                 else:
-                    # Select this button
-                    if team == "your":
-                        self.your_var = value
-                    else:
-                        self.enemy_var = value
+                    self.enemy_var = btn.value if self.enemy_var != btn.value else 0
 
                 # Reset all buttons in this team
-                for btn in self.button_groups[team]:
-                    btn.style = discord.ButtonStyle.success
-                    # Highlight the selected one
-                    if int(btn.label) == abs(value) and ((value > 0 and row == 0) or (value < 0 and row == 1)):
-                        btn.style = discord.ButtonStyle.blurple
+                for b in self.button_groups[team]:
+                    b.style = discord.ButtonStyle.success if b.value > 0 else discord.ButtonStyle.danger
+                    if (team == "your" and b.value == self.your_var) or (team == "enemy" and b.value == self.enemy_var):
+                        b.style = discord.ButtonStyle.blurple  # highlight selected
 
                 await self.update_message(interaction)
 
-            button = discord.ui.Button(label=label, style=style, row=row)
             button.callback = callback
             self.button_groups[group_name].append(button)
             self.add_item(button)
