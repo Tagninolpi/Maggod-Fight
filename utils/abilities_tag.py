@@ -199,7 +199,7 @@ def thanatos(kwargs):
         target.hp = 0
         self = kwargs["self"]
         self.hp -= 5  # High cost for instant kill
-        self.reload = self.reload_max
+        self.reload = self.reload_max * 2 + 1
         return (f"Thanatos instakills {target.name.capitalize()}, but takes 5 dmg.")
         
     else:
@@ -240,6 +240,7 @@ def charon(kwargs):
 
 def persephone(kwargs):
     """Persephone's revival - Revives dead allies or heals living ones."""
+    self = kwargs["self"]
     if not kwargs.get("attacking_with_hermes", False):
         target = kwargs["target"]
         
@@ -250,12 +251,14 @@ def persephone(kwargs):
                 target.hp = target.max_hp
                 kwargs["self"].hp -= 3
                 msg = f"Persephone revives {target.name.capitalize()} to max hp but losses 3 hp"
+                self.reload = self.reload_max * 2 + 1
             else:
                 msg = "Persephone revive failed!!!"
         else:
             # Heal living allies
             target.heal(2)
             msg = f"Persephone healed {target.name.capitalize()} by 2 hp"
+            self.reload = self.reload_max * 2 + 1
         return msg
 
 def hades_uw(kwargs):

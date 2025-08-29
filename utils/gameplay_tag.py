@@ -70,7 +70,7 @@ class God:
     
     def check_abillity(self):
         if self.reload <= 0:
-            if not(self.name == "thanatos"):
+            if not(self.name == "thanatos") or not(self.name == "persephone") :
                 self.reload = self.reload_max * 2 + 1
             return True
         else:
