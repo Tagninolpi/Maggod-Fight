@@ -26,7 +26,8 @@ embed2.add_field(
         "• Chat with other players\n"
         "• Use `/tutorial`\n"
         "• Get updates and announcements\n"
-        "• Report bugs and give feedback"
+        "• Report bugs and give feedback\n"
+        "• Use /balance to see your place in the leaderboard"
     ),
     inline=False
 )
