@@ -148,6 +148,8 @@ def delete_passive_effect_when_hiding(attack_team,target):
                 delete_effect(attack_team, "ares_do_more_dmg")
             elif god.name == "athena" and target.name == "athena":
                 delete_effect(attack_team, "athena_more_max_hp")
+            elif "cerberus_more_max_hp_per_visible_ally" in target.effects:
+                delete_effect(target, "cerberus_more_max_hp_per_visible_ally")
 
 def action_befor_die(defend_team, attack_team):
     """Handle actions before gods die."""
