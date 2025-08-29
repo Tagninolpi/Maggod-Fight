@@ -51,6 +51,8 @@ class Match:
         self.ai_bot_name = "random"
         self.money_sys_type = "2 players"
         self.bot_type = "random"
+        self.gamb_bet = 0
+        self.gamb_gain = 0
 
 class MaggodFightBot(commands.Bot):
     """Main bot class for Maggod Fight."""
