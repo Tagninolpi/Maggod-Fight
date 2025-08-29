@@ -242,6 +242,20 @@ class GamblingView(discord.ui.View):
         self.add_item(self.SetBetButton(self))
         self.add_item(self.StartButton(self))
 
+    async def update_message(self, interaction: discord.Interaction):
+            # Rebuild the embed with updated values
+            embed = discord.Embed(
+                title="🎲 Gambling Menu",
+                description="Welcome to the gambling menu",
+                color=discord.Color.gold()
+            )
+            embed.add_field(name="Your Team", value=str(self.your_var), inline=True)
+            embed.add_field(name="Enemy Team", value=str(self.enemy_var), inline=True)
+            embed.add_field(name="Bet", value=str(self.bet), inline=True)
+            embed.add_field(name="Potential Gain", value=f"{true_gain(self.your_var + self.enemy_var, self.bet, self.wealth):.2f}", inline=False)
+
+            # Edit the original message with updated embed
+            await interaction.response.edit_message(embed=embed, view=self)
 
     def add_button_row(self, values, team, positive, group_name,style, row):
         """Dynamically create a row of toggle buttons for a team."""
