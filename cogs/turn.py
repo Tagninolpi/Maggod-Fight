@@ -525,6 +525,7 @@ class Turn(commands.Cog):
             if match.solo_mode:
                 winner_id = 123
                 winner_name = "bot"
+                await channel.send(winner_id)
             else:
                 winner_id = match.player2_id
                 winner_name = match.player2_name
@@ -540,6 +541,7 @@ class Turn(commands.Cog):
         )
         
         if winner_id :
+            await channel.send(winner_id)
             if winner_id == 123:
                 embed.add_field(
                     name="🎉 Congratulations!",
@@ -583,6 +585,7 @@ class Turn(commands.Cog):
         money = MoneyManager()
         gain = 0
         loss = 0
+        await channel.send(match.money_sys_type)
         if match.money_sys_type == "bot":
             if winner_id == 123:
                 gain -= 1000
