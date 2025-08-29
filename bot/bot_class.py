@@ -160,13 +160,15 @@ class BotClass:
     # -------------------- MAIN BOT FUNCTION --------------------
     def choose_god(self, ctx: TurnContext):
         self.set_ctx(ctx)
-
-        if self.name == "random":
-            return random.choice(ctx.select)
         
         if getattr(ctx, "attack_cerbs", False):
             self.true_dmg_list = []
             return None
+        
+        if self.name == "random":
+            return random.choice(ctx.select)
+        
+
 
         # --- "attack with" logic ---
         if ctx.action_text and ctx.action_text.startswith("attack with"):

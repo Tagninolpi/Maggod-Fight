@@ -453,8 +453,8 @@ class Gambling(commands.Cog):
         # Send confirmation message
         await interaction.followup.send(
             "✅ Debug: Teams auto-assigned. The battle begins now! Use `/do` to play."
-            f"{team_p1}"
-            f"{team_p2}"
+            #f"{team_p1}"
+            #f"{team_p2}"
         )
 
 async def setup(bot):
