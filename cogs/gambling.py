@@ -231,10 +231,10 @@ class GamblingView(discord.ui.View):
         self.button_groups = {"your_good": [], "your_bad": [], "enemy_good": [], "enemy_bad": []}
 
         # Dynamically add rows of buttons
-        self.add_button_row("Your Good",  range(1, 6), "your", True, "your_good", row=0)
-        self.add_button_row("Your Bad",   range(1, 6), "your", False, "your_bad", row=1)
-        self.add_button_row("Enemy Good", range(1, 6), "enemy", False, "enemy_good", row=2)
-        self.add_button_row("Enemy Bad",  range(1, 6), "enemy", True, "enemy_bad", row=3)
+        self.add_button_row(  range(1, 6), "your", True, "your_good", row=0)
+        self.add_button_row(   range(1, 6), "your", False, "your_bad", row=1)
+        self.add_button_row( range(1, 6), "enemy", False, "enemy_good", row=2)
+        self.add_button_row(  range(1, 6), "enemy", True, "enemy_bad", row=3)
 
         # Bet + Start buttons
         self.add_item(self.SetBetButton(self))
