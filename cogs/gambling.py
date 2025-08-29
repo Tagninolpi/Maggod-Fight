@@ -263,36 +263,34 @@ class GamblingView(discord.ui.View):
             value = v if positive else -v
             style = discord.ButtonStyle.success  # always green
 
-            async def callback(interaction: discord.Interaction, value=value, group_name=group_name, team=team):
+            async def callback(interaction: discord.Interaction, value=value, team=team):
                 if interaction.user.id != self.user.id:
                     await interaction.response.send_message("❌ This menu isn’t for you!", ephemeral=True)
                     return
 
-                # Check if clicked button is already selected
-                already_selected = False
-                for btn in self.button_groups[group_name]:
-                    if btn.label == str(abs(value)) and btn.style == discord.ButtonStyle.blurple:
-                        already_selected = True
-                        break
+                # Determine the variable for this team
+                team_var = self.your_var if team == "your" else self.enemy_var
 
-                # Reset styles in the team group
-                for btn in self.button_groups[group_name]:
-                    btn.style = discord.ButtonStyle.success
-
-                # Update the team value
-                if already_selected:
+                # Check if this button is already selected
+                if team_var == value:
+                    # Deselect
                     if team == "your":
                         self.your_var = 0
                     else:
                         self.enemy_var = 0
                 else:
-                    for btn in self.button_groups[group_name]:
-                        if btn.label == str(abs(value)):
-                            btn.style = discord.ButtonStyle.blurple
+                    # Select this button
                     if team == "your":
                         self.your_var = value
                     else:
                         self.enemy_var = value
+
+                # Reset all buttons in this team
+                for btn in self.button_groups[team]:
+                    btn.style = discord.ButtonStyle.success
+                    # Highlight the selected one
+                    if int(btn.label) == abs(value) and ((value > 0 and row == 0) or (value < 0 and row == 1)):
+                        btn.style = discord.ButtonStyle.blurple
 
                 await self.update_message(interaction)
 
@@ -300,6 +298,7 @@ class GamblingView(discord.ui.View):
             button.callback = callback
             self.button_groups[group_name].append(button)
             self.add_item(button)
+
 
 
     # --- Bet button ---
