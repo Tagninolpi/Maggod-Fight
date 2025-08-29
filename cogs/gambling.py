@@ -243,12 +243,12 @@ class GamblingView(discord.ui.View):
         self.add_item(self.StartButton(self))
 
 
-    def add_button_row(self, values, team, positive, group_name, row):
+    def add_button_row(self, values, team, positive, group_name,style, row):
         """Dynamically create a row of toggle buttons for a team."""
         for v in values:
             label = f"{v}"
             value = v if positive else -v
-            style = discord.ButtonStyle.success  # <-- always green
+            style = style
 
             async def callback(interaction: discord.Interaction, value=value, group_name=group_name, team=team):
                 if interaction.user.id != self.user.id:
