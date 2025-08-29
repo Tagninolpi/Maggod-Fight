@@ -223,14 +223,14 @@ class GamblingView(discord.ui.View):
         super().__init__(timeout=None)
         self.user = user
         self.wealth = wealth
-        self.bet = 100
+        self.bet = 100  # default bet
         self.your_var = 0
         self.enemy_var = 0
 
         # Storage for button groups so we can reset styles later
         self.button_groups = {"your_good": [], "your_bad": [], "enemy_good": [], "enemy_bad": []}
 
-        # --- Your Team (Green) row 0 & 1 ---
+        # --- Your Team + Good Gods in row 0 ---
         self.add_button_row(range(1, 6), "your", True, "your_good", discord.ButtonStyle.success, row=0)
         self.add_button_row(range(1, 6), "your", False, "your_bad", discord.ButtonStyle.success, row=1)
 
@@ -242,25 +242,29 @@ class GamblingView(discord.ui.View):
         self.add_item(self.SetBetButton(self))
         self.add_item(self.StartButton(self))
 
-    def add_button_row(self, values, team, positive, group_name, style, row):
+
+    def add_button_row(self, values, team, positive, group_name, row):
         """Dynamically create a row of toggle buttons for a team."""
         for v in values:
+            label = f"{v}"
             value = v if positive else -v
+            style = discord.ButtonStyle.success  # <-- always green
 
             async def callback(interaction: discord.Interaction, value=value, group_name=group_name, team=team):
                 if interaction.user.id != self.user.id:
                     await interaction.response.send_message("❌ This menu isn’t for you!", ephemeral=True)
                     return
 
-                # Check if already selected
-                already_selected = any(
-                    btn.label == str(abs(value)) and btn.style == discord.ButtonStyle.blurple
-                    for btn in self.button_groups[group_name]
-                )
-
-                # Reset styles
+                # Toggle: if same button clicked again → reset to 0
+                already_selected = False
                 for btn in self.button_groups[group_name]:
-                    btn.style = style
+                    if btn.label == str(abs(value)) and btn.style == discord.ButtonStyle.blurple:
+                        already_selected = True
+                        break
+
+                # Reset styles in this group
+                for btn in self.button_groups[group_name]:
+                    btn.style = discord.ButtonStyle.success  # always reset to green
 
                 if already_selected:
                     if team == "your":
@@ -268,7 +272,7 @@ class GamblingView(discord.ui.View):
                     else:
                         self.enemy_var = 0
                 else:
-                    # Highlight the clicked button
+                    # Highlight selected button
                     for btn in self.button_groups[group_name]:
                         if btn.label == str(abs(value)):
                             btn.style = discord.ButtonStyle.blurple
@@ -279,7 +283,7 @@ class GamblingView(discord.ui.View):
 
                 await self.update_message(interaction)
 
-            button = discord.ui.Button(label=str(v), style=style, row=row)
+            button = discord.ui.Button(label=label, style=style, row=row)
             button.callback = callback
             self.button_groups[group_name].append(button)
             self.add_item(button)
@@ -318,7 +322,7 @@ class GamblingView(discord.ui.View):
                 await interaction.response.send_message("❌ This menu isn’t for you!", ephemeral=True)
                 return
 
-            # Store the result
+            # Store the result in the view
             self.parent_view.result = {
                 "bet": self.parent_view.bet,
                 "your_var": self.parent_view.your_var,
@@ -330,8 +334,8 @@ class GamblingView(discord.ui.View):
                 embed=None,
                 view=None
             )
+            # Stop the view
             self.parent_view.stop()
-
 
 
 class Gambling(commands.Cog):
