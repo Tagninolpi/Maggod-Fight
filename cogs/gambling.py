@@ -228,7 +228,7 @@ class GamblingView(discord.ui.View):
         self.enemy_var = 0
 
         # Storage for button groups so we can reset styles later
-        self.button_groups = {"your_good": [], "your_bad": [], "enemy_good": [], "enemy_bad": []}
+        self.button_groups = {"your": [], "enemy": []} 
 
         # Dynamically add rows of buttons
         self.add_button_row(  range(1, 6), "your", True, "your", row=0)
