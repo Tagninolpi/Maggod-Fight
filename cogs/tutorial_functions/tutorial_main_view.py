@@ -110,8 +110,53 @@ tutorial_embed.add_field(
     inline=False
 )
 
+embed = discord.Embed(
+    title="📖 How to Use the Gambling Menu",
+    description="Welcome to the **Gambling Menu**! Here’s how it works:",
+    color=discord.Color.blue()
+)
+
+# 🎮 Button Layout
+embed.add_field(
+    name="🎮 Button Layout",
+    value=(
+        "- **Rows 1 & 2 → Your Team**\n"
+        "   • **Row 1 (Green + buttons):** Add that many **good gods** to your team.\n"
+        "   • **Row 2 (Red – buttons):** Add that many **bad gods** to your team.\n\n"
+        "- **Rows 3 & 4 → Enemy Team**\n"
+        "   • **Row 3 (Red – buttons):** Add that many **good gods** to the enemy.\n"
+        "   • **Row 4 (Green + buttons):** Add that many **bad gods** to the enemy.\n\n"
+        "⚖️ Each team always ends up with **5 gods**. If your chosen numbers "
+        "don’t add up to 5, the rest are filled with **random gods**."
+    ),
+    inline=False
+)
+
+# 💰 Bets & Rewards
+embed.add_field(
+    name="💰 Bets & Rewards",
+    value=(
+        "1. Use **Set Bet** to choose how much wealth you want to gamble.\n"
+        "2. The **Potential Gain** field updates automatically based on your setup.\n"
+        "3. Click **Start** to lock in your setup and begin the gamble."
+    ),
+    inline=False
+)
+
+# 📈 Risk vs Reward
+embed.add_field(
+    name="📈 Risk vs Reward",
+    value=(
+        "- Giving yourself **bad gods** or giving the enemy **good gods** → **higher potential gain**.\n"
+        "- Giving yourself **good gods** or giving the enemy **bad gods** → **lower potential gain**."
+    ),
+    inline=False
+)
+
+embed.set_footer(text="Tip: Rows 1–2 are YOUR team, Rows 3–4 are the ENEMY team.")
+
 # ---------------- Global main_embeds ----------------
-main_embeds = [embed1, embed2, battle_view_embed, tutorial_embed]
+main_embeds = [embed1, embed2, battle_view_embed, tutorial_embed,embed]
 
 # ---------------- Helper ----------------
 async def switch_view(interaction: discord.Interaction, new_view: discord.ui.View | None, embeds: discord.Embed | list[discord.Embed]):
