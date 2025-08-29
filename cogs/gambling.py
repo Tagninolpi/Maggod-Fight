@@ -265,7 +265,7 @@ class GamblingView(discord.ui.View):
 
             button = discord.ui.Button(label=label, style=style, row=row)
             button.value = value  # store signed value in the button
-
+ 
             async def callback(interaction: discord.Interaction, btn=button, team=team):
                 if interaction.user.id != self.user.id:
                     await interaction.response.send_message("❌ This menu isn’t for you!", ephemeral=True)
