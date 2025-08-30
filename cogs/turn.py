@@ -496,8 +496,8 @@ class Turn(commands.Cog):
             god.update_effects()
 
         # Check for winner
-        team1_alive = any(god.alive for god in attack_team)
-        team2_alive = any(god.alive for god in defend_team)
+        team1_alive = any(god.alive for god in match.teams[match.player1_id])
+        team2_alive = any(god.alive for god in match.teams[match.player1_id])
         
         if not team1_alive or not team2_alive:
             await self.end_game(channel, team1_alive, team2_alive)
@@ -517,17 +517,14 @@ class Turn(commands.Cog):
         if hasattr(self.bot, 'stats'):
             self.bot.stats.increment_match_completed()
 
-        await channel.send(f"{team1_alive}{team2_alive}") #see
         # Determine winner
         if team1_alive and not team2_alive:
             winner_id = match.player1_id
             winner_name = match.player1_name
         elif team2_alive and not team1_alive:
-            await channel.send(f"team 1 dead, solo?{match.solo_mode}")#see
             if match.solo_mode:
                 winner_id = 123
                 winner_name = "bot"
-                await channel.send(f"{winner_name},{winner_id}") #see
             else:
                 winner_id = match.player2_id
                 winner_name = match.player2_name
@@ -543,7 +540,6 @@ class Turn(commands.Cog):
         )
         
         if winner_id :
-            await channel.send(winner_name)#see
             if winner_id == 123:
                 embed.add_field(
                     name="🎉 Congratulations!",
@@ -587,7 +583,6 @@ class Turn(commands.Cog):
         money = MoneyManager()
         gain = 0
         loss = 0
-        await channel.send(match.money_sys_type)#see
         if match.money_sys_type == "bot":
             if winner_id == 123:
                 gain -= 1000
