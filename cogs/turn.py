@@ -527,7 +527,7 @@ class Turn(commands.Cog):
             if match.solo_mode:
                 winner_id = 123
                 winner_name = "bot"
-                await channel.send(winner_name,winner_id) #see
+                await channel.send(f"{winner_name},{winner_id}") #see
             else:
                 winner_id = match.player2_id
                 winner_name = match.player2_name
