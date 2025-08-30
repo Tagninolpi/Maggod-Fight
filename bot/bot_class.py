@@ -163,7 +163,7 @@ class BotClass:
         self.true_dmg_list.clear()
 
         return chosen
-
+ 
 
     # -------------------- MAIN BOT FUNCTION --------------------
     def choose_god(self, ctx: TurnContext):
