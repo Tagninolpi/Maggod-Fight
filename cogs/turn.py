@@ -497,7 +497,7 @@ class Turn(commands.Cog):
 
         # Check for winner
         team1_alive = any(god.alive for god in match.teams[match.player1_id])
-        team2_alive = any(god.alive for god in match.teams[match.player1_id])
+        team2_alive = any(god.alive for god in match.teams[match.player2_id])
         
         if not team1_alive or not team2_alive:
             await self.end_game(channel, team1_alive, team2_alive)
