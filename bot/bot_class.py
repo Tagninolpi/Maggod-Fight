@@ -177,7 +177,6 @@ class BotClass:
             return random.choice(ctx.select)
         
 
-
         # --- "attack with" logic ---
         if ctx.action_text and ctx.action_text.startswith("attack with"):
             return self.max_damage_god()
