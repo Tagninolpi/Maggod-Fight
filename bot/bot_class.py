@@ -122,39 +122,47 @@ class BotClass:
         best_gods = []
         scores = {}
 
-        # Iterate over selectable gods and check which can be instakilled
+        # Check which gods can be instakilled
         for g in self.ctx.select:
             total_received = sum([g.get_dmg(d, False) for d in self.true_dmg_list])
             if g.hp <= total_received:
                 best_gods.append(g)
 
+        if best_gods:
+            # Calculate scores for instakill candidates
+            for g in best_gods:
+                score = 0
+                if "hp" in self.choose_config:
+                    score += g.hp * self.choose_config["hp"]
+                if "dmg" in self.choose_config:
+                    score += g.do_damage() * self.choose_config["dmg"]
+                if "reload" in self.choose_config:
+                    reload = getattr(g, "reload", 0)
+                    if reload <= 0:
+                        score += 10 * self.choose_config["reload"]
+                    else:
+                        score += (10 - reload) * self.choose_config["reload"]
+                scores[g] = score
+
+            # Pick god(s) with the highest score
+            max_score = max(scores.values())
+            top_gods = [g for g, score in scores.items() if score == max_score]
+
+            chosen = random.choice(top_gods)
+        else:
+            # --- NEW BEHAVIOR: no instakill possible ---
+            hp_after_dmg = {
+                g: g.hp - sum([g.get_dmg(d, False) for d in self.true_dmg_list])
+                for g in self.ctx.select
+            }
+            min_hp = min(hp_after_dmg.values())
+            weakest = [g for g, hp in hp_after_dmg.items() if hp == min_hp]
+            chosen = random.choice(weakest)
+
         # Clear true damage list after using it
         self.true_dmg_list.clear()
 
-        if not best_gods:
-            return None
-
-        # Calculate scores based on hp, dmg, and reload multipliers if they exist
-        for g in best_gods:
-            score = 0
-            if "hp" in self.choose_config:
-                score += g.hp * self.choose_config["hp"]
-            if "dmg" in self.choose_config:
-                score += g.do_damage() * self.choose_config["dmg"]
-            if "reload" in self.choose_config:
-                reload = getattr(g, "reload", 0)
-                if reload <= 0:
-                    score += 10 * self.choose_config["reload"]
-                else:
-                    score += (10 - reload) * self.choose_config["reload"]
-            scores[g] = score
-
-        # Pick god(s) with the highest score
-        max_score = max(scores.values())
-        top_gods = [g for g, score in scores.items() if score == max_score]
-
-        # Return one god randomly if multiple tie
-        return random.choice(top_gods)
+        return chosen
 
 
     # -------------------- MAIN BOT FUNCTION --------------------
