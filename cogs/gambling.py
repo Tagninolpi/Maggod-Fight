@@ -400,6 +400,8 @@ class Gambling(commands.Cog):
         from currency.money_manager import MoneyManager
         money_manager = MoneyManager()
         wealth = money_manager.get_balance(user_id=match.player1_id)
+        if wealth<100:
+            wealth =100
         view = GamblingView(interaction.user, wealth)
 
         embed = discord.Embed(
