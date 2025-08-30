@@ -517,11 +517,13 @@ class Turn(commands.Cog):
         if hasattr(self.bot, 'stats'):
             self.bot.stats.increment_match_completed()
 
+        await channel.send(team1_alive,team2_alive) #see
         # Determine winner
         if team1_alive and not team2_alive:
             winner_id = match.player1_id
             winner_name = match.player1_name
         elif team2_alive and not team1_alive:
+            await channel.send(f"team 1 dead, solo?{match.solo_mode}")#see
             if match.solo_mode:
                 winner_id = 123
                 winner_name = "bot"
@@ -594,11 +596,11 @@ class Turn(commands.Cog):
                 gain += 2500
                 gain += team1_survivors * 1250
             if match.bot_type == "random":
-                gain *= 0.3
-            elif match.bot_type == "worst_bot":
-                gain *= 0.1
-            else:
                 gain *= 1
+            elif match.bot_type == "worst_bot":
+                gain *= 0.5
+            else:
+                gain *= 2
             gain = round(gain)
             p1_new_bal = money.update_balance(match.player1_id,gain)
 

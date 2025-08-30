@@ -104,9 +104,9 @@ tutorial_embed.add_field(
     name="⚔️ Bot multipliers :",
     value=(
         "your gain will be multiplied by:"
-        "x0.1 if you play worst_bot" \
-        "x0.3 if you play random" \
-        "x1 if you play best_bot"
+        "x0.5 if you play worst_bot" \
+        "x1 if you play random" \
+        "x2 if you play best_bot"
     ),
     inline=False
 )
