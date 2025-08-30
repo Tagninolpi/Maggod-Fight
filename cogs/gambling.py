@@ -446,6 +446,7 @@ class Gambling(commands.Cog):
         match.teams_initialized = True
         match.game_phase = "playing"
         match.money_sys_type = "gambling"
+        
         match.ai_bot_name = "best_bot"
 
         match.turn_state = {
