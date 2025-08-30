@@ -256,6 +256,7 @@ class Turn(commands.Cog):
         match = matchmaking_dict.get(channel.id)
         if not match:
             await channel.send("❌ No ongoing match.")
+            del matchmaking_dict[channel.id]
             return None
 
 
@@ -634,29 +635,29 @@ class Turn(commands.Cog):
             if winner_id == match.player1_id:
                 rewards_embed.add_field(
                     name=f"🏆 {match.player1_name} (Winner)",
-                    value=f"**Gains:** {gain} {Config.coin}\n**New Balance:** {p1_new_bal}",
+                    value = (f"**Gains:** {gain:,.2f}".replace(",", " ") + f" {Config.coin}\n"f"**New Balance:** {p1_new_bal:,}".replace(",", " ")),
                     inline=False
                 )
                 rewards_embed.add_field(
                     name=f"💀 {match.player2_name} (Loser)",
-                    value=f"**Losses:** {loss} {Config.coin}\n**New Balance:** {p2_new_bal}",
+                    value = (f"**Gains:** {gain:,.2f}".replace(",", " ") + f" {Config.coin}\n"f"**New Balance:** {p2_new_bal:,}".replace(",", " ")),
                     inline=False
                 )
             else:
                 rewards_embed.add_field(
                     name=f"🏆 {match.player2_name} (Winner)",
-                    value=f"**Gains:** {gain} {Config.coin}\n**New Balance:** {p2_new_bal}",
+                    value = (f"**Gains:** {gain:,.2f}".replace(",", " ") + f" {Config.coin}\n"f"**New Balance:** {p2_new_bal:,}".replace(",", " ")),
                     inline=False
                 )
                 rewards_embed.add_field(
                     name=f"💀 {match.player1_name} (Loser)",
-                    value=f"**Losses:** {loss} {Config.coin}\n**New Balance:** {p1_new_bal}",
+                    value = (f"**Gains:** {gain:,.2f}".replace(",", " ") + f" {Config.coin}\n"f"**New Balance:** {p1_new_bal:,}".replace(",", " ")),
                     inline=False
                 )
         else:
             rewards_embed.add_field(
                 name="Player Rewards",
-                value=f"**Gains:** {gain} {Config.coin}\n**New Balance:** {p1_new_bal}",
+                value = (f"**Gains:** {gain:,.2f}".replace(",", " ") + f" {Config.coin}\n"f"**New Balance:** {p1_new_bal:,}".replace(",", " ")),
                 inline=False
             )
 
