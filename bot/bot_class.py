@@ -1,6 +1,7 @@
 import random
 from utils.gameplay_tag import God
-
+import logging
+logger = logging.getLogger(__name__)
 # -------------------- BOT CONFIGS --------------------
 bot_configs = {
     "random": {},
@@ -76,8 +77,8 @@ class BotClass:
         best_gods = self.filter_by_reload(best_gods)
         chosen = random.choice(best_gods) if best_gods else None
         self.true_dmg_list = [target_value] if target_value else []
-        print("Dmg values:", {g.name: g.do_damage() for g in self.ctx.select})
-        print("Best gods:", [g.name for g in best_gods])
+        logger.info("Dmg values: %s", {g.name: g.do_damage() for g in self.ctx.select})
+        logger.info("Best gods: %s", [g.name for g in best_gods])
         return chosen
 
     def minimize_damage_god(self):
