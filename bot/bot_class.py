@@ -76,6 +76,8 @@ class BotClass:
         best_gods = self.filter_by_reload(best_gods)
         chosen = random.choice(best_gods) if best_gods else None
         self.true_dmg_list = [target_value] if target_value else []
+        print("Dmg values:", {g.name: g.do_damage() for g in self.ctx.select})
+        print("Best gods:", [g.name for g in best_gods])
         return chosen
 
     def minimize_damage_god(self):
