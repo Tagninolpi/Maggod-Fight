@@ -6,7 +6,7 @@ logger = logging.getLogger(__name__)
 bot_configs = {
     "random": {},
     "worst_bot": {"hp": -1, "dmg": -1,"reload":-0.3},
-    "best_bot": {"hp": 0.3, "dmg": 2,"reload":0.3}
+    "best_bot": {"hp": 0.3, "dmg": 1,"reload":0.3}
 }
 
 bot_choose_configs = {
