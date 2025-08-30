@@ -260,6 +260,7 @@ def persephone(kwargs):
             msg = f"Persephone healed {target.name.capitalize()} by 2 hp"
             self.reload = self.reload_max * 2 + 1
         return msg
+    return ""
 
 def hades_uw(kwargs):
     """Hades (Underworld) - Provides shields based on dead allies."""

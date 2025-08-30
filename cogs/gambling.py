@@ -215,7 +215,7 @@ def true_gain(v, bet, wealth, reduction_neg=0.5, reduction_pos=0.2):
     else:  # v < 0
         base = bet * (-v + 1)
         scale = 1 - fraction * reduction_neg
-    return round(base * scale)  # only the gain
+    return round((base * scale)+100)  # only the gain
 
 
 class GamblingView(discord.ui.View):
