@@ -517,7 +517,7 @@ class Turn(commands.Cog):
         if hasattr(self.bot, 'stats'):
             self.bot.stats.increment_match_completed()
 
-        await channel.send(team1_alive,team2_alive) #see
+        await channel.send(f"{team1_alive}{team2_alive}") #see
         # Determine winner
         if team1_alive and not team2_alive:
             winner_id = match.player1_id
