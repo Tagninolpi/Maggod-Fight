@@ -608,13 +608,18 @@ class Turn(commands.Cog):
                 loss += (5 - team1_survivors) * 850
                 p1_new_bal = money.update_balance(match.player1_id,gain)
                 p2_new_bal = money.update_balance(match.player2_id,loss)
-            else:
+            elif winner_id == match.player2_id:
                 gain += 5000
                 gain += team2_survivors * 1000
                 loss -= 2500
                 loss += (5 - team2_survivors) * 850
                 p2_new_bal = money.update_balance(match.player2_id,gain)
                 p1_new_bal = money.update_balance(match.player1_id,loss)
+            else:
+                gain += 5000
+                p2_new_bal = money.update_balance(match.player2_id,gain)
+                p1_new_bal = money.update_balance(match.player1_id,gain)
+
 
         elif match.money_sys_type == "gambling":
             if winner_id == match.player1_id:
