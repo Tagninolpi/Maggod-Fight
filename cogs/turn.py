@@ -645,7 +645,7 @@ class Turn(commands.Cog):
                 )
                 rewards_embed.add_field(
                     name=f"💀 {match.player2_name} (Loser)",
-                    value = (f"**Gains:** {gain:,.2f}".replace(",", " ") + f" {Config.coin}\n"f"**New Balance:** {p2_new_bal:,}".replace(",", " ")),
+                    value = (f"**Losses:** {loss:,.2f}".replace(",", " ") + f" {Config.coin}\n"f"**New Balance:** {p2_new_bal:,}".replace(",", " ")),
                     inline=False
                 )
             else:
@@ -656,7 +656,7 @@ class Turn(commands.Cog):
                 )
                 rewards_embed.add_field(
                     name=f"💀 {match.player1_name} (Loser)",
-                    value = (f"**Gains:** {gain:,.2f}".replace(",", " ") + f" {Config.coin}\n"f"**New Balance:** {p1_new_bal:,}".replace(",", " ")),
+                    value = (f"**looses:** {loss:,.2f}".replace(",", " ") + f" {Config.coin}\n"f"**New Balance:** {p1_new_bal:,}".replace(",", " ")),
                     inline=False
                 )
         else:
