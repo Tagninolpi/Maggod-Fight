@@ -86,7 +86,7 @@ class GodTutorials:
         msg1 = simple_embed("Aphrodite ability is activated when she attacks alone (visible or invisible) or with hermes")
         msg2 = simple_embed("Aphrodite can attack visible and invisible ennemy.\n When attacking invisible she gives charm💘 for 3 turns to target\n charm makes it so that when the ennemy attaks it heals by 1hp it's target (your ally maggod) ")
         msg3 = create_god_tutorial_embeds(
-            ["athena", "thanatos", "ares", "alecto", "aphrodite"], success=False,
+            ["athena", "thanatos", "ares", "alecto", "zeus"], success=False,
             overrides={
                 "ares":{
                 "hp":5,"effects":{"aphro_charm":0}}
