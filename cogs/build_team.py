@@ -437,7 +437,7 @@ class BuildTeam(commands.Cog):
             except discord.NotFound:
                 logger.warning("Interaction expired before defer in /choose")            
         channel_id = channel.id
-
+ 
         # Import here to avoid circular imports
         from bot.utils import matchmaking_dict
 

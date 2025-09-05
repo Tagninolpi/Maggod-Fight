@@ -65,14 +65,15 @@ class Leave(commands.Cog):
 
         from currency.money_manager import MoneyManager
         money = MoneyManager()
-        team1_survivors = sum(1 for god in match.teams[match.player1_id] if god.alive)
-        team2_survivors = sum(1 for god in match.teams[match.player2_id] if god.alive)
-        p1_gain = (team1_survivors-team2_survivors)*1000
-        if match.gamb_bet != 0:
-            p1_gain -= match.gamb_bet
-        p2_gain = (team2_survivors-team1_survivors)*1000
-        P1_new_bal = money.update_balance(match.player1_id,p1_gain)
-        P2_new_bal = money.update_balance(match.player1_id,p2_gain)  
+        if match.game_phase == "playing":
+            team1_survivors = sum(1 for god in match.teams[match.player1_id] if god.alive)
+            team2_survivors = sum(1 for god in match.teams[match.player2_id] if god.alive)
+            p1_gain = (team1_survivors-team2_survivors)*1000
+            if match.gamb_bet != 0:
+                p1_gain -= match.gamb_bet
+            p2_gain = (team2_survivors-team1_survivors)*1000
+            P1_new_bal = money.update_balance(match.player1_id,p1_gain)
+            P2_new_bal = money.update_balance(match.player2_id,p2_gain)  
 
         if match.player1_id and match.player2_id:
             other_player_id = match.player1_id if interaction.user.id == match.player2_id else match.player2_id
@@ -90,11 +91,12 @@ class Leave(commands.Cog):
                 value = (f"**Gains:** {p1_gain:,.2f}".replace(",", " ") + f" {Config.coin}\n"f"**New Balance:** {P1_new_bal:,}".replace(",", " ")),
                 inline=False
             )
-        embed.add_field(
-                name=f"{match.player2_name}",
-                value = (f"**Gains:** {p2_gain:,.2f}".replace(",", " ") + f" {Config.coin}\n"f"**New Balance:** {P2_new_bal:,}".replace(",", " ")),
-                inline=False
-            )
+        if not(match.solo_mode):
+            embed.add_field(
+                    name=f"{match.player2_name}",
+                    value = (f"**Gains:** {p2_gain:,.2f}".replace(",", " ") + f" {Config.coin}\n"f"**New Balance:** {P2_new_bal:,}".replace(",", " ")),
+                    inline=False
+                )
         
         if other_player_id:
             embed.add_field(
