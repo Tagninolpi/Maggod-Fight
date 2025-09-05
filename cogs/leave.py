@@ -86,17 +86,18 @@ class Leave(commands.Cog):
             description=f"**{interaction.user.display_name}** has left the match.",
             color=0xffa500
         )
-        embed.add_field(
-                name=f" {match.player1_name}",
-                value = (f"**Gains:** {p1_gain:,.2f}".replace(",", " ") + f" {Config.coin}\n"f"**New Balance:** {P1_new_bal:,}".replace(",", " ")),
-                inline=False
-            )
-        if not(match.solo_mode):
+        if match.game_phase =="playing":
             embed.add_field(
-                    name=f"{match.player2_name}",
-                    value = (f"**Gains:** {p2_gain:,.2f}".replace(",", " ") + f" {Config.coin}\n"f"**New Balance:** {P2_new_bal:,}".replace(",", " ")),
+                    name=f" {match.player1_name}",
+                    value = (f"**Gains:** {p1_gain:,.2f}".replace(",", " ") + f" {Config.coin}\n"f"**New Balance:** {P1_new_bal:,}".replace(",", " ")),
                     inline=False
                 )
+            if not(match.solo_mode):
+                embed.add_field(
+                        name=f"{match.player2_name}",
+                        value = (f"**Gains:** {p2_gain:,.2f}".replace(",", " ") + f" {Config.coin}\n"f"**New Balance:** {P2_new_bal:,}".replace(",", " ")),
+                        inline=False
+                    )
         
         if other_player_id:
             embed.add_field(
