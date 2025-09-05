@@ -86,7 +86,7 @@ class GodTutorials:
         msg1 = simple_embed("Aphrodite ability is activated when she attacks alone (visible or invisible) or with hermes")
         msg2 = simple_embed("Aphrodite can attack visible and invisible ennemy.\n When attacking invisible she gives charm💘 for 3 turns to target\n charm makes it so that when the ennemy attaks it heals by 1hp it's target (your ally maggod) ")
         msg3 = create_god_tutorial_embeds(
-            ["athena", "thanatos", "ares", "alecto", "persephone"], success=False,
+            ["athena", "thanatos", "ares", "alecto", "aphrodite"], success=False,
             overrides={
                 "ares":{
                 "hp":5,"effects":{"aphro_charm":0}}
@@ -398,7 +398,7 @@ class GodTutorials:
         return [msg1,msg2,msg3,msg4,msg5,msg6]
 
     def persephone(self):
-        msg1 = simple_embed("Aphrodite can revive or heal (can't attack with hermes)")
+        msg1 = simple_embed("Persephone can revive or heal (can't attack with hermes)")
         msg2 = simple_embed("She can target alive and dead ally")
         msg3 = simple_embed("When targeting dead she has 50% chance to revive but take 3dmg")
         msg4 = simple_embed("When targeting alive she heals ally by 2 hp")
