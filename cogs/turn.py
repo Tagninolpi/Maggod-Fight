@@ -640,31 +640,47 @@ class Turn(commands.Cog):
             if winner_id == match.player1_id:
                 rewards_embed.add_field(
                     name=f"🏆 {match.player1_name} (Winner)",
-                    value = (f"**Gains:** {gain:,.2f}".replace(",", " ") + f" {Config.coin}\n"f"**New Balance:** {p1_new_bal:,}".replace(",", " ")),
+                    value = (
+                        f"**Gains:** {int(gain):,d}".replace(",", " ") + f" {Config.coin}\n"
+                        f"**New Balance:** {int(p1_new_bal):,d}".replace(",", " ")
+                    ),
                     inline=False
                 )
                 rewards_embed.add_field(
                     name=f"💀 {match.player2_name} (Loser)",
-                    value = (f"**Losses:** {loss:,.2f}".replace(",", " ") + f" {Config.coin}\n"f"**New Balance:** {p2_new_bal:,}".replace(",", " ")),
+                    value = (
+                        f"**Losses:** {int(loss):,d}".replace(",", " ") + f" {Config.coin}\n"
+                        f"**New Balance:** {int(p2_new_bal):,d}".replace(",", " ")
+                    ),
                     inline=False
                 )
             else:
                 rewards_embed.add_field(
                     name=f"🏆 {match.player2_name} (Winner)",
-                    value = (f"**Gains:** {gain:,.2f}".replace(",", " ") + f" {Config.coin}\n"f"**New Balance:** {p2_new_bal:,}".replace(",", " ")),
+                    value = (
+                        f"**Gains:** {int(gain):,d}".replace(",", " ") + f" {Config.coin}\n"
+                        f"**New Balance:** {int(p2_new_bal):,d}".replace(",", " ")
+                    ),
                     inline=False
                 )
                 rewards_embed.add_field(
                     name=f"💀 {match.player1_name} (Loser)",
-                    value = (f"**looses:** {loss:,.2f}".replace(",", " ") + f" {Config.coin}\n"f"**New Balance:** {p1_new_bal:,}".replace(",", " ")),
+                    value = (
+                        f"**Losses:** {int(loss):,d}".replace(",", " ") + f" {Config.coin}\n"
+                        f"**New Balance:** {int(p1_new_bal):,d}".replace(",", " ")
+                    ),
                     inline=False
                 )
         else:
             rewards_embed.add_field(
                 name="Player Rewards",
-                value = (f"**Gains:** {gain:,.2f}".replace(",", " ") + f" {Config.coin}\n"f"**New Balance:** {p1_new_bal:,}".replace(",", " ")),
+                value = (
+                    f"**Gains:** {int(gain):,d}".replace(",", " ") + f" {Config.coin}\n"
+                    f"**New Balance:** {int(p1_new_bal):,d}".replace(",", " ")
+                ),
                 inline=False
             )
+
 
         await channel.send(embed=rewards_embed)
 

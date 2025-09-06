@@ -249,10 +249,26 @@ class GamblingView(discord.ui.View):
             description="Welcome to the gambling menu",
             color=discord.Color.gold()
         )
-        embed.add_field(name="Your Team", value=str(self.your_var), inline=True)
-        embed.add_field(name="Enemy Team", value=str(self.enemy_var), inline=True)
-        embed.add_field(name="Bet", value=f"{self.bet:,}".replace(",", " "), inline=True)
-        embed.add_field(name="Potential Gain", value=f"{gain:,.2f}".replace(",", " "), inline=False)    
+        embed.add_field(
+            name="Your Team",
+            value=f"{int(self.your_var):,d}".replace(",", " "),
+            inline=True
+        )
+        embed.add_field(
+            name="Enemy Team",
+            value=f"{int(self.enemy_var):,d}".replace(",", " "),
+            inline=True
+        )
+        embed.add_field(
+            name="Bet",
+            value=f"{int(self.bet):,d}".replace(",", " "),
+            inline=True
+        )
+        embed.add_field(
+            name="Potential Gain",
+            value=f"{int(gain):,d}".replace(",", " "),
+            inline=False
+        )
         await interaction.response.edit_message(embed=embed, view=self)
 
     def add_button_row(self, values, team, positive, group_name, row):
