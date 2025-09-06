@@ -376,7 +376,7 @@ class GodTutorials:
 
     def charon(self):
         msg1 = simple_embed("Charon gives protect 🧿 to an ally for 2 turns (can't attack with hermes)")
-        msg2 = simple_embed("Charon heals by 2 - the number of dead allies if - it is dmg ex : 4 dead = -2hp")
+        msg2 = simple_embed("Charon heals by the number of visible allies - 3 if - it is dmg ex : 1 visible = -2hp")
         msg3 = simple_embed("Charon protect 🧿 fixes the hp status of target (ally), this means the ally can't take damage or heal")
         msg4 = simple_embed("Charon also removes all negative effects from visible allies")
         msg5 = create_god_tutorial_embeds(

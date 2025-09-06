@@ -221,7 +221,7 @@ def charon(kwargs):
     """Charon's protection - Protects allies and removes debuffs."""
     if not kwargs.get("attacking_with_hermes", False):
         target = kwargs["target"]
-        heal = 2-len(kwargs["dead_ally"])
+        heal = len(kwargs["visible_gods"])-3
         kwargs["self"].heal(heal)
         msg = f"Charon protect 🧿 {target.name.capitalize()} from ennemy base dmg for 2 turn and remove all negative effects from all visible gods,"
         if heal > 0:
