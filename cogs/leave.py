@@ -90,13 +90,13 @@ class Leave(commands.Cog):
         if match.game_phase =="playing":
             embed.add_field(
                     name=f" {match.player1_name}",
-                    value = (f"**Gains:** {p1_gain:,d}".replace(",", " ") + f" {Config.coin}\n"f"**New Balance:** {P1_new_bal:,}".replace(",", " ")),
+                    value = (f"**Gains:** {int(p1_gain):,d}".replace(",", " ") + f" {Config.coin}\n"f"**New Balance:** {P1_new_bal:,}".replace(",", " ")),
                     inline=False
                 )
             if not(match.solo_mode):
                 embed.add_field(
                         name=f"{match.player2_name}",
-                        value = (f"**Gains:** {p2_gain:,d}".replace(",", " ") + f" {Config.coin}\n"f"**New Balance:** {P2_new_bal:,}".replace(",", " ")),
+                        value = (f"**Gains:** {int(p2_gain):,d}".replace(",", " ") + f" {Config.coin}\n"f"**New Balance:** {P2_new_bal:,}".replace(",", " ")),
                         inline=False
                     )
         
