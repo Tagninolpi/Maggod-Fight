@@ -68,6 +68,7 @@ class Leave(commands.Cog):
         if match.game_phase == "playing":
             team1_survivors = sum(1 for god in match.teams[match.player1_id] if god.alive)
             team2_survivors = sum(1 for god in match.teams[match.player2_id] if god.alive)
+            await interaction.followup.send(f"t1 suvr nb :{team1_survivors} t2surv nb{team2_survivors}")
             p1_gain = (team1_survivors-team2_survivors)*1000
             if match.gamb_bet != 0:
                 p1_gain -= match.gamb_bet
