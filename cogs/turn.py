@@ -455,9 +455,9 @@ class Turn(commands.Cog):
                 color = discord.Color.red()
             else:
                 if current_player == match.player1_id:
-                    color = discord.Color.green()
-                else:
                     color = discord.Color.red()
+                else:
+                    color = discord.Color.green()
 
             embed = discord.Embed(color=color)
 
