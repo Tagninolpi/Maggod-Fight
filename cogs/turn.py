@@ -653,7 +653,7 @@ class Turn(commands.Cog):
                         f"**New Balance:** {int(p2_new_bal):,d}".replace(",", " ")
                     ),
                     inline=False
-                )
+                ) 
             else:
                 rewards_embed.add_field(
                     name=f"🏆 {match.player2_name} (Winner)",
