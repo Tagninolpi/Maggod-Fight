@@ -62,7 +62,7 @@ class Balance(commands.Cog):
                     name = f"User {uid}"  # fallback
 
             # Format balance with spaces for thousands
-            balance_str = f"{balance:,}".replace(",", " ")
+            balance_str = f"{balance:,d}".replace(",", " ")
 
             # Highlight the command user
             if uid == user_id:

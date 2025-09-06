@@ -68,7 +68,6 @@ class Leave(commands.Cog):
         if match.game_phase == "playing":
             team1_survivors = sum(1 for god in match.teams[match.player1_id] if god.alive)
             team2_survivors = sum(1 for god in match.teams[match.player2_id] if god.alive)
-            await interaction.followup.send(f"t1 suvr nb :{team1_survivors} t2surv nb{team2_survivors}")
             p1_gain = (team1_survivors-team2_survivors)*1000
             if match.gamb_bet != 0:
                 p1_gain -= match.gamb_bet
@@ -91,13 +90,13 @@ class Leave(commands.Cog):
         if match.game_phase =="playing":
             embed.add_field(
                     name=f" {match.player1_name}",
-                    value = (f"**Gains:** {p1_gain:,.2f}".replace(",", " ") + f" {Config.coin}\n"f"**New Balance:** {P1_new_bal:,}".replace(",", " ")),
+                    value = (f"**Gains:** {p1_gain:,d}".replace(",", " ") + f" {Config.coin}\n"f"**New Balance:** {P1_new_bal:,}".replace(",", " ")),
                     inline=False
                 )
             if not(match.solo_mode):
                 embed.add_field(
                         name=f"{match.player2_name}",
-                        value = (f"**Gains:** {p2_gain:,.2f}".replace(",", " ") + f" {Config.coin}\n"f"**New Balance:** {P2_new_bal:,}".replace(",", " ")),
+                        value = (f"**Gains:** {p2_gain:,d}".replace(",", " ") + f" {Config.coin}\n"f"**New Balance:** {P2_new_bal:,}".replace(",", " ")),
                         inline=False
                     )
         
