@@ -60,9 +60,9 @@ class StartChoiceView(discord.ui.View):
 
     @discord.ui.button(label="Gambling", style=discord.ButtonStyle.blurple)
     async def gambling_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        if match.solo_mode:
-            from bot.utils import matchmaking_dict
-            match = matchmaking_dict.get(interaction.channel.id)
+        from bot.utils import matchmaking_dict
+        match = matchmaking_dict.get(interaction.channel.id)
+        if match.solo_mode: 
             match.game_phase = "gambling"
 
             self.disable_all_buttons()
