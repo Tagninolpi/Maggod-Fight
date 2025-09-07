@@ -60,20 +60,21 @@ class StartChoiceView(discord.ui.View):
 
     @discord.ui.button(label="Gambling", style=discord.ButtonStyle.blurple)
     async def gambling_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        from bot.utils import matchmaking_dict
-        match = matchmaking_dict.get(interaction.channel.id)
-        match.game_phase = "gambling"
+        if match.solo_mode:
+            from bot.utils import matchmaking_dict
+            match = matchmaking_dict.get(interaction.channel.id)
+            match.game_phase = "gambling"
 
-        self.disable_all_buttons()
-        embed = discord.Embed(
-            title="🎲 Gambling Phase Activated",
-            description="Do `/gambling` to open the gambling menu.",
-            color=discord.Color.purple()
-        )
-        await interaction.response.edit_message(embed=embed, view=self)
+            self.disable_all_buttons()
+            embed = discord.Embed(
+                title="🎲 Gambling Phase Activated",
+                description="Do `/gambling` to open the gambling menu.",
+                color=discord.Color.purple()
+            )
+            await interaction.response.edit_message(embed=embed, view=self)
 
-        self.choice_made.set()
-        self.stop()
+            self.choice_made.set()
+            self.stop()
 
 
 class BotDifficultyView(discord.ui.View):
