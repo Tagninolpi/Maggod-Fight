@@ -138,6 +138,8 @@ def action_befor_delete_effect(attack_team):
                 delete_effect(attack_team, "ares_do_more_dmg")
             elif god.name == "athena":
                 delete_effect(attack_team, "athena_more_max_hp")
+            elif god.name == "charon":
+                delete_effect(attack_team, "charon_invisible_duration")
 
 def delete_passive_effect_when_hiding(attack_team,target):
     """Handle effects before they are deleted when gods die."""
