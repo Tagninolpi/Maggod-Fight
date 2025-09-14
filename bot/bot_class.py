@@ -363,6 +363,36 @@ class BotClass:
             if god:
                 return god
             return random.choice(ctx.select)
+        
+        if ctx.action_text == "protect":
+            # If any ally has cerberus effect, protect them
+            cerb_ally = next((g for g in ctx.my_team if "cerberus_more_max_hp_per_visible_ally" in g.effects), None)
+            if cerb_ally:
+                return cerb_ally
+            # Otherwise protect the ally with lowest hp
+            lowest_hp_ally = min(ctx.my_team, key=lambda g: g.hp, default=None)
+            return lowest_hp_ally
+
+        if ctx.action_text == "revive/heal":
+            dead_allies = get_dead(ctx.my_team)
+            if dead_allies:
+                # Revive the dead ally with biggest max_hp
+                return max(dead_allies, key=lambda g: g.max_hp)
+            else:
+                # Heal alive ally with lowest hp
+                alive_allies = get_alive(ctx.my_team)
+                return min(alive_allies, key=lambda g: g.hp, default=None)
+
+        if ctx.action_text == "make invisible":
+            # Choose the ally with lowest hp
+            alive_allies = get_alive(ctx.my_team)
+            return min(alive_allies, key=lambda g: g.hp, default=None)
+
+        if ctx.action_text == "give attract⛑️":
+            # Choose the ally with biggest hp
+            alive_allies = get_alive(ctx.my_team)
+            return max(alive_allies, key=lambda g: g.hp, default=None)
+
 
         # --- fallback score-based system ---
         if self.choose_config:
