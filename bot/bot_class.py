@@ -20,27 +20,27 @@ bot_choose_configs = {
 }
 
 # -------------------- GOD ABILLITY --------------------
-def poseidon(ally,ennemy,visible,reload):
-    if not(visible):
+def poseidon(ally,ennemy,visible,reload,attacking):
+    if not(visible) or not(attacking):
         return 5/len(get_visible(ally))
     else:
         return 0 
-def athena(ally,ennemy,visible,reload):
-    if not(visible):
+def athena(ally,ennemy,visible,reload,attacking):
+    if not(visible) or not(attacking):
         return 4 * len(get_visible(ally)) + 2
     else:
         return 0 
-def charon(ally,ennemy,visible,reload):
+def charon(ally,ennemy,visible,reload,attacking):
     if reload<1:
         return 6/len(get_visible(ally))+sum(1 for god in ally for e in god.effects if e in ["aphro_charm", "zeus_stun", "tisi_freeze_timer","alecto_get_more_dmg", "mega_do_less_dmg"])
     else:
         return 0
-def megaera(ally,ennemy,visible,reload):
+def megaera(ally,ennemy,visible,reload,attacking):
     if reload<1:
         return 8/len(get_alive(ennemy))
     else:
         return 0  
-def tisiphone(ally,ennemy,visible,reload):
+def tisiphone(ally,ennemy,visible,reload,attacking):
     if reload<1:
         ally_vis = len(get_alive(ally))
         if ally_vis>2 and len(get_alive(ennemy))>2:
@@ -51,7 +51,7 @@ def tisiphone(ally,ennemy,visible,reload):
             return 1
     else:
         return 0 
-def zeus(ally,ennemy,visible,reload):
+def zeus(ally,ennemy,visible,reload,attacking):
     if reload<1:
         if len(get_alive(ennemy))>2:
             return 6/(len(get_visible(ally))+1)
@@ -59,64 +59,64 @@ def zeus(ally,ennemy,visible,reload):
             return 2
     else:
         return 0
-def cerberus(ally,ennemy,visible,reload):
+def cerberus(ally,ennemy,visible,reload,attacking):
     if reload<1:
         return 6/(5-len(get_visible(ally)))
     else:
         return 0 
-def hera(ally,ennemy,visible,reload):
+def hera(ally,ennemy,visible,reload,attacking):
     return 0
-def aphrodite(ally,ennemy,visible,reload):
+def aphrodite(ally,ennemy,visible,reload,attacking):
     if reload<1:
         return 2
     else:
         return 0
-def artemis(ally,ennemy,visible,reload):
+def artemis(ally,ennemy,visible,reload,attacking):
     if reload<1:
         return len(get_visible(ennemy))
     else:
         return 0   
-def hades_ow(ally,ennemy,visible,reload):
+def hades_ow(ally,ennemy,visible,reload,attacking):
     if reload<1:
         return math.floor(0.5 + len(get_dead(ally))/2)*(len(get_visible(ally))+1)
     else:
         return 0  
-def alecto(ally,ennemy,visible,reload):
+def alecto(ally,ennemy,visible,reload,attacking):
     if reload<1:
         return 4
     else:
         return 0 
-def hecate(ally,ennemy,visible,reload):
+def hecate(ally,ennemy,visible,reload,attacking):
     if reload<1:
         return 4
     else:
         return 0 
-def hephaestus(ally,ennemy,visible,reload):
+def hephaestus(ally,ennemy,visible,reload,attacking):
     if reload<1:
         return 2*len(get_visible(ally))+2
     else:
         return 0
-def ares(ally,ennemy,visible,reload):
-    if not(visible):
+def ares(ally,ennemy,visible,reload,attacking):
+    if not(visible) or not(attacking):
         return len(get_visible(ally))+1
     else:
         return 0
-def persephone(ally,ennemy,visible,reload):
+def persephone(ally,ennemy,visible,reload,attacking):
     if reload<1:
         return 3
     else:
         return 0
-def thanatos(ally,ennemy,visible,reload):
+def thanatos(ally,ennemy,visible,reload,attacking):
     if reload<1:
         return 4
     else:
         return 0
-def apollo(ally,ennemy,visible,reload):
+def apollo(ally,ennemy,visible,reload,attacking):
     if reload<1:
         return len(get_visible(ally))+1
     else:
         return 0
-def hermes(ally,ennemy,visible,reload):
+def hermes(ally,ennemy,visible,reload,attacking):
     if reload<1:
         al_lng = len(get_visible(ally))
         for g in ally:
@@ -130,7 +130,7 @@ def hermes(ally,ennemy,visible,reload):
             return 0
     else:
         return 0
-def hades_uw(ally,ennemy,visible,reload):
+def hades_uw(ally,ennemy,visible,reload,attacking):
     if reload<1:
         return len(get_dead(ally))*len(get_visible(ally))
     else:
@@ -217,7 +217,7 @@ class BotClass:
                             self.ctx.my_team, 
                             self.ctx.opp_team, 
                             god.visible, 
-                            god.reload
+                            god.reload,True
                         ) * ability_mult
                     )
         # bot config choose max or min
@@ -305,7 +305,7 @@ class BotClass:
                                 self.ctx.my_team, 
                                 self.ctx.opp_team, 
                                 g.visible, 
-                                g.reload
+                                g.reload,False
                             ) * ability_mult
                         )
                     scores[g] = score
