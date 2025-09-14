@@ -595,8 +595,10 @@ class Turn(commands.Cog):
                 gain *= 1
             elif match.bot_type == "worst_bot":
                 gain *= 0.5
-            else:
+            elif match.bot_type == "bot_overloard":
                 gain *= 2
+            else:
+                gain *= 5
             gain = round(gain)
             p1_new_bal = money.update_balance(match.player1_id,gain)
 

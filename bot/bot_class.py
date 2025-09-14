@@ -313,7 +313,10 @@ class BotClass:
         all_gods = []
         # Check which gods can be instakilled
         for g in self.ctx.select:
-            total_received = sum([g.get_dmg(d, False) for d in self.true_dmg_list])
+            if "charon_invisible_duration" in g.effects:
+                total_received = 0
+            else:
+                total_received = sum([g.get_dmg(d, False) for d in self.true_dmg_list])
             if g.hp <= total_received:
                 best_gods.append(g)
             all_gods.append(g)
