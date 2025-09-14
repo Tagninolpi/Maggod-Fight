@@ -368,7 +368,7 @@ class BotClass:
         if self.choose_config:
             scores = {
                 g: sum(
-                    (val() if callable(val) else val) * multi
+                    (val if not callable(val) else 0) * multi
                     for atr, multi in self.choose_config.items()
                     for val in [getattr(g, atr, 0)]
                 )
