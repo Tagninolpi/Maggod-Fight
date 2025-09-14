@@ -1,5 +1,5 @@
-import random
-import math
+import random 
+import math 
 from utils.gameplay_tag import God
 from utils.game_test_on_discord import get_alive,get_dead,get_visible
 import logging
@@ -27,7 +27,7 @@ def poseidon(ally,ennemy,visible,reload,attacking):
         return 0 
 def athena(ally,ennemy,visible,reload,attacking):
     if not(visible) or not(attacking):
-        return 4 * len(get_visible(ally)) + 2
+        return 2 * len(get_visible(ally)) + 2
     else:
         return 0 
 def charon(ally,ennemy,visible,reload,attacking):

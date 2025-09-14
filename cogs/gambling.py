@@ -14,9 +14,9 @@ logger = logging.getLogger(__name__)
 
 # canonical best->worst order you provided
 NAME_ORDER = [
-    "poseidon","athena","charon","megaera","tisiphone","zeus","cerberus",
-    "hera","aphrodite","artemis","hades_ow","alecto","hecate","hephaestus",
-    "ares","persephone","thanatos","apollo","hermes","hades_uw"
+    "athena", "hephaestus", "hera", "megaera", "poseidon", "alecto", "hecate",
+    "hades_ow", "charon", "ares", "thanatos", "cerberus", "apollo", "tisiphone",
+    "hades_uw", "artemis", "hermes", "persephone", "zeus", "aphrodite"
 ]
 
 def assign_gods(match, your_var: int, enemy_var: int, start_random: bool = True, rng=random):
