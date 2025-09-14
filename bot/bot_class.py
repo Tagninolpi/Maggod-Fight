@@ -366,8 +366,15 @@ class BotClass:
 
         # --- fallback score-based system ---
         if self.choose_config:
-            scores = {g: sum(getattr(g, atr, 0) * multi for atr, multi in self.choose_config.items())
-                    for g in ctx.select}
+            scores = {
+                g: sum(
+                    (val() if callable(val) else val) * multi
+                    for atr, multi in self.choose_config.items()
+                    for val in [getattr(g, atr, 0)]
+                )
+                for g in ctx.select
+            }
             return max(scores, key=scores.get)
+
 
         return random.choice(ctx.select)
