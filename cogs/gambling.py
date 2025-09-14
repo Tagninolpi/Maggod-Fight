@@ -5,7 +5,7 @@ import random
 import copy
 import logging
 import asyncio
-
+ 
 from utils.game_test_on_discord import gods as all_gods_template
 from bot.utils import update_lobby_status_embed
 from bot.config import Config
