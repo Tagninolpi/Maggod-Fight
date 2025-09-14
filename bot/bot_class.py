@@ -278,33 +278,37 @@ class BotClass:
         scores = {}
         for g in gods: # calculate 
                 score = 0
-                if hp:
-                    hp_left = g.hp - sum(g.get_dmg(d, False) for d in self.true_dmg_list)
-                    score +=7-round(((hp_left*100)/g.max_hp)/14.3)
+                if "charon_invisible_duration" in g.effects:
+                    score = 0
                 else:
-                    if "hp" in self.choose_config:
-                        score += g.hp * self.choose_config["hp"]
-                if "dmg" in self.choose_config:
-                    score += g.do_damage() * self.choose_config["dmg"]
-                if "reload" in self.choose_config:
-                    reload = getattr(g, "reload", 0)
-                    if reload <= 0:
-                        score += 10 * self.choose_config["reload"]
+                        
+                    if hp:
+                        hp_left = g.hp - sum(g.get_dmg(d, False) for d in self.true_dmg_list)
+                        score +=7-round(((hp_left*100)/g.max_hp)/14.3)
                     else:
-                        score += (10 - reload) * self.choose_config["reload"]
+                        if "hp" in self.choose_config:
+                            score += g.hp * self.choose_config["hp"]
+                    if "dmg" in self.choose_config:
+                        score += g.do_damage() * self.choose_config["dmg"]
+                    if "reload" in self.choose_config:
+                        reload = getattr(g, "reload", 0)
+                        if reload <= 0:
+                            score += 10 * self.choose_config["reload"]
+                        else:
+                            score += (10 - reload) * self.choose_config["reload"]
 
-                ability_mult = self.choose_config.get("ability", None)
-                if ability_mult is not None:
-                    # get ability value for god and aplly it to score
-                    score += (
-                        GOD_ABILITIES[g.name](
-                            self.ctx.my_team, 
-                            self.ctx.opp_team, 
-                            g.visible, 
-                            g.reload
-                        ) * ability_mult
-                    )
-                scores[g] = score
+                    ability_mult = self.choose_config.get("ability", None)
+                    if ability_mult is not None:
+                        # get ability value for god and aplly it to score
+                        score += (
+                            GOD_ABILITIES[g.name](
+                                self.ctx.my_team, 
+                                self.ctx.opp_team, 
+                                g.visible, 
+                                g.reload
+                            ) * ability_mult
+                        )
+                    scores[g] = score
         return scores
 
 
