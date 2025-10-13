@@ -16,74 +16,72 @@ class Balance(commands.Cog):
 
     @app_commands.command(name="balance", description="See the leaderboard of all balances.")
     async def balance(self, interaction: discord.Interaction):
-        channel = interaction.channel
-        user_id = interaction.user.id
+        await interaction.response.defer(thinking=True)  # Keeps the interaction alive and shows a "thinking..." state
 
-        # Make sure the command is used in a text channel in the correct category
-        if not isinstance(channel, discord.TextChannel):
-            await interaction.response.send_message(
-                "❌ This command must be used in a text channel.",
-                ephemeral=True
-            )
-            return
+        try:
+            channel = interaction.channel
+            user_id = interaction.user.id
 
-        if not channel.category or channel.category.id != Config.LOBBY_CATEGORY_ID:
-            await interaction.response.send_message(
-                f"❌ You must use this command in a `{Config.LOBBY_CATEGORY_NAME}` channel.",
-                ephemeral=True
-            )
-            return
+            if not isinstance(channel, discord.TextChannel):
+                await interaction.followup.send("❌ This command must be used in a text channel.", ephemeral=True)
+                return
 
-        # Fetch all balances
-        all_users = self.money_manager.get_balance(all=True)  # List of dicts [{"user_id": ..., "balance": ...}]
-        if not all_users:
-            await interaction.response.send_message("No balances found in the database.", ephemeral=True)
-            return
+            if not channel.category or channel.category.id != Config.LOBBY_CATEGORY_ID:
+                await interaction.followup.send(
+                    f"❌ You must use this command in a `{Config.LOBBY_CATEGORY_NAME}` channel.",
+                    ephemeral=True
+                )
+                return
 
-        # Sort descending by balance
-        sorted_users = sorted(all_users, key=lambda x: x["balance"], reverse=True)
+            # ⬇️ DB call here — if this fails, you'll catch it below
+            all_users = self.money_manager.get_balance(all=True)
 
-        # Build leaderboard string
-        description_lines = []
-        for idx, user in enumerate(sorted_users, start=1):
-            uid = user["user_id"]
-            balance = user["balance"]
+            if not all_users:
+                await interaction.followup.send("No balances found in the database.", ephemeral=True)
+                return
 
-            # Try to fetch member from guild
-            try:
-                member = await interaction.guild.fetch_member(uid)
-                name = member.display_name
-            except discord.NotFound:
-                # If not in guild, fetch global user
+            sorted_users = sorted(all_users, key=lambda x: x["balance"], reverse=True)
+
+            description_lines = []
+            for idx, user in enumerate(sorted_users, start=1):
+                uid = user["user_id"]
+                balance = user["balance"]
+
                 try:
-                    user_obj = await interaction.client.fetch_user(uid)
-                    name = str(user_obj)  # username#1234
+                    member = await interaction.guild.fetch_member(uid)
+                    name = member.display_name
                 except discord.NotFound:
-                    name = f"User {uid}"  # fallback
+                    try:
+                        user_obj = await interaction.client.fetch_user(uid)
+                        name = str(user_obj)
+                    except discord.NotFound:
+                        name = f"User {uid}"
 
-            # Format balance with spaces for thousands
-            balance_str = f"{int(balance):,d}".replace(",", " ")
+                balance_str = f"{int(balance):,d}".replace(",", " ")
 
-            # Highlight the command user
-            if uid == user_id:
-                line = f"**{idx}. {name} — {balance_str} {Config.coin} 👈 You**"
-            else:
-                line = f"{idx}. {name} — {balance_str} {Config.coin}"
+                if uid == user_id:
+                    line = f"**{idx}. {name} — {balance_str} {Config.coin} 👈 You**"
+                else:
+                    line = f"{idx}. {name} — {balance_str} {Config.coin}"
 
-            description_lines.append(line)
+                description_lines.append(line)
 
-        # Join lines without extra blank lines
-        description = "\n".join(description_lines)
+            description = "\n".join(description_lines)
 
-        # Create embed
-        embed = discord.Embed(
-            title="💰 Leaderboard",
-            description=description,
-            color=discord.Color.gold()
-        )
-        embed.set_footer(text=f"Requested by {interaction.user.display_name}", icon_url=interaction.user.avatar.url)
+            embed = discord.Embed(
+                title="💰 Leaderboard",
+                description=description,
+                color=discord.Color.gold()
+            )
+            embed.set_footer(text=f"Requested by {interaction.user.display_name}", icon_url=interaction.user.avatar.url)
 
-        await interaction.response.send_message(embed=embed, ephemeral=False)
+            await interaction.followup.send(embed=embed, ephemeral=False)
+
+        except Exception as e:
+            # Log the actual traceback to console so you see the real DB or logic error
+            logger.exception("Error in /balance command")
+            await interaction.followup.send(f"❌ An unexpected error occurred: `{type(e).__name__}: {e}`", ephemeral=True)
+
 
 
 async def setup(bot):
