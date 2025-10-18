@@ -46,7 +46,7 @@ class Hangman(commands.Cog):
             u.get("words") not in (None, "", "none") for u in all_players
         )
 
-        view = HangmanMainView(self.manager, player_word, any_word_exists)
+        view = HangmanMainView(self.manager, player_word, any_word_exists,self.bot)
         await interaction.response.send_message(
             f"🎮 **Welcome to Hangman, {interaction.user.display_name}!**",
             view=view,
@@ -60,6 +60,8 @@ class HangmanMainView(discord.ui.View):
         self.manager = manager
         self.player_word = player_word
         self.any_word_exists = any_word_exists
+        self.add_item(MakeWordButton(manager, player_word))
+        self.add_item(PlayButton(manager, any_word_exists, bot))
 
         # Add buttons
         self.make_word_button = MakeWordButton(manager, player_word)
@@ -137,6 +139,72 @@ class WordModal(discord.ui.Modal, title="Create Your Hangman Word"):
             ephemeral=True,
         )
 
+class PlayButton(discord.ui.Button):
+    def __init__(self, manager: MoneyManager, any_word_exists: bool, bot):
+        self.manager = manager
+        self.bot = bot
+        style = (
+            discord.ButtonStyle.success
+            if any_word_exists
+            else discord.ButtonStyle.danger
+        )
+        super().__init__(label="Play", style=style, disabled=not any_word_exists)
+
+    async def callback(self, interaction: discord.Interaction):
+        # Build the play menu
+        all_players = self.manager.get_balance(all=True)
+        user_id = interaction.user.id
+
+        # Filter out players with no word or your own word
+        valid_players = [
+            u for u in all_players
+            if u.get("words") not in (None, "", "none")
+            and u["user_id"] != user_id
+        ]
+
+        if not valid_players:
+            await interaction.response.send_message(
+                "❌ No other players have provided words yet.",
+                ephemeral=True,
+            )
+            return
+
+        # Create and show the grid view
+        view = PlayWordSelectionView(valid_players, self.bot)
+        await interaction.response.send_message(
+            "🧩 **Choose a word to play!**",
+            view=view,
+            ephemeral=True,
+        )
+
+
+class PlayWordSelectionView(discord.ui.View):
+    def __init__(self, valid_players, bot):
+        super().__init__(timeout=None)
+        self.bot = bot
+
+        # Create up to 25 buttons (5x5 grid)
+        for i, player in enumerate(valid_players[:25]):
+            player_id = player["user_id"]
+            self.add_item(PlayerWordButton(player_id, bot))
+
+
+class PlayerWordButton(discord.ui.Button):
+    def __init__(self, player_id: int, bot):
+        self.player_id = player_id
+        self.bot = bot
+        super().__init__(
+            label=f"Player {player_id}",
+            style=discord.ButtonStyle.primary,
+            row=(player_id % 5),
+        )
+
+    async def callback(self, interaction: discord.Interaction):
+        user = await self.bot.fetch_user(self.player_id)
+        await interaction.response.send_message(
+            f"🕹️ You selected **{user.display_name}**'s word! (game coming soon)",
+            ephemeral=True,
+        )
 
 async def setup(bot):
     await bot.add_cog(Hangman(bot))
