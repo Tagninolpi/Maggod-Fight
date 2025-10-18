@@ -1,10 +1,11 @@
 import re
+import string
 import discord
 from discord.ext import commands
 from discord import app_commands
-from bot.config import Config
-import logging
 from datetime import datetime, timezone
+import logging
+from bot.config import Config
 from currency.money_manager import MoneyManager  # adjust import if needed
 
 logger = logging.getLogger(__name__)
@@ -34,19 +35,18 @@ class Hangman(commands.Cog):
 
         user_id = interaction.user.id
 
-        # Check player word in DB
+        # Fetch player info
         player_data = self.manager.get_balance(user_id)
         player_word = (
-            player_data["words"] if isinstance(player_data, dict) else None
+            player_data["words"] if isinstance(player_data, dict) and "words" in player_data else None
         )
 
-        # Check if any player has words for the play button
         all_players = self.manager.get_balance(all=True)
         any_word_exists = any(
             u.get("words") not in (None, "", "none") for u in all_players
         )
 
-        view = HangmanMainView(self.manager, player_word, any_word_exists,self.bot)
+        view = HangmanMainView(self.manager, player_word, any_word_exists, self.bot)
         await interaction.response.send_message(
             f"🎮 **Welcome to Hangman, {interaction.user.display_name}!**",
             view=view,
@@ -54,22 +54,21 @@ class Hangman(commands.Cog):
         )
 
 
+# ---------- Main View ----------
 class HangmanMainView(discord.ui.View):
-    def __init__(self, manager: MoneyManager, player_word: str, any_word_exists: bool,bot):
+    def __init__(self, manager: MoneyManager, player_word: str, any_word_exists: bool, bot):
         super().__init__(timeout=None)
         self.manager = manager
         self.player_word = player_word
         self.any_word_exists = any_word_exists
+        self.bot = bot
+
+        # Add buttons
         self.add_item(MakeWordButton(manager, player_word))
         self.add_item(PlayButton(manager, any_word_exists, bot))
 
-        # Add buttons
-        self.make_word_button = MakeWordButton(manager, player_word)
-        self.play_button = PlayButton(any_word_exists)
-        self.add_item(self.make_word_button)
-        self.add_item(self.play_button)
 
-
+# ---------- Make Word ----------
 class MakeWordButton(discord.ui.Button):
     def __init__(self, manager: MoneyManager, player_word: str):
         self.manager = manager
@@ -85,158 +84,10 @@ class MakeWordButton(discord.ui.Button):
         )
 
     async def callback(self, interaction: discord.Interaction):
-        # Open the modal to create a word
         await interaction.response.send_modal(WordModal(self.manager))
 
 
-class PlayButton(discord.ui.Button):
-    def __init__(self, any_word_exists: bool):
-        style = (
-            discord.ButtonStyle.success
-            if any_word_exists
-            else discord.ButtonStyle.danger
-        )
-        super().__init__(label="Play", style=style, disabled=not any_word_exists)
-
-    async def callback(self, interaction: discord.Interaction):
-        # Fetch that player's word from DB
-        target_word = self.bot.manager.get_word(self.player_id)  # ← You should already have such a method
-        if not target_word:
-            await interaction.response.send_message(
-                "⚠️ That player doesn’t have a word set.",
-                ephemeral=True,
-            )
-            return
-
-        # Create a new view to play (the guessing interface)
-        view = LetterGuessView(
-            player_id=self.player_id,
-            word=target_word,
-            bot=self.bot,
-            guessed_letters=[]
-        )
-
-        # Create masked word for display
-        display_word = view.get_display_word()
-
-        await interaction.response.send_message(
-            f"🎯 **Guessing {await self.bot.fetch_user(self.player_id)}'s word!**\n\n`{display_word}`",
-            view=view,
-            ephemeral=True,
-        )
-
-import string
-
-class LetterGuessView(discord.ui.View):
-    def __init__(self, player_id, word, bot, guessed_letters):
-        super().__init__(timeout=None)
-        self.player_id = player_id
-        self.word = word.lower()
-        self.bot = bot
-        self.guessed_letters = guessed_letters
-
-        # Build 5x5 alphabet grid (skip 'Z' to make 25)
-        letters = list(string.ascii_uppercase.replace('Z', ''))
-        for i, letter in enumerate(letters):
-            row = i // 5
-            self.add_item(LetterButton(letter, self))
-
-    def get_display_word(self):
-        """Return the word display with underscores for unguessed letters."""
-        result = []
-        for ch in self.word:
-            if ch == " ":
-                result.append(" ")
-            elif ch.lower() in self.guessed_letters:
-                result.append(ch.upper())
-            else:
-                result.append("_")
-        return " ".join(result)
-
-    async def update_view(self, interaction: discord.Interaction):
-        """Re-render the buttons based on current guesses."""
-        # Remove all buttons and rebuild
-        self.clear_items()
-        letters = list(string.ascii_uppercase.replace('Z', ''))
-        for i, letter in enumerate(letters):
-            row = i // 5
-            self.add_item(LetterButton(letter, self))
-        display_word = self.get_display_word()
-
-        await interaction.edit_original_response(
-            content=f"🎯 Guessing `{await self.bot.fetch_user(self.player_id)}`'s word:\n\n`{display_word}`",
-            view=self,
-        )
-
-
-class LetterButton(discord.ui.Button):
-    def __init__(self, letter, view: LetterGuessView):
-        self.letter = letter
-        self.parent_view = view
-
-        # Determine color and disabled state
-        if letter.lower() in view.guessed_letters:
-            if letter.lower() in view.word:
-                style = discord.ButtonStyle.success  # green
-            else:
-                style = discord.ButtonStyle.danger  # red
-            disabled = True
-        else:
-            style = discord.ButtonStyle.secondary  # gray
-            disabled = False
-
-        super().__init__(label=letter, style=style, disabled=disabled)
-
-    async def callback(self, interaction: discord.Interaction):
-        letter = self.letter.lower()
-        self.parent_view.guessed_letters.append(letter)
-
-        # Check if letter is in word
-        if letter in self.parent_view.word:
-            # Correct guess
-            await interaction.response.defer()
-        else:
-            # Incorrect guess
-            await interaction.response.defer()
-
-        # Update buttons and display
-        await self.parent_view.update_view(interaction)
-
-
-class WordModal(discord.ui.Modal, title="Create Your Hangman Word"):
-    word_input = discord.ui.TextInput(
-        label="Enter your word (max 30 letters)",
-        placeholder="Example: magic forest",
-        required=True,
-        max_length=30,
-    )
-
-    def __init__(self, manager: MoneyManager):
-        super().__init__()
-        self.manager = manager
-
-    async def on_submit(self, interaction: discord.Interaction):
-        user_id = interaction.user.id
-        word = str(self.word_input.value).strip()
-
-        # Validation: only letters & spaces
-        if not re.fullmatch(r"[A-Za-z ]+", word):
-            await interaction.response.send_message(
-                "❌ Invalid word! Use **letters and spaces only** (A-Z). Try again.",
-                ephemeral=True,
-            )
-            # Re-open the modal for retry
-            await interaction.followup.send_modal(WordModal(self.manager))
-            return
-
-        # Save to DB
-        self.manager.set_words(user_id, word)
-
-        await interaction.response.send_message(
-            f"✅ Your word **'{word}'** has been saved! You can now play Hangman.",
-            ephemeral=True,
-        )
-
+# ---------- Play ----------
 class PlayButton(discord.ui.Button):
     def __init__(self, manager: MoneyManager, any_word_exists: bool, bot):
         self.manager = manager
@@ -249,7 +100,6 @@ class PlayButton(discord.ui.Button):
         super().__init__(label="Play", style=style, disabled=not any_word_exists)
 
     async def callback(self, interaction: discord.Interaction):
-        # Build the play menu
         all_players = self.manager.get_balance(all=True)
         user_id = interaction.user.id
 
@@ -267,8 +117,7 @@ class PlayButton(discord.ui.Button):
             )
             return
 
-        # Create and show the grid view
-        view = PlayWordSelectionView(valid_players, self.bot)
+        view = PlayWordSelectionView(valid_players, self.bot, self.manager)
         await interaction.response.send_message(
             "🧩 **Choose a word to play!**",
             view=view,
@@ -276,33 +125,141 @@ class PlayButton(discord.ui.Button):
         )
 
 
+# ---------- Word Selection ----------
 class PlayWordSelectionView(discord.ui.View):
-    def __init__(self, valid_players, bot):
+    def __init__(self, valid_players, bot, manager):
         super().__init__(timeout=None)
         self.bot = bot
+        self.manager = manager
 
-        # Create up to 25 buttons (5x5 grid)
         for i, player in enumerate(valid_players[:25]):
             player_id = player["user_id"]
-            self.add_item(PlayerWordButton(player_id, bot))
+            self.add_item(PlayerWordButton(player_id, bot, manager, row=i // 5))
 
 
 class PlayerWordButton(discord.ui.Button):
-    def __init__(self, player_id: int, bot):
+    def __init__(self, player_id: int, bot, manager, row):
         self.player_id = player_id
         self.bot = bot
+        self.manager = manager
         super().__init__(
             label=f"Player {player_id}",
             style=discord.ButtonStyle.primary,
-            row=(player_id % 5),
+            row=row,
         )
 
     async def callback(self, interaction: discord.Interaction):
+        target_word = self.manager.get_word(self.player_id)
+        if not target_word:
+            await interaction.response.send_message(
+                "⚠️ That player doesn’t have a word set.",
+                ephemeral=True,
+            )
+            return
+
+        view = LetterGuessView(self.player_id, target_word, self.bot, [])
+        display_word = view.get_display_word()
+
         user = await self.bot.fetch_user(self.player_id)
         await interaction.response.send_message(
-            f"🕹️ You selected **{user.display_name}**'s word! (game coming soon)",
+            f"🎯 **Guessing {user.display_name}'s word!**\n\n`{display_word}`",
+            view=view,
             ephemeral=True,
         )
+
+
+# ---------- Guessing View ----------
+class LetterGuessView(discord.ui.View):
+    def __init__(self, player_id, word, bot, guessed_letters):
+        super().__init__(timeout=None)
+        self.player_id = player_id
+        self.word = word.lower()
+        self.bot = bot
+        self.guessed_letters = guessed_letters
+
+        letters = list(string.ascii_uppercase.replace('Z', ''))
+        for i, letter in enumerate(letters):
+            self.add_item(LetterButton(letter, self))
+
+    def get_display_word(self):
+        result = []
+        for ch in self.word:
+            if ch == " ":
+                result.append(" ")
+            elif ch.lower() in self.guessed_letters:
+                result.append(ch.upper())
+            else:
+                result.append("_")
+        return " ".join(result)
+
+    async def update_view(self, interaction: discord.Interaction):
+        self.clear_items()
+        letters = list(string.ascii_uppercase.replace('Z', ''))
+        for i, letter in enumerate(letters):
+            self.add_item(LetterButton(letter, self))
+        display_word = self.get_display_word()
+
+        await interaction.edit_original_response(
+            content=f"🎯 Guessing `{await self.bot.fetch_user(self.player_id)}`'s word:\n\n`{display_word}`",
+            view=self,
+        )
+
+
+class LetterButton(discord.ui.Button):
+    def __init__(self, letter, view: LetterGuessView):
+        self.letter = letter
+        self.parent_view = view
+
+        if letter.lower() in view.guessed_letters:
+            if letter.lower() in view.word:
+                style = discord.ButtonStyle.success
+            else:
+                style = discord.ButtonStyle.danger
+            disabled = True
+        else:
+            style = discord.ButtonStyle.secondary
+            disabled = False
+
+        super().__init__(label=letter, style=style, disabled=disabled)
+
+    async def callback(self, interaction: discord.Interaction):
+        letter = self.letter.lower()
+        self.parent_view.guessed_letters.append(letter)
+        await interaction.response.defer()
+        await self.parent_view.update_view(interaction)
+
+
+# ---------- Modal ----------
+class WordModal(discord.ui.Modal, title="Create Your Hangman Word"):
+    word_input = discord.ui.TextInput(
+        label="Enter your word (max 30 letters)",
+        placeholder="Example: magic forest",
+        required=True,
+        max_length=30,
+    )
+
+    def __init__(self, manager: MoneyManager):
+        super().__init__()
+        self.manager = manager
+
+    async def on_submit(self, interaction: discord.Interaction):
+        user_id = interaction.user.id
+        word = str(self.word_input.value).strip()
+
+        if not re.fullmatch(r"[A-Za-z ]+", word):
+            await interaction.response.send_message(
+                "❌ Invalid word! Use **letters and spaces only** (A-Z). Try again.",
+                ephemeral=True,
+            )
+            await interaction.followup.send_modal(WordModal(self.manager))
+            return
+
+        self.manager.set_words(user_id, word)
+        await interaction.response.send_message(
+            f"✅ Your word **'{word}'** has been saved! You can now play Hangman.",
+            ephemeral=True,
+        )
+
 
 async def setup(bot):
     await bot.add_cog(Hangman(bot))
