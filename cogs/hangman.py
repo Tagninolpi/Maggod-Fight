@@ -5,7 +5,7 @@ from discord.ext import commands
 from discord import app_commands
 import logging
 from bot.config import Config
-from currency.money_manager import MoneyManager  # adjust import if needed
+from currency.money_manager import MoneyManager
 
 logger = logging.getLogger(__name__)
 
@@ -99,7 +99,6 @@ class PlayButton(discord.ui.Button):
         all_players = self.manager.get_balance(all=True)
         user_id = interaction.user.id
 
-        # Filter out players with no word or your own word
         valid_players = [
             u for u in all_players
             if u.get("words") not in (None, "", "none")
@@ -124,13 +123,22 @@ class PlayButton(discord.ui.Button):
 # ---------- Word Selection ----------
 class PlayWordSelectionView(discord.ui.View):
     def __init__(self, valid_players, bot, manager):
-        super().__init__(timeout=None)
+        super().__init__(timeout=900.0)  # 15 minutes timeout
         self.bot = bot
         self.manager = manager
 
         for i, player in enumerate(valid_players[:25]):
             player_id = player["user_id"]
             self.add_item(PlayerWordButton(player_id, bot, manager, row=i // 5))
+
+    async def on_timeout(self):
+        for child in self.children:
+            child.disabled = True
+        try:
+            # Disable the view message to prevent interactions
+            await self.message.edit(view=self)
+        except Exception:
+            pass
 
 
 class PlayerWordButton(discord.ui.Button):
@@ -158,13 +166,15 @@ class PlayerWordButton(discord.ui.Button):
         used_letters = view.get_used_letters()
 
         user = await self.bot.fetch_user(self.player_id)
-        await interaction.response.send_message(
+        msg = await interaction.response.send_message(
             f"🎯 **Guessing {user.display_name}'s word!**\n\n"
             f"`{display_word}`\n\n"
             f"Used letters: `{used_letters}`",
             view=view,
             ephemeral=True,
         )
+        # Save message for timeout edits
+        view.message = await interaction.original_response()
 
 
 # ---------- Modal ----------
@@ -192,7 +202,6 @@ class WordModal(discord.ui.Modal, title="Create Your Hangman Word"):
             await interaction.followup.send_modal(WordModal(self.manager))
             return
 
-        # Save as "word : guessedletters"
         self.manager.set_words(user_id, f"{word} : ")
         await interaction.response.send_message(
             f"✅ Your word **'{word}'** has been saved! You can now play Hangman.",
@@ -203,12 +212,11 @@ class WordModal(discord.ui.Modal, title="Create Your Hangman Word"):
 # ---------- Letter Guessing ----------
 class LetterGuessView(discord.ui.View):
     def __init__(self, player_id, data_text: str, bot, manager):
-        super().__init__(timeout=None)
+        super().__init__(timeout=900.0)  # 15 min timeout
         self.player_id = player_id
         self.bot = bot
         self.manager = manager
 
-        # Split DB text into word and guessed letters
         if ":" in data_text:
             word_part, guessed_part = data_text.split(":", 1)
             self.word = word_part.strip().lower()
@@ -217,22 +225,26 @@ class LetterGuessView(discord.ui.View):
             self.word = data_text.strip().lower()
             self.guessed_letters = []
 
-        # Single button to choose a letter
         self.add_item(ChooseLetterButton(self))
+        self.message = None  # Will hold the interaction message
 
     def get_display_word(self):
-        display = []
-        for ch in self.word:
-            if ch == " ":
-                display.append(" ")
-            elif ch.lower() in self.guessed_letters:
-                display.append(ch.upper())
-            else:
-                display.append("_")
-        return " ".join(display)
+        return " ".join(
+            ch.upper() if ch.lower() in self.guessed_letters else "_" if ch != " " else " "
+            for ch in self.word
+        )
 
     def get_used_letters(self):
         return " ".join(sorted(self.guessed_letters))
+
+    async def on_timeout(self):
+        for child in self.children:
+            child.disabled = True
+        if self.message:
+            try:
+                await self.message.edit(view=self)
+            except Exception:
+                pass
 
 
 class ChooseLetterButton(discord.ui.Button):
@@ -275,24 +287,40 @@ class LetterInputModal(discord.ui.Modal, title="Guess a Letter"):
             )
             return
 
-        # Add letter to guessed letters
         self.parent_view.guessed_letters.append(letter)
-
-        # Save back to DB as "word : guessedletters"
         new_text = f"{self.parent_view.word} : {''.join(self.parent_view.guessed_letters)}"
         self.parent_view.manager.set_words(self.parent_view.player_id, new_text)
 
-        # Show updated word with guessed letters
         display_word = self.parent_view.get_display_word()
         used_letters = self.parent_view.get_used_letters()
         user = await self.parent_view.bot.fetch_user(self.parent_view.player_id)
 
-        await interaction.response.send_message(
-            f"🎯 **Guessing {user.display_name}'s word!**\n\n"
-            f"`{display_word}`\n\n"
-            f"Used letters: `{used_letters}`",
-            ephemeral=True
+        # Check if word is fully guessed
+        if "_" not in display_word:
+            # Fetch all participating players
+            all_players = self.parent_view.manager.get_balance(all=True)
+            participants = [await self.parent_view.bot.fetch_user(u["user_id"])
+                            for u in all_players if u.get("words") not in (None, "", "none")]
+            participant_names = ", ".join(p.display_name for p in participants)
+            await interaction.response.edit_message(
+                content=(
+                    f"🎉 **{user.display_name}'s word was '{self.parent_view.word}'!**\n"
+                    f"Congratulations to all: {participant_names}"
+                ),
+                view=None
+            )
+            return
+
+        # Otherwise, update the same message
+        await interaction.response.edit_message(
+            content=(
+                f"🎯 **Guessing {user.display_name}'s word!**\n\n"
+                f"`{display_word}`\n\n"
+                f"Used letters: `{used_letters}`"
+            ),
+            view=self.parent_view
         )
+        self.parent_view.message = await interaction.original_response()
 
 
 async def setup(bot):
