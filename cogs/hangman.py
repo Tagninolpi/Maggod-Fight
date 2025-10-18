@@ -87,13 +87,18 @@ class PlayButton(discord.ui.Button):
             return
 
         view = PlayWordSelectionView(valid_players, self.bot, self.manager)
-        await interaction.response.send_message("🧩 **Choose a word to play!**", view=view, ephemeral=True)
+        message = await interaction.response.send_message(
+            "🧩 **Choose a word to play!**",
+            view=view,
+            ephemeral=True
+        )
+        view.message = await interaction.original_response()
 
 
 # ---------- Word Selection ----------
 class PlayWordSelectionView(discord.ui.View):
     def __init__(self, valid_players, bot, manager):
-        super().__init__(timeout=900.0)  # 15 min timeout
+        super().__init__(timeout=900.0)
         self.bot = bot
         self.manager = manager
         self.message = None
@@ -129,12 +134,9 @@ class PlayerWordButton(discord.ui.Button):
         used_letters = view.get_used_letters()
         user = await self.bot.fetch_user(self.player_id)
 
-        msg = await interaction.response.send_message(
-            f"🎯 **Guessing {user.display_name}'s word!**\n\n"
-            f"`{display_word}`\n\n"
-            f"Used letters: `{used_letters}`",
-            view=view,
-            ephemeral=True,
+        await interaction.response.edit_message(
+            content=f"🎯 **Guessing {user.display_name}'s word!**\n\n`{display_word}`\n\nUsed letters: `{used_letters}`",
+            view=view
         )
         view.message = await interaction.original_response()
 
@@ -237,6 +239,7 @@ class LetterInputModal(discord.ui.Modal, title="Guess a Letter"):
             )
             return
 
+        # Update single message with new word state
         await interaction.response.edit_message(
             content=f"🎯 **Guessing {user.display_name}'s word!**\n\n`{display_word}`\n\nUsed letters: `{used_letters}`",
             view=self.parent_view
