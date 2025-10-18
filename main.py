@@ -89,6 +89,7 @@ class MaggodFightBot(commands.Bot):
             'cogs.tutorial',
             'cogs.balance',
             'cogs.gambling'
+            'cogs.hangman'
         ]
     
         for cog in cogs_to_load:
