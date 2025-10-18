@@ -1,14 +1,14 @@
+import re
 import discord
 from discord.ext import commands
 from discord import app_commands
 from bot.config import Config
-from datetime import datetime
 import logging
+from datetime import datetime, timezone
+from currency.money_manager import MoneyManager  # adjust import if needed
 
 logger = logging.getLogger(__name__)
 
-# Import your MoneyManager to access words in DB
-from bot.money_manager import MoneyManager  # adjust path if needed
 
 class Hangman(commands.Cog):
     def __init__(self, bot):
@@ -21,14 +21,14 @@ class Hangman(commands.Cog):
         if not isinstance(channel, discord.TextChannel):
             await interaction.response.send_message(
                 "❌ This command must be used in a text channel.",
-                ephemeral=True
+                ephemeral=True,
             )
             return
 
         if not channel.category or channel.category.id != Config.LOBBY_CATEGORY_ID:
             await interaction.response.send_message(
                 f"❌ You must use this command in a `{Config.LOBBY_CATEGORY_NAME}` channel.",
-                ephemeral=True
+                ephemeral=True,
             )
             return
 
@@ -36,58 +36,106 @@ class Hangman(commands.Cog):
 
         # Check player word in DB
         player_data = self.manager.get_balance(user_id)
-        player_word = player_data["words"] if isinstance(player_data, dict) else None
+        player_word = (
+            player_data["words"] if isinstance(player_data, dict) else None
+        )
 
         # Check if any player has words for the play button
         all_players = self.manager.get_balance(all=True)
-        any_word_exists = any(u.get("words") not in (None, "", "none") for u in all_players)
+        any_word_exists = any(
+            u.get("words") not in (None, "", "none") for u in all_players
+        )
 
-        # Create the buttons view
-        view = HangmanMainView(player_word, any_word_exists)
-
+        view = HangmanMainView(self.manager, player_word, any_word_exists)
         await interaction.response.send_message(
             f"🎮 **Welcome to Hangman, {interaction.user.display_name}!**",
             view=view,
-            ephemeral=True
+            ephemeral=True,
         )
 
 
 class HangmanMainView(discord.ui.View):
-    def __init__(self, player_word: str, any_word_exists: bool):
+    def __init__(self, manager: MoneyManager, player_word: str, any_word_exists: bool):
         super().__init__(timeout=None)
+        self.manager = manager
+        self.player_word = player_word
+        self.any_word_exists = any_word_exists
 
-        # Determine color and enabled state for Make Word
-        if player_word and player_word.lower() != "none":
-            # Player already has a word
-            make_word_button = discord.ui.Button(
-                label="Make Word",
-                style=discord.ButtonStyle.danger,
-                disabled=True
-            )
-        else:
-            make_word_button = discord.ui.Button(
-                label="Make Word",
-                style=discord.ButtonStyle.success,
-                disabled=False
-            )
+        # Add buttons
+        self.make_word_button = MakeWordButton(manager, player_word)
+        self.play_button = PlayButton(any_word_exists)
+        self.add_item(self.make_word_button)
+        self.add_item(self.play_button)
 
-        # Determine Play button
-        if not any_word_exists:
-            play_button = discord.ui.Button(
-                label="Play",
-                style=discord.ButtonStyle.danger,
-                disabled=True
-            )
-        else:
-            play_button = discord.ui.Button(
-                label="Play",
-                style=discord.ButtonStyle.success,
-                disabled=False
-            )
 
-        # Add to the view
-        self.add_item(make_word_button)
-        self.add_item(play_button)
+class MakeWordButton(discord.ui.Button):
+    def __init__(self, manager: MoneyManager, player_word: str):
+        self.manager = manager
+        style = (
+            discord.ButtonStyle.danger
+            if player_word and player_word.lower() != "none"
+            else discord.ButtonStyle.success
+        )
+        super().__init__(
+            label="Make Word",
+            style=style,
+            disabled=style == discord.ButtonStyle.danger,
+        )
+
+    async def callback(self, interaction: discord.Interaction):
+        # Open the modal to create a word
+        await interaction.response.send_modal(WordModal(self.manager))
+
+
+class PlayButton(discord.ui.Button):
+    def __init__(self, any_word_exists: bool):
+        style = (
+            discord.ButtonStyle.success
+            if any_word_exists
+            else discord.ButtonStyle.danger
+        )
+        super().__init__(label="Play", style=style, disabled=not any_word_exists)
+
+    async def callback(self, interaction: discord.Interaction):
+        await interaction.response.send_message(
+            "🎯 The Play feature will be added soon!",
+            ephemeral=True,
+        )
+
+
+class WordModal(discord.ui.Modal, title="Create Your Hangman Word"):
+    word_input = discord.ui.TextInput(
+        label="Enter your word (max 30 letters)",
+        placeholder="Example: magic forest",
+        required=True,
+        max_length=30,
+    )
+
+    def __init__(self, manager: MoneyManager):
+        super().__init__()
+        self.manager = manager
+
+    async def on_submit(self, interaction: discord.Interaction):
+        user_id = interaction.user.id
+        word = str(self.word_input.value).strip()
+
+        # Validation: only letters & spaces
+        if not re.fullmatch(r"[A-Za-z ]+", word):
+            await interaction.response.send_message(
+                "❌ Invalid word! Use **letters and spaces only** (A-Z). Try again.",
+                ephemeral=True,
+            )
+            # Re-open the modal for retry
+            await interaction.followup.send_modal(WordModal(self.manager))
+            return
+
+        # Save to DB
+        self.manager.set_words(user_id, word)
+
+        await interaction.response.send_message(
+            f"✅ Your word **'{word}'** has been saved! You can now play Hangman.",
+            ephemeral=True,
+        )
 
 
 async def setup(bot):
