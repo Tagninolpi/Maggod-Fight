@@ -112,7 +112,7 @@ class PlayButton(discord.ui.Button):
         )
         self.cog.last_messages[user_id] = await interaction.original_response()
 
-
+ 
 # ---------- Word Selection ----------
 class PlayWordSelectionView(discord.ui.View):
     def __init__(self, valid_players, bot, manager, cog: Hangman, user_id: int):
