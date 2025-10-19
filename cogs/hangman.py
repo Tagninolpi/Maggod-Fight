@@ -266,16 +266,24 @@ class LetterInputModal(discord.ui.Modal, title="Guess a Letter"):
             except Exception:
                 pass
 
-        # Check if word is complete
+        # ✅ Check if word is complete
         if "_" not in display_word:
-            all_players = self.parent_view.manager.get_balance(all=True)
-            participants = [await self.parent_view.bot.fetch_user(u["user_id"]) for u in all_players if u.get("words") not in (None, "", "none")]
-            participant_names = ", ".join(p.display_name for p in participants)
-            message = await interaction.response.send_message(
-                f"🎉 **{user.display_name}'s word was '{self.parent_view.word}'!**\nCongratulations to all: {participant_names}",
-                ephemeral=True
-            )
-            self.parent_view.cog.last_messages[self.parent_view.user_id] = await interaction.original_response()
+            # Remove word from DB
+            self.parent_view.manager.set_words(self.parent_view.player_id, None)
+
+            # Announce publicly
+            channel = interaction.channel
+            if channel:
+                await channel.send(
+                    f"🎉 **{user.display_name}'s word was '{self.parent_view.word.upper()}'!**\n"
+                    f"👏 Congratulations to everyone who participated!"
+                )
+
+            # Close the guessing view silently
+            try:
+                await interaction.response.defer(ephemeral=True)
+            except Exception:
+                pass
             return
 
         # Send updated guessing message
@@ -285,7 +293,6 @@ class LetterInputModal(discord.ui.Modal, title="Guess a Letter"):
             ephemeral=True
         )
         self.parent_view.cog.last_messages[self.parent_view.user_id] = await interaction.original_response()
-
 
 async def setup(bot):
     await bot.add_cog(Hangman(bot))
