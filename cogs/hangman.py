@@ -99,7 +99,8 @@ class PlayButton(discord.ui.Button):
             return
 
         view = PlayWordSelectionView(valid_players, self.bot, self.manager, self.cog, user_id)
-        # Delete previous message
+        await view.setup()
+
         if user_id in self.cog.last_messages:
             try:
                 await self.cog.last_messages[user_id].delete()
@@ -121,9 +122,19 @@ class PlayWordSelectionView(discord.ui.View):
         self.manager = manager
         self.cog = cog
         self.user_id = user_id
-        for i, player in enumerate(valid_players[:25]):
+        self.valid_players = valid_players
+
+    async def setup(self):
+        """Fetch usernames asynchronously before displaying the view."""
+        for i, player in enumerate(self.valid_players[:25]):
             player_id = player["user_id"]
-            self.add_item(PlayerWordButton(player_id, bot, manager, cog, user_id, row=i // 5))
+            try:
+                user = await self.bot.fetch_user(player_id)
+                label = user.display_name
+            except Exception:
+                label = f"Player {player_id}"
+
+            self.add_item(PlayerWordButton(label, player_id, self.bot, self.manager, self.cog, self.user_id, row=i // 5))
 
     async def on_timeout(self):
         for child in self.children:
@@ -134,15 +145,14 @@ class PlayWordSelectionView(discord.ui.View):
             except Exception:
                 pass
 
-
 class PlayerWordButton(discord.ui.Button):
-    def __init__(self, player_id: int, bot, manager, cog: Hangman, user_id: int, row):
+    def __init__(self, label: str, player_id: int, bot, manager, cog: Hangman, user_id: int, row):
         self.player_id = player_id
         self.bot = bot
         self.manager = manager
         self.cog = cog
         self.user_id = user_id
-        super().__init__(label=f"Player {player_id}", style=discord.ButtonStyle.primary, row=row)
+        super().__init__(label=label, style=discord.ButtonStyle.primary, row=row)
 
     async def callback(self, interaction: discord.Interaction):
         data_text = self.manager.get_words(self.player_id)
