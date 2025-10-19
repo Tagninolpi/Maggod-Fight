@@ -4,7 +4,7 @@ from discord.ext import commands
 from discord import app_commands
 import logging
 from bot.config import Config
-
+from currency.money_manager import MoneyManager
 
 logger = logging.getLogger(__name__)
 
@@ -12,7 +12,6 @@ logger = logging.getLogger(__name__)
 class Hangman(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        from currency.money_manager import MoneyManager
         self.manager = MoneyManager()
         self.last_messages = {}  # user_id -> discord.Message (to delete old ephemeral views)
 
