@@ -75,19 +75,23 @@ class MoneyManager:
 
     def add_player_guess_time(self, target_user_id, guesser_id):
         """
-        Append a new 'guesser:timestamp' entry to target user's player_time.
-        Example: '12345:2025-10-19T15:20:00;67890:2025-10-19T15:22:10'
+        Update or add a 'guesser:timestamp' entry in target user's player_time.
+        If the player already exists, update the timestamp. Otherwise, add a new entry.
         """
-        current = self.get_player_time(target_user_id)
-        now = datetime.now(timezone.utc).isoformat()
-        new_entry = f"{guesser_id}:{now}"
-        updated = f"{current};{new_entry}" if current else new_entry
+        # Get current player times as a dict {player_id: datetime}
+        player_times = self.get_player_times(target_user_id)
 
+        # Update or add the guesser's timestamp
+        player_times[guesser_id] = datetime.now(timezone.utc)
+
+        # Convert back to string format for storage
+        text = ";".join(f"{pid}:{t.isoformat()}" for pid, t in player_times.items())
+
+        # Update DB
         self.client.table("money").update({
-            "player_time": updated,
-            "time": now
+            "player_time": text,
+            "time": datetime.now(timezone.utc).isoformat()
         }).eq("user_id", target_user_id).execute()
-
 
     # ----------------- ADMIN -----------------
     def delete_database(self):
