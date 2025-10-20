@@ -107,7 +107,7 @@ class MoneyManager:
         text = "!".join(f"{pid}/{t.isoformat()}" for pid, t in player_times.items())
         self.client.table("money").update({"player_time": text}).eq("user_id", user_id).execute()
 
-    def can_player_guess(self, word_owner_id, player_id, cooldown_minutes=3):
+    def can_player_guess(self, word_owner_id, player_id, cooldown_minutes=600):
         """Check if a player can guess another player’s word based on cooldown"""
         player_times = self.get_player_times(word_owner_id)
         now = datetime.now(timezone.utc)
