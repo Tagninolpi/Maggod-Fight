@@ -331,7 +331,8 @@ class LetterInputModal(discord.ui.Modal, title="Guess a Letter"):
             return
 
         # ✅ Otherwise, announce the guess publicly instead of updating ephemeral
-        self.parent_view.stop()  # Close the old view to avoid reuse
+        # After sending the public message:
+        self.parent_view.stop()  # close view
         try:
             await interaction.message.delete()
         except Exception:
@@ -346,12 +347,21 @@ class LetterInputModal(discord.ui.Modal, title="Guess a Letter"):
                 f"💰 {guesser_user.display_name} earned **+{reward}**"
             )
 
-        await interaction.response.defer()  # prevents "interaction failed"
+        # DO NOT call original_response() here, just defer
+        try:
+            await interaction.response.defer()
+        except Exception:
+            pass
 
 
         # Save reference for deletion next time
         self.parent_view.cog.last_messages[user_id] = await interaction.original_response()
 
+        # With this
+        try:
+            await interaction.response.defer()  # mark as responded
+        except Exception:
+            pass
 
 async def setup(bot):
     await bot.add_cog(Hangman(bot))
