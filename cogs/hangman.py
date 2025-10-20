@@ -158,7 +158,13 @@ class PlayerWordButton(discord.ui.Button):
         if not data_text:
             await interaction.response.send_message("⚠️ That player has no word set.", ephemeral=True)
             return
-
+        can_play, remaining = self.manager.can_player_guess(self.player_id, self.user_id)
+        if not can_play:
+            await interaction.response.send_message(
+                f"⏳ You must wait **{remaining} more minutes** before guessing {interaction.user.display_name}'s word again.",
+                ephemeral=True
+            )
+            return
         view = LetterGuessView(self.player_id, data_text, self.bot, self.manager, self.cog, self.user_id)
         display_word = view.get_display_word()
         used_letters = view.get_used_letters()
@@ -248,7 +254,9 @@ class ChooseLetterButton(discord.ui.Button):
 
 
 class LetterInputModal(discord.ui.Modal, title="Guess a Letter"):
-    letter_input = discord.ui.TextInput(label="Enter a single letter", placeholder="A-Z", required=True, min_length=1, max_length=1)
+    letter_input = discord.ui.TextInput(
+        label="Enter a single letter", placeholder="A-Z", required=True, min_length=1, max_length=1
+    )
 
     def __init__(self, parent_view):
         super().__init__()
@@ -276,44 +284,60 @@ class LetterInputModal(discord.ui.Modal, title="Guess a Letter"):
         reward = 2000 if correct else 1000
         manager.update_balance(user_id, reward)
 
-        new_text = f"{word} : {''.join(self.parent_view.guessed_letters)}"
+        new_text = f"{word}:{''.join(self.parent_view.guessed_letters)}"
         manager.set_words(player_id, new_text)
 
         display_word = self.parent_view.get_display_word()
         used_letters = self.parent_view.get_used_letters()
-        user = await self.parent_view.bot.fetch_user(player_id)
+        player_user = await self.parent_view.bot.fetch_user(player_id)
+        guesser_user = await self.parent_view.bot.fetch_user(user_id)
+        
+        self.parent_view.manager.update_player_time(player_id, user_id)
 
-        # Delete old ephemeral message
+        # Delete old ephemeral message (failsafe)
         if user_id in self.parent_view.cog.last_messages:
             try:
                 await self.parent_view.cog.last_messages[user_id].delete()
             except Exception:
                 pass
 
-        # ✅ If completed
+        # ✅ If the word is completed
         if "_" not in display_word:
             manager.set_words(player_id, None)
             all_users = manager.get_balance(all=True)
+            participants = []
+
             for u in all_users:
-                if u["user_id"] == user_id or u["words"] not in (None, "", "none"):
+                if u["user_id"] == user_id or (u["words"] and u["words"] not in ("none", "")):
                     manager.update_balance(u["user_id"], 10000)
+                    user_obj = await self.parent_view.bot.fetch_user(u["user_id"])
+                    participants.append(user_obj.display_name)
+
+            # Stop the view and announce publicly
+            self.parent_view.stop()
+            try:
+                await interaction.message.delete()
+            except Exception:
+                pass
 
             if interaction.channel:
                 await interaction.channel.send(
-                    f"🎉 **{user.display_name}'s word was '{word.upper()}'!**\n"
-                    f"👏 Congratulations to everyone who participated!\n💰 Each helper earned **+10,000**!"
+                    f"🎉 **{player_user.display_name}'s word was `{word.upper()}`!**\n"
+                    f"👏 Congratulations to everyone who participated: {', '.join(participants)} 🎊\n"
+                    f"💰 Each helper earned **+10,000**!"
                 )
-            try:
-                await interaction.response.defer(ephemeral=True)
-            except Exception:
-                pass
             return
 
+        # ✅ Otherwise, update the ephemeral display
         await interaction.response.send_message(
-            f"🎯 **Guessing {user.display_name}'s word!**\n\n`{display_word}`\n\nUsed letters: `{used_letters}`\n💰 You earned **+{reward}**",
-            view=self.parent_view,
+            f"🎯 **Guessing {player_user.display_name}'s word!**\n\n"
+            f"`{display_word}`\n\nUsed letters: `{used_letters}`\n"
+            f"💰 **{guesser_user.display_name} earned +{reward}**",
             ephemeral=True,
+            view=self.parent_view
         )
+
+        # Save reference for deletion next time
         self.parent_view.cog.last_messages[user_id] = await interaction.original_response()
 
 
