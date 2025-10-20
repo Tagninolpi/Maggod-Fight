@@ -291,7 +291,7 @@ class LetterInputModal(discord.ui.Modal, title="Guess a Letter"):
         used_letters = self.parent_view.get_used_letters()
         player_user = await self.parent_view.bot.fetch_user(player_id)
         guesser_user = await self.parent_view.bot.fetch_user(user_id)
-        
+
         self.parent_view.manager.update_player_time(player_id, user_id)
 
         # Delete old ephemeral message (failsafe)
@@ -328,14 +328,24 @@ class LetterInputModal(discord.ui.Modal, title="Guess a Letter"):
                 )
             return
 
-        # ✅ Otherwise, update the ephemeral display
-        await interaction.response.send_message(
-            f"🎯 **Guessing {player_user.display_name}'s word!**\n\n"
-            f"`{display_word}`\n\nUsed letters: `{used_letters}`\n"
-            f"💰 **{guesser_user.display_name} earned +{reward}**",
-            ephemeral=True,
-            view=self.parent_view
-        )
+        # ✅ Otherwise, announce the guess publicly instead of updating ephemeral
+        self.parent_view.stop()  # Close the old view to avoid reuse
+        try:
+            await interaction.message.delete()
+        except Exception:
+            pass
+
+        if interaction.channel:
+            await interaction.channel.send(
+                f"🔠 **{guesser_user.display_name}** guessed `{letter.upper()}` "
+                f"in **{player_user.display_name}**'s word!\n\n"
+                f"🧩 `{display_word}`\n\n"
+                f"🔤 Used letters: `{used_letters}`\n"
+                f"💰 {guesser_user.display_name} earned **+{reward}**"
+            )
+
+        await interaction.response.defer()  # prevents "interaction failed"
+
 
         # Save reference for deletion next time
         self.parent_view.cog.last_messages[user_id] = await interaction.original_response()
