@@ -44,7 +44,19 @@ class MoneyManager:
         new_balance = current_balance + amount
         self.set_balance(user_id, new_balance, words=words)
         return new_balance
+        # ----------------- ADMIN -----------------
+    def delete_database(self):
+        self.client.table("money").delete().neq("user_id", 0).execute()
 
+    def reset_currency(self):
+        all_users = self.get_balance(all=True)
+        for user in all_users:
+            self.client.table("money").update({
+                "balance": 0,
+                "words": "reset",
+                "player_time": "",
+                "time": datetime.now(timezone.utc).isoformat()
+            }).eq("user_id", user["user_id"]).execute()
     # ----------------- WORDS -----------------
     def get_words(self, user_id):
         data = self.client.table("money").select("words").eq("user_id", user_id).execute()
@@ -59,82 +71,41 @@ class MoneyManager:
         }).eq("user_id", user_id).execute()
 
     # ----------------- PLAYER_TIME -----------------
-    def get_player_time(self, user_id):
-        """Return the raw 'player_time' string for a given player."""
-        data = self.client.table("money").select("player_time").eq("user_id", user_id).execute()
-        if data.data and data.data[0].get("player_time"):
-            return data.data[0]["player_time"]
-        return ""
-
-    def set_player_time(self, user_id, player_time_str: str):
-        """Overwrite the entire 'player_time' field with a new string."""
-        self.client.table("money").update({
-            "player_time": player_time_str,
-            "time": datetime.now(timezone.utc).isoformat()
-        }).eq("user_id", user_id).execute()
 
     def add_player_guess_time(self, target_user_id, guesser_id):
         """
-        Update or add a 'guesser:timestamp' entry in target user's player_time.
+        Update or add a 'guesser/timestamp' entry in target user's player_time.
         If the player already exists, update the timestamp. Otherwise, add a new entry.
+        Stored format: playerid/time!playerid/time...
         """
-        # Get current player times as a dict {player_id: datetime}
         player_times = self.get_player_times(target_user_id)
-
-        # Update or add the guesser's timestamp
         player_times[guesser_id] = datetime.now(timezone.utc)
+        self.set_player_times(target_user_id, player_times)
 
-        # Convert back to string format for storage
-        text = ";".join(f"{pid}:{t.isoformat()}" for pid, t in player_times.items())
-
-        # Update DB
-        self.client.table("money").update({
-            "player_time": text,
-            "time": datetime.now(timezone.utc).isoformat()
-        }).eq("user_id", target_user_id).execute()
-
-    # ----------------- ADMIN -----------------
-    def delete_database(self):
-        self.client.table("money").delete().neq("user_id", 0).execute()
-
-    def reset_currency(self):
-        all_users = self.get_balance(all=True)
-        for user in all_users:
-            self.client.table("money").update({
-                "balance": 0,
-                "words": "reset",
-                "player_time": "",
-                "time": datetime.now(timezone.utc).isoformat()
-            }).eq("user_id", user["user_id"]).execute()
-    
     def get_player_times(self, user_id):
-        """Return dict of {player_id: datetime} for the given user's word"""
+        """
+        Return dict of {player_id: datetime} for the given user's word.
+        Expects storage format: "playerid/time!playerid/time!..."
+        """
         data = self.client.table("money").select("player_time").eq("user_id", user_id).execute()
         if not data.data or not data.data[0].get("player_time"):
             return {}
         text = data.data[0]["player_time"]
-        pairs = [p for p in text.split(";") if p.strip()]
+        pairs = [p for p in text.split("!") if p.strip()]
         result = {}
         for pair in pairs:
             try:
-                pid, t = pair.split(":")
+                pid, t = pair.split("/")
                 t = t.replace("Z", "+00:00")  # ensure UTC parsing works
                 result[int(pid)] = datetime.fromisoformat(t)
             except Exception:
                 continue
         return result
 
-
     def set_player_times(self, user_id, player_times):
-        """player_times is a dict {player_id: datetime}"""
-        text = ";".join(f"{pid}:{t.isoformat()}" for pid, t in player_times.items())
+        """player_times is a dict {player_id: datetime}, stored as 'playerid/time!playerid/time'"""
+        text = "!".join(f"{pid}/{t.isoformat()}" for pid, t in player_times.items())
         self.client.table("money").update({"player_time": text}).eq("user_id", user_id).execute()
-
-    def update_player_time(self, word_owner_id, player_id):
-        """Set or update one player's cooldown time"""
-        player_times = self.get_player_times(word_owner_id)
-        player_times[player_id] = datetime.now(timezone.utc)
-        self.set_player_times(word_owner_id, player_times)
 
     def can_player_guess(self, word_owner_id, player_id, cooldown_minutes=5):
         """Check if a player can guess another player’s word based on cooldown"""
