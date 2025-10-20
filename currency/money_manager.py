@@ -88,6 +88,7 @@ class MoneyManager:
             "time": now
         }).eq("user_id", target_user_id).execute()
 
+
     # ----------------- ADMIN -----------------
     def delete_database(self):
         self.client.table("money").delete().neq("user_id", 0).execute()
@@ -113,10 +114,12 @@ class MoneyManager:
         for pair in pairs:
             try:
                 pid, t = pair.split(":")
+                t = t.replace("Z", "+00:00")  # ensure UTC parsing works
                 result[int(pid)] = datetime.fromisoformat(t)
             except Exception:
                 continue
         return result
+
 
     def set_player_times(self, user_id, player_times):
         """player_times is a dict {player_id: datetime}"""
@@ -133,11 +136,14 @@ class MoneyManager:
         """Check if a player can guess another player’s word based on cooldown"""
         player_times = self.get_player_times(word_owner_id)
         now = datetime.now(timezone.utc)
-        if player_id not in player_times:
+
+        last_time = player_times.get(player_id)
+        if last_time is None:
             return True, 0
-        last_time = player_times[player_id]
+
         elapsed = (now - last_time).total_seconds() / 60
         if elapsed >= cooldown_minutes:
             return True, 0
         else:
             return False, round(cooldown_minutes - elapsed, 1)
+

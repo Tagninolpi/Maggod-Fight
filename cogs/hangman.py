@@ -292,7 +292,9 @@ class LetterInputModal(discord.ui.Modal, title="Guess a Letter"):
         player_user = await self.parent_view.bot.fetch_user(player_id)
         guesser_user = await self.parent_view.bot.fetch_user(user_id)
 
-        self.parent_view.manager.update_player_time(player_id, user_id)
+        # Record the guess in the cooldown system
+        self.parent_view.manager.add_player_guess_time(player_id, user_id)
+
 
         # Delete old ephemeral message (failsafe)
         if user_id in self.parent_view.cog.last_messages:
