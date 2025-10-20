@@ -161,7 +161,7 @@ class PlayerWordButton(discord.ui.Button):
         can_play, remaining = self.manager.can_player_guess(self.player_id, self.user_id)
         if not can_play:
             await interaction.response.send_message(
-                f"⏳ You must wait **{remaining} more minutes** before guessing {interaction.user.display_name}'s word again.",
+                f"⏳ You must wait **{remaining} more minutes** before guessing {self.player_id.display_name}'s word again.",
                 ephemeral=True
             )
             return
