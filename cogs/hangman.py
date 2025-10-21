@@ -230,16 +230,19 @@ class LetterGuessView(discord.ui.View):
 
         if ":" in data_text:
             word_part, guessed_part = data_text.split(":", 1)
-            self.word = word_part.strip().lower()
+            self.word = word_part.strip()
             self.guessed_letters = list(guessed_part.strip().lower())
         else:
-            self.word = data_text.strip().lower()
+            self.word = data_text.strip()
             self.guessed_letters = []
 
         self.add_item(ChooseLetterButton(self))
 
     def get_display_word(self):
-        return " ".join(ch.upper() if ch.lower() in self.guessed_letters else "_" if ch != " " else " " for ch in self.word)
+        return " ".join(
+        ch if ch.lower() in self.guessed_letters or ch == " " else "_"
+        for ch in self.word
+    )
 
     def get_used_letters(self):
         return " ".join(sorted(self.guessed_letters))
@@ -273,14 +276,16 @@ class LetterInputModal(discord.ui.Modal, title="Guess a Letter"):
         self.parent_view = parent_view
 
     async def on_submit(self, interaction: discord.Interaction):
-        letter = self.letter_input.value.lower()
+        letter = self.letter_input.value
         if not re.fullmatch(r"[a-z]", letter):
             await interaction.response.send_message("❌ Invalid input! Enter a single letter A-Z.", ephemeral=True)
             return
 
-        if letter in self.parent_view.guessed_letters:
+        letter_lower = letter.lower()
+
+        if letter_lower in self.parent_view.guessed_letters:
             await interaction.response.send_message(
-                f"⚠️ Letter `{letter.upper()}` already used: `{self.parent_view.get_used_letters()}`", ephemeral=True
+                f"⚠️ Letter `{letter}` already used: `{self.parent_view.get_used_letters()}`", ephemeral=True
             )
             return
 
@@ -290,7 +295,7 @@ class LetterInputModal(discord.ui.Modal, title="Guess a Letter"):
         player_id = self.parent_view.player_id
         manager = self.parent_view.manager
 
-        correct = letter in word
+        correct = any(ch.lower() == letter_lower for ch in word)
         reward = 2000 if correct else 1000
         manager.update_balance(user_id, reward)
 
@@ -334,7 +339,7 @@ class LetterInputModal(discord.ui.Modal, title="Guess a Letter"):
 
             if interaction.channel:
                 await interaction.channel.send(
-                    f"🎉 **{player_user.display_name}'s word was `{word.upper()}`!**\n"
+                    f"🎉 **{player_user.display_name}'s word was `{word}`!**\n"
                     f"👏 Congratulations to everyone who participated: {', '.join(participants)} 🎊\n"
                     f"💰 Each helper earned **+10,000**!"
                 )
