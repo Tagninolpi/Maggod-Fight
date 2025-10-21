@@ -91,6 +91,16 @@ class PlayButton(discord.ui.Button):
 
     async def callback(self, interaction: discord.Interaction):
         user_id = interaction.user.id
+                # Prevent players who have not made a word from guessing
+        player_data = self.manager.get_balance(user_id)
+        player_word = player_data.get("words") if isinstance(player_data, dict) else None
+        if not player_word or player_word.lower() in ("none", ""):
+            await interaction.response.send_message(
+                "❌ You must first **create your own word** before guessing others'!",
+                ephemeral=True
+            )
+            return
+
         all_players = self.manager.get_balance(all=True)
         valid_players = [
             u for u in all_players if u.get("words") not in (None, "", "none") and u["user_id"] != user_id
