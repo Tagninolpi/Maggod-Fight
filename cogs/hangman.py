@@ -343,6 +343,10 @@ class LetterInputModal(discord.ui.Modal, title="Guess a Letter"):
                     f"👏 Congratulations to everyone who participated: {', '.join(participants)} 🎊\n"
                     f"💰 Each helper earned **+10,000**!"
                 )
+                   # 🧩 Follow-up reminder for the player to make a new word
+                await interaction.channel.send(
+                    f"📝 {player_user.mention}, please **create a new word or sentence** using `/hangman` ➕"
+                )
             return
 
         # ✅ Otherwise, announce the guess publicly instead of updating ephemeral
