@@ -277,7 +277,7 @@ class LetterInputModal(discord.ui.Modal, title="Guess a Letter"):
 
     async def on_submit(self, interaction: discord.Interaction):
         letter = self.letter_input.value
-        if not re.fullmatch(r"[a-z]", letter):
+        if not re.fullmatch(r"[a-z]", letter,re.IGNORECASE):
             await interaction.response.send_message("❌ Invalid input! Enter a single letter A-Z.", ephemeral=True)
             return
 
