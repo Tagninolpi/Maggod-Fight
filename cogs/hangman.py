@@ -358,13 +358,16 @@ class LetterInputModal(discord.ui.Modal, title="Guess a Letter"):
             pass
 
         if interaction.channel:
+            correctness = "✅ Correct!" if correct else "❌ Incorrect!"
             await interaction.channel.send(
                 f"🔠 **{guesser_user.display_name}** guessed `{letter.upper()}` "
-                f"in **{player_user.display_name}**'s word!\n\n"
-                f"🧩 `{display_word}`\n\n"
+                f"in **{player_user.display_name}**'s word!\n"
+                f"{correctness}\n\n"
+                f"🧩 Current word: `{display_word}`\n"
                 f"🔤 Used letters: `{used_letters}`\n"
                 f"💰 {guesser_user.display_name} earned **+{reward}**"
             )
+
 
         # DO NOT call original_response() here, just defer
         try:
