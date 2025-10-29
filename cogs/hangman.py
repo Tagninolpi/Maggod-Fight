@@ -303,7 +303,7 @@ class LetterInputModal(discord.ui.Modal, title="Guess a Letter"):
         manager.set_words(player_id, new_text)
 
         display_word = "".join(
-            ch if ch.lower() in [g.lower() for g in self.parent_view.guessed_letters] else "_"
+            ch if ch == " " or ch.lower() in [g.lower() for g in self.parent_view.guessed_letters] else "_"
             for ch in word
         )
         used_letters = self.parent_view.get_used_letters()
