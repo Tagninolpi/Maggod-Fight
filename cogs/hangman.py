@@ -302,7 +302,10 @@ class LetterInputModal(discord.ui.Modal, title="Guess a Letter"):
         new_text = f"{word}:{''.join(self.parent_view.guessed_letters)}"
         manager.set_words(player_id, new_text)
 
-        display_word = self.parent_view.get_display_word()
+        display_word = "".join(
+            ch if ch.lower() in [g.lower() for g in self.parent_view.guessed_letters] else "_"
+            for ch in word
+        )
         used_letters = self.parent_view.get_used_letters()
         player_user = await self.parent_view.bot.fetch_user(player_id)
         guesser_user = await self.parent_view.bot.fetch_user(user_id)
