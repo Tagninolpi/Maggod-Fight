@@ -310,13 +310,13 @@ class LetterInputModal(discord.ui.Modal, title="Guess a Letter"):
             )
             return
 
-        self.parent_view.guessed_letters.append(letter)
+        self.parent_view.guessed_letters.append(letter_lower)
         word = self.parent_view.word
         user_id = self.parent_view.user_id
         player_id = self.parent_view.player_id
         manager = self.parent_view.manager
 
-        correct = correct = any(normalize_letter(ch) == letter_lower for ch in word)
+        correct = any(normalize_letter(ch) == letter_lower for ch in word)
         reward = 2000 if correct else 1000
         manager.update_balance(user_id, reward)
 
@@ -324,9 +324,10 @@ class LetterInputModal(discord.ui.Modal, title="Guess a Letter"):
         manager.set_words(player_id, new_text)
 
         display_word = "".join(
-            ch if ch == " " or ch.lower() in [g.lower() for g in self.parent_view.guessed_letters] else "_"
-            for ch in word
-        )
+    ch if ch == " " or normalize_letter(ch) in self.parent_view.guessed_letters else "_"
+    for ch in word
+)
+
         used_letters = self.parent_view.get_used_letters()
         player_user = await self.parent_view.bot.fetch_user(player_id)
         guesser_user = await self.parent_view.bot.fetch_user(user_id)
