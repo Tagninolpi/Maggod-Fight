@@ -208,10 +208,13 @@ class WordModal(discord.ui.Modal, title="Create Your Hangman Word"):
 
     async def on_submit(self, interaction: discord.Interaction):
         word = str(self.word_input.value).strip()
-        if not re.fullmatch(r"[A-Za-z ]+", word):
-            await interaction.response.send_message("❌ Invalid word! Use letters A-Z only.", ephemeral=True)
-            await interaction.followup.send_modal(WordModal(self.manager, self.cog, self.user_id))
+        if not re.fullmatch(r"[A-Za-zÀ-ÖØ-öø-ÿẞß ]+", word):
+            await interaction.response.send_message(
+                "❌ Invalid word! Use only standard or accented Latin letters (A-Z, é, ö, ß, etc.).",
+                ephemeral=True
+            )
             return
+
 
         self.manager.set_words(self.user_id, f"{word} : ")
         self.manager.update_balance(self.user_id, 500)  # ✅ reward for creating a word
@@ -239,10 +242,11 @@ class LetterGuessView(discord.ui.View):
         self.add_item(ChooseLetterButton(self))
 
     def get_display_word(self):
-        return " ".join(
-        ch if ch.lower() in self.guessed_letters or ch == " " else "_"
+         return " ".join(
+        ch if normalize_letter(ch) in self.guessed_letters or ch == " " else "_"
         for ch in self.word
     )
+
 
     def get_used_letters(self):
         return " ".join(sorted(self.guessed_letters))
@@ -265,6 +269,23 @@ class ChooseLetterButton(discord.ui.Button):
     async def callback(self, interaction: discord.Interaction):
         await interaction.response.send_modal(LetterInputModal(self.parent_view))
 
+def normalize_letter(letter: str) -> str:
+    """Return a normalized lowercase ASCII base for accented letters."""
+    replacements = {
+        "a": ["a", "à", "á", "â", "ä", "ã", "å", "ā"],
+        "c": ["c", "ç"],
+        "e": ["e", "è", "é", "ê", "ë", "ē"],
+        "i": ["i", "ì", "í", "î", "ï", "ī"],
+        "o": ["o", "ò", "ó", "ô", "ö", "õ", "ø", "ō"],
+        "u": ["u", "ù", "ú", "û", "ü", "ū"],
+        "y": ["y", "ÿ", "ý"],
+        "s": ["s", "ß"],
+        "n": ["n", "ñ"],
+    }
+    for base, variants in replacements.items():
+        if letter.lower() in variants:
+            return base
+    return letter.lower()
 
 class LetterInputModal(discord.ui.Modal, title="Guess a Letter"):
     letter_input = discord.ui.TextInput(
@@ -277,9 +298,13 @@ class LetterInputModal(discord.ui.Modal, title="Guess a Letter"):
 
     async def on_submit(self, interaction: discord.Interaction):
         letter = self.letter_input.value
-        if not re.fullmatch(r"[a-z]", letter,re.IGNORECASE):
-            await interaction.response.send_message("❌ Invalid input! Enter a single letter A-Z.", ephemeral=True)
+        letter = self.letter_input.value
+        if not re.fullmatch(r"[A-Za-zÀ-ÖØ-öø-ÿẞß]", letter):
+            await interaction.response.send_message("❌ Invalid input! Enter a single valid letter.", ephemeral=True)
             return
+
+        letter_lower = normalize_letter(letter)
+
 
         letter_lower = letter.lower()
 
@@ -295,7 +320,7 @@ class LetterInputModal(discord.ui.Modal, title="Guess a Letter"):
         player_id = self.parent_view.player_id
         manager = self.parent_view.manager
 
-        correct = any(ch.lower() == letter_lower for ch in word)
+        correct = correct = any(normalize_letter(ch) == letter_lower for ch in word)
         reward = 2000 if correct else 1000
         manager.update_balance(user_id, reward)
 
