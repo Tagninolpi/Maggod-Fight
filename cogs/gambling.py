@@ -414,7 +414,8 @@ class Gambling(commands.Cog):
         channel_id = channel.id
         from currency.money_manager import MoneyManager
         money_manager = MoneyManager()
-        wealth = money_manager.get_balance(user_id=match.player1_id)
+        wealth_data = money_manager.get_balance(user_id=match.player1_id)
+        wealth = wealth_data["balance"]
         if wealth<100:
             wealth =100
         view = GamblingView(interaction.user, wealth)
