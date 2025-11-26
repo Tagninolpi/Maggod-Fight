@@ -595,7 +595,7 @@ class Turn(commands.Cog):
                 gain *= 1
             elif match.bot_type == "worst_bot":
                 gain *= 0.5
-            elif match.bot_type == "bot_overloard":
+            elif match.bot_type == "best_bot":
                 gain *= 2
             else:
                 gain *= 5
