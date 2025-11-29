@@ -319,6 +319,7 @@ class BotClass:
         for g in self.ctx.select:
             if "charon_invisible_duration" in g.effects:
                 if len(self.ctx.select)==1:
+                    self.true_dmg_list.clear()
                     return g
                 total_received = 0
             else:
