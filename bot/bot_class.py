@@ -318,6 +318,8 @@ class BotClass:
         # Check which gods can be instakilled
         for g in self.ctx.select:
             if "charon_invisible_duration" in g.effects:
+                if len(self.ctx.select)==1:
+                    return g
                 total_received = 0
             else:
                 total_received = sum([g.get_dmg(d, False) for d in self.true_dmg_list])
