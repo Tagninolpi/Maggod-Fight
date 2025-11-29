@@ -27,18 +27,21 @@ class Config:
 
     # Game Settings
     LOBBY_CATEGORY_NAME = "Maggod Gaming"
-    LOBBY_CATEGORY_ID = 1407088161364115682
+    LOBBY_CATEGORY_ID = [1407088161364115682,1444237534979817653]
 
+    ANNOUNCE_GUILD_ID = 1096028646323527740
                             # me
     ALLOWED_PLAYER_IDS = [1360749637299998870,1126876428915449958,1314290931314200690] # allowed to use /create /delete (lobby)
     allowed_channel_id = 1407094327573872723# channel to use /create /delete (lobby)
     ANNOUNCE_CHANNEL_ID = 1407094852709253302 # channel to annouce that the bot is online
     OWNER_ID = 1360749637299998870 # id of player that is pinged when bot is online
 
+
+
     coin = "<:maggot_coin:1281718478054887476>"
 
     #arcade games
-    ARCADE_CHANNELS_IDS = [1096043268669702225,1281729821503914106]
+    ARCADE_CHANNELS_IDS = [1096043268669702225,1281729821503914106,1444237753574228080,1444237810730008596]
 
     @classmethod
     def validate(cls):

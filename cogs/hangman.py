@@ -22,7 +22,7 @@ class Hangman(commands.Cog):
             await interaction.response.send_message("❌ Use this command in a text channel.", ephemeral=True)
             return
 
-        if not channel.category or channel.category.id != Config.LOBBY_CATEGORY_ID:
+        if not channel.category or not(channel.category.id in Config.LOBBY_CATEGORY_ID):
             await interaction.response.send_message(
                 f"❌ Use this in `{Config.LOBBY_CATEGORY_NAME}` channel.", ephemeral=True
             )

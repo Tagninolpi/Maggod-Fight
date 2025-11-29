@@ -26,7 +26,7 @@ class Balance(commands.Cog):
                 await interaction.followup.send("❌ This command must be used in a text channel.", ephemeral=True)
                 return
 
-            if not channel.category or channel.category.id != Config.LOBBY_CATEGORY_ID:
+            if not channel.category or not(channel.category.id in Config.LOBBY_CATEGORY_ID):
                 await interaction.followup.send(
                     f"❌ You must use this command in a `{Config.LOBBY_CATEGORY_NAME}` channel.",
                     ephemeral=True

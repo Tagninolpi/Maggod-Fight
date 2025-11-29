@@ -115,12 +115,19 @@ class MaggodFightBot(commands.Bot):
         await self.change_presence(activity=activity)
         # Announce bot online
         try:
-            channel = self.get_channel(Config.ANNOUNCE_CHANNEL_ID)
+            await self.bot.wait_until_ready()
+
+            guild = self.bot.get_guild(Config.ANNOUNCE_GUILD_ID)
+            if guild is None:
+                logger.error(f"Bot is not in ANNOUNCE_GUILD_ID: {Config.ANNOUNCE_GUILD_ID}")
+                return
+
+            channel = guild.get_channel(Config.ANNOUNCE_CHANNEL_ID)
             if channel:
                 await channel.send(f"<@{Config.OWNER_ID}>✅ **Maggod Fight Bot is now online!**")
             else:
-                logger.error(f"Invalid ANNOUNCE_CHANNEL_ID: {Config.ANNOUNCE_CHANNEL_ID} "
-                            f"(not a TextChannel)")
+                logger.error("Invalid ANNOUNCE_CHANNEL_ID for that guild.")
+
         except Exception as e:
             logger.error(f"Failed to send online message: {e}")
 
