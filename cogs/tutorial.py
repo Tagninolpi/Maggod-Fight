@@ -34,7 +34,7 @@ class TutorialCog(commands.Cog):
             )
             return
 
-        if interaction.channel.id != Config.allowed_channel_id:
+        if not interaction.channel.id in Config.allowed_channel_id:
             await interaction.response.send_message(
                 "❌ You can't use this command here.",
                 ephemeral=True
