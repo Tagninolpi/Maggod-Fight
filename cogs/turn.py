@@ -121,11 +121,11 @@ def create_team_embeds(team1: list, team2: list, player1_name: str, player2_name
             )
             raw_max_hp = str(god.max_hp)
             max_hp_str = bold_digits(raw_max_hp) if is_hp_boosted else raw_max_hp
-            hp_numbers.append(pad(hp_str + max_hp_str))
+            hp_numbers.append(pad(hp_str + max_hp_str, col_width))
             hp_icons.append(pad(get_hp_boost_icon(god) + get_shield(god)))
 
             # DMG line
-            dmg_numbers.append(pad(str(god.dmg)))
+            dmg_numbers.append(pad(str(god.dmg), col_width))
             dmg_icons.append(pad(get_dmg_boost(god)))
 
             # Status lines
