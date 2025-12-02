@@ -321,6 +321,21 @@ class BuildTeam(commands.Cog):
             if channel.id in matchmaking_dict:
                 del matchmaking_dict[channel.id]
             return None
+        
+         # 📱 Ask user what view mode they want (normal or compact)
+        view_mode = ViewModeSelection(match, initiator_id=interaction.user.id)
+        await interaction.followup.send(
+            "📱 **Choose your display mode:**\n"
+            "• **Normal View** – for PC / tablets / phone landscape mode\n"
+            "• **Small View** – for phones users who can't rotate their screen",
+            view=view_mode
+        )
+
+        try:
+            await asyncio.wait_for(view_mode.choice_made.wait(), timeout=300)
+        except asyncio.TimeoutError:
+            await interaction.followup.send("⏱️ View mode selection timed out. Defaulting to **Normal View**.")
+            match.compact_mode = False
   
         # Check if Gambling was chosen
         if match.game_phase == "gambling":
@@ -332,20 +347,6 @@ class BuildTeam(commands.Cog):
         
         # ✅ If solo mode, also ask for bot difficulty (initiator only)
         if match.solo_mode:
-            # 📱 Ask user what view mode they want (normal or compact)
-            view_mode = ViewModeSelection(match, initiator_id=interaction.user.id)
-            await interaction.followup.send(
-                "📱 **Choose your display mode:**\n"
-                "• **Normal View** – for PC / tablets / phone landscape mode\n"
-                "• **Small View** – for phones users who can't rotate their screen",
-                view=view_mode
-            )
-
-            try:
-                await asyncio.wait_for(view_mode.choice_made.wait(), timeout=300)
-            except asyncio.TimeoutError:
-                await interaction.followup.send("⏱️ View mode selection timed out. Defaulting to **Normal View**.")
-                match.compact_mode = False
 
             difficulty_view = BotDifficultyView(match, initiator_id=interaction.user.id)
             embed = discord.Embed(
