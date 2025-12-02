@@ -220,9 +220,9 @@ class GodSelectionView(discord.ui.View):
     def make_button(self, god: God):
         # Truncate and pad name to exactly 11 characters
         if self.compact:
-            label = god.name[:4].ljust(6, " ")
+            label = god.name[:4].ljust(4, " ")
         else:
-            label = god.name[:11].ljust(11, " ")
+            label = god.name[:10].ljust(10, " ")
 
         button = discord.ui.Button(label=label, style=discord.ButtonStyle.primary)
 
@@ -246,7 +246,7 @@ class GodSelectionView(discord.ui.View):
 
     def make_placeholder(self):
         # Create placeholder with same width as buttons
-        label = "-" * (6 if self.compact else 11)
+        label = "-" * (4 if self.compact else 10)
         return discord.ui.Button(label=label, style=discord.ButtonStyle.secondary, disabled=True)
 
 
