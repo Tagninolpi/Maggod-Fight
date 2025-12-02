@@ -17,7 +17,7 @@ from currency.money_manager import MoneyManager
 
 logger = logging.getLogger(__name__)
 
-def create_team_embeds(team1: list, team2: list, player1_name: str, player2_name: str,action_text: str,allowed,player1_id:int) -> list[discord.Embed]:
+def create_team_embeds(team1: list, team2: list, player1_name: str, player2_name: str,action_text: str,allowed,player1_id:int,compact: bool = False) -> list[discord.Embed]:
 
 
     def visual_len(s: str) -> int:
@@ -89,7 +89,16 @@ def create_team_embeds(team1: list, team2: list, player1_name: str, player2_name
         return " ".join(icons)
 
     def format_team(team: list) -> str:
-        names = [pad(god.name[:10]) for god in team]
+        if compact:
+            # shorter name, narrower column
+            max_name = 4
+            col_width = 6
+        else:
+            max_name = 10
+            col_width = 11
+
+        names = [pad(god.name[:max_name], col_width) for god in team]
+
 
         def bold_digits(s: str) -> str:
             return s.translate(str.maketrans("0123456789", "𝟬𝟭𝟮𝟯𝟰𝟱𝟲𝟳𝟴𝟵"))
@@ -120,8 +129,8 @@ def create_team_embeds(team1: list, team2: list, player1_name: str, player2_name
             dmg_icons.append(pad(get_dmg_boost(god)))
 
             # Status lines
-            states.append(pad("❤️" if god.alive else "💀", 11))
-            visions.append(pad("👁️" if god.visible else "👻", 11))
+            states.append(pad("❤️" if god.alive else "💀", col_width))
+            visions.append(pad("👁️" if god.visible else "👻", col_width))
 
         misc_effects_line = "".join(pad(get_misc_effects_icons(god)) for god in team)
 
@@ -195,10 +204,12 @@ def create_team_embeds(team1: list, team2: list, player1_name: str, player2_name
     
 
 class GodSelectionView(discord.ui.View):
-    def __init__(self, all_gods: list[God], selectable_gods: list[God], allowed_user: int, team_1):
+    def __init__(self, all_gods: list[God], selectable_gods: list[God], allowed_user: int, team_1,compact):
         super().__init__(timeout=300)
         self.allowed_user = allowed_user
         self.selected_god = None
+        self.compact = compact
+
 
         for god in team_1:
             if god in selectable_gods:
@@ -208,7 +219,11 @@ class GodSelectionView(discord.ui.View):
 
     def make_button(self, god: God):
         # Truncate and pad name to exactly 11 characters
-        label = god.name[:11].ljust(11, " ")
+        if self.compact:
+            label = god.name[:4].ljust(6, " ")
+        else:
+            label = god.name[:11].ljust(11, " ")
+
         button = discord.ui.Button(label=label, style=discord.ButtonStyle.primary)
 
         async def callback(interaction: discord.Interaction):
@@ -231,7 +246,7 @@ class GodSelectionView(discord.ui.View):
 
     def make_placeholder(self):
         # Create placeholder with same width as buttons
-        label = "-" * 11
+        label = "-" * (6 if self.compact else 11)
         return discord.ui.Button(label=label, style=discord.ButtonStyle.secondary, disabled=True)
 
 
@@ -267,11 +282,13 @@ class Turn(commands.Cog):
 )
            return selected
         
-        # Create embeds showing team status
-        embeds = create_team_embeds(team1, team2, match.player1_name, match.player2_name,action_text,allowed_user,match.player1_id)
+        compact = match.compact_mode
+
+       # Create embeds showing team status
+        embeds = create_team_embeds(team1, team2, match.player1_name, match.player2_name,action_text,allowed_user,match.player1_id,compact=compact)
         
         # Create selection view
-        view = GodSelectionView(all_gods= team1 + team2,selectable_gods=selectable_gods, allowed_user=allowed_user,team_1=team1)
+        view = GodSelectionView(all_gods= team1 + team2,selectable_gods=selectable_gods, allowed_user=allowed_user,team_1=team1,compact=compact)
 
         # Send the embed with the view
         msg = await channel.send(embeds=embeds, view=view)
