@@ -76,6 +76,46 @@ class StartChoiceView(discord.ui.View):
             self.choice_made.set()
             self.stop()
 
+class ViewModeSelection(discord.ui.View):
+    def __init__(self, match, initiator_id, timeout=300):
+        super().__init__(timeout=timeout)
+        self.match = match
+        self.initiator_id = initiator_id
+        self.choice_made = asyncio.Event()
+
+    async def interaction_check(self, interaction: discord.Interaction) -> bool:
+        if interaction.user.id != self.initiator_id:
+            await interaction.response.send_message(
+                "❌ Only the player who started the game can choose the view mode.",
+                ephemeral=True
+            )
+            return False
+        return True
+
+    def disable_all(self):
+        for child in self.children:
+            child.disabled = True
+
+    @discord.ui.button(label="Normal View", style=discord.ButtonStyle.green)
+    async def normal_view(self, interaction: discord.Interaction, button: discord.ui.Button):
+        self.match.compact_mode = False
+        self.disable_all()
+        await interaction.response.edit_message(
+            content="🖥️ **Normal View enabled!**", view=self
+        )
+        self.choice_made.set()
+        self.stop()
+
+    @discord.ui.button(label="Small View (Phone)", style=discord.ButtonStyle.blurple)
+    async def small_view(self, interaction: discord.Interaction, button: discord.ui.Button):
+        self.match.compact_mode = True
+        self.disable_all()
+        await interaction.response.edit_message(
+            content="📱 **Small Phone View enabled!**", view=self
+        )
+        self.choice_made.set()
+        self.stop()
+
 
 class BotDifficultyView(discord.ui.View):
     """View for choosing bot difficulty when in solo mode."""
@@ -292,6 +332,21 @@ class BuildTeam(commands.Cog):
         
         # ✅ If solo mode, also ask for bot difficulty (initiator only)
         if match.solo_mode:
+            # 📱 Ask user what view mode they want (normal or compact)
+            view_mode = ViewModeSelection(match, initiator_id=interaction.user.id)
+            await interaction.followup.send(
+                "📱 **Choose your display mode:**\n"
+                "• **Normal View** – for PC / tablets / phone landscape mode\n"
+                "• **Small View** – for phones users who can't rotate their screen",
+                view=view_mode
+            )
+
+            try:
+                await asyncio.wait_for(view_mode.choice_made.wait(), timeout=300)
+            except asyncio.TimeoutError:
+                await interaction.followup.send("⏱️ View mode selection timed out. Defaulting to **Normal View**.")
+                match.compact_mode = False
+
             difficulty_view = BotDifficultyView(match, initiator_id=interaction.user.id)
             embed = discord.Embed(
                 title="🤖 Choose the Bot Difficulty",

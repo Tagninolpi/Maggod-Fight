@@ -54,7 +54,7 @@ class Match:
         self.gamb_bet = 0
         self.gamb_gain = 0
 
-        self.compact_mode = True # whether to use compact display mode
+        self.compact_mode = False # whether to use compact display mode
 
 class MaggodFightBot(commands.Bot):
     """Main bot class for Maggod Fight."""
