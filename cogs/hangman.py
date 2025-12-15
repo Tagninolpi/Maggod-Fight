@@ -279,12 +279,15 @@ class GuessWordModal(discord.ui.Modal, title="Guess the Word"):
         self.parent_view = parent_view
 
         word_len = len(parent_view.word)
+
         self.word_input = discord.ui.TextInput(
-            label=f"Enter the full word ({word_len} characters, spaces included)",
+            label="Enter the full word",
+            placeholder=f"{word_len} characters required (spaces included)",
             min_length=word_len,
             max_length=word_len,
             required=True
-    )
+        )
+
 
         self.add_item(self.word_input)
 
