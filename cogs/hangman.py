@@ -278,13 +278,14 @@ class GuessWordModal(discord.ui.Modal, title="Guess the Word"):
         super().__init__()
         self.parent_view = parent_view
 
-        clean_word = parent_view.word.replace(" ", "")
+        word_len = len(parent_view.word)
         self.word_input = discord.ui.TextInput(
-            label=f"Enter the full word ({len(clean_word)} letters)",
-            min_length=len(clean_word),
-            max_length=len(clean_word),
+            label=f"Enter the full word ({word_len} characters, spaces included)",
+            min_length=word_len,
+            max_length=word_len,
             required=True
-        )
+    )
+
         self.add_item(self.word_input)
 
     async def on_submit(self, interaction: discord.Interaction):
@@ -292,8 +293,10 @@ class GuessWordModal(discord.ui.Modal, title="Guess the Word"):
         word = self.parent_view.word
 
         normalize = lambda s: "".join(
-            normalize_letter(c) for c in s if c != " "
+            normalize_letter(c) if c != " " else " "
+            for c in s
         )
+
 
         guess_n = normalize(guess)
         word_n = normalize(word)
