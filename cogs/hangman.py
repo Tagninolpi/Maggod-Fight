@@ -240,6 +240,8 @@ class LetterGuessView(discord.ui.View):
             self.guessed_letters = []
 
         self.add_item(ChooseLetterButton(self))
+        self.add_item(GuessWordButton(self))
+
 
     def get_display_word(self):
          return " ".join(
@@ -259,6 +261,97 @@ class LetterGuessView(discord.ui.View):
                 await self.cog.last_messages[self.user_id].edit(view=self)
         except Exception:
             pass
+
+class GuessWordButton(discord.ui.Button):
+    def __init__(self, parent_view):
+        self.parent_view = parent_view
+        super().__init__(
+            label="Guess Word",
+            style=discord.ButtonStyle.danger
+        )
+
+    async def callback(self, interaction: discord.Interaction):
+        await interaction.response.send_modal(GuessWordModal(self.parent_view))
+
+class GuessWordModal(discord.ui.Modal, title="Guess the Word"):
+    def __init__(self, parent_view):
+        super().__init__()
+        self.parent_view = parent_view
+
+        clean_word = parent_view.word.replace(" ", "")
+        self.word_input = discord.ui.TextInput(
+            label=f"Enter the full word ({len(clean_word)} letters)",
+            min_length=len(clean_word),
+            max_length=len(clean_word),
+            required=True
+        )
+        self.add_item(self.word_input)
+
+    async def on_submit(self, interaction: discord.Interaction):
+        guess = self.word_input.value.strip()
+        word = self.parent_view.word
+
+        normalize = lambda s: "".join(
+            normalize_letter(c) for c in s if c != " "
+        )
+
+        guess_n = normalize(guess)
+        word_n = normalize(word)
+
+        user_id = self.parent_view.user_id
+        player_id = self.parent_view.player_id
+        manager = self.parent_view.manager
+
+        guesser = await self.parent_view.bot.fetch_user(user_id)
+        owner = await self.parent_view.bot.fetch_user(player_id)
+
+        # ❌ WRONG FULL WORD GUESS
+        if guess_n != word_n:
+            manager.update_balance(user_id, -35000)
+
+            if interaction.channel:
+                await interaction.channel.send(
+                    f"❌ **{owner.display_name}'s word is not `{guess}`**\n"
+                    f"💸 Player **{guesser.display_name}** loses **35,000**"
+                )
+
+            self.parent_view.stop()
+            try:
+                await interaction.message.delete()
+            except Exception:
+                pass
+
+            await interaction.response.defer()
+            return
+
+        # ✅ CORRECT FULL WORD GUESS (same as normal win)
+        manager.set_words(player_id, None)
+        all_users = manager.get_balance(all=True)
+        participants = []
+
+        for u in all_users:
+            if u["user_id"] == user_id or (u["words"] and u["words"] not in ("none", "")):
+                manager.update_balance(u["user_id"], 10000)
+                user_obj = await self.parent_view.bot.fetch_user(u["user_id"])
+                participants.append(user_obj.display_name)
+
+        self.parent_view.stop()
+        try:
+            await interaction.message.delete()
+        except Exception:
+            pass
+
+        if interaction.channel:
+            await interaction.channel.send(
+                f"🎉 **{owner.display_name}'s word was `{word}`!**\n"
+                f"🏆 Guessed by **{guesser.display_name}**!\n"
+                f"💰 Winners: {', '.join(participants)} (+10,000)"
+            )
+            await interaction.channel.send(
+                f"📝 {owner.mention}, please create a new word using `/hangman`"
+            )
+
+        await interaction.response.defer()
 
 
 class ChooseLetterButton(discord.ui.Button):
