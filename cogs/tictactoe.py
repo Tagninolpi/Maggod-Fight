@@ -29,9 +29,24 @@ class TicTacToe(commands.Cog):
 
         user_id = interaction.user.id
 
-        if user_id in ACTIVE_GAMES or user_id in TTT_QUEUE:
+        # If user is already in a game, remove opponent and let user rejoin queue
+        if user_id in ACTIVE_GAMES:
+            opponent_id = ACTIVE_GAMES.pop(user_id)
+            if opponent_id in ACTIVE_GAMES:
+                ACTIVE_GAMES.pop(opponent_id, None)
+
+            # Optionally notify the opponent that they are removed
+            try:
+                await interaction.channel.send(
+                    f"⚠️ <@{opponent_id}> has been removed from the current game because <@{user_id}> rejoined the queue."
+                )
+            except Exception:
+                pass
+
+        # If user already in queue, do nothing (or send ephemeral)
+        if user_id in TTT_QUEUE:
             await interaction.response.send_message(
-                "❌ You are already in a Tic-Tac-Toe game or queue.", ephemeral=True
+                "❌ You are already in the Tic-Tac-Toe queue.", ephemeral=True
             )
             return
 
@@ -52,7 +67,6 @@ class TicTacToe(commands.Cog):
             await interaction.response.send_message(
                 f"🎮 Match found! You are playing against <@{opponent_id}>", ephemeral=True
             )
-
             try:
                 await interaction.channel.send(
                     f"🎮 <@{opponent_id}>, you have been matched for Tic-Tac-Toe with <@{user_id}>!"
@@ -60,7 +74,7 @@ class TicTacToe(commands.Cog):
             except Exception:
                 pass
 
-        # Start game immediately
+        # Start the game immediately
         players = [user_id, opponent_id]
         random.shuffle(players)
 
@@ -80,6 +94,7 @@ class TicTacToe(commands.Cog):
             ACTIVE_GAMES.pop(user_id, None)
             ACTIVE_GAMES.pop(opponent_id, None)
 
+
 # -------------------- VIEW --------------------
 class TicTacToeView(discord.ui.View):
     def __init__(self, bot, manager, channel, p1, p2):
@@ -93,6 +108,7 @@ class TicTacToeView(discord.ui.View):
         self.board = [None] * 9
         self.message: discord.Message | None = None
 
+        # All buttons with label "-" to avoid Discord invalid form error
         for i in range(9):
             self.add_item(TTTButton(i, self, row=i // 3))
 
@@ -140,6 +156,7 @@ class TicTacToeView(discord.ui.View):
         winner = self.players[1] if self.turn == self.players[0] else self.players[0]
         await self.end_game(winner=winner, timeout=True)
 
+
 # -------------------- BUTTON --------------------
 class TTTButton(discord.ui.Button):
     def __init__(self, index, view, row):
@@ -176,7 +193,6 @@ class TTTButton(discord.ui.Button):
             await self.view_ref.end_game(winner=None if result == "draw" else result)
             return
 
-        # Switch turn
         self.view_ref.turn = self.view_ref.players[1] if self.view_ref.turn == self.view_ref.players[0] else self.view_ref.players[0]
 
         try:
