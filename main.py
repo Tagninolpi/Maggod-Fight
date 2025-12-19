@@ -108,19 +108,20 @@ class MaggodFightBot(commands.Bot):
         logger.info("Commands loaded successfully")
  
     async def on_ready(self):
-        """Called when the bot is ready."""
         self.start_time = datetime.utcnow()
         logger.info(f"{self.user} has connected to Discord!")
         logger.info(f"Bot is in {len(self.guilds)} guilds")
-        
+
         # Set bot status
         activity = discord.Game(name="Maggod Fight | /help")
         await self.change_presence(activity=activity)
+
         # Announce bot online
         try:
-            await self.bot.wait_until_ready()
+            # Wait until bot is ready (self is already the bot)
+            # await self.wait_until_ready()  # optional, on_ready implies ready
 
-            guild = self.bot.get_guild(Config.ANNOUNCE_GUILD_ID)
+            guild = self.get_guild(Config.ANNOUNCE_GUILD_ID)
             if guild is None:
                 logger.error(f"Bot is not in ANNOUNCE_GUILD_ID: {Config.ANNOUNCE_GUILD_ID}")
                 return
@@ -133,6 +134,7 @@ class MaggodFightBot(commands.Bot):
 
         except Exception as e:
             logger.error(f"Failed to send online message: {e}")
+
 
 
         # Sync commands globally first (this fixes the unknown integration error)
