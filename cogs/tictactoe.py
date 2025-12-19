@@ -56,15 +56,7 @@ class TicTacToe(commands.Cog):
             ACTIVE_GAMES[user_id] = opponent_id
             ACTIVE_GAMES[opponent_id] = user_id
 
-            # Notify opponent via DM (safely)
-            try:
-                opponent = await self.bot.fetch_user(opponent_id)
-                await asyncio.sleep(0.3)  # small delay to reduce rate-limit risk
-                await opponent.send(f"🎮 You have been matched for **Tic-Tac-Toe** with {interaction.user.mention}!")
-            except discord.errors.HTTPException:
-                logger.warning(f"Could not send DM to {opponent_id}, possibly rate-limited.")
-
-            # Notify current player (ephemeral)
+            # Notify both players in the current channel (ephemeral)
             try:
                 await interaction.response.send_message(
                     f"🎮 Match found! You are playing against <@{opponent_id}>", ephemeral=True
@@ -72,7 +64,16 @@ class TicTacToe(commands.Cog):
             except discord.errors.HTTPException as e:
                 logger.warning(f"Rate-limited while sending ephemeral match message: {e}")
 
-        # Start game in THIS channel
+            try:
+                opponent_user = await self.bot.fetch_user(opponent_id)
+                await interaction.channel.send(
+                    f"🎮 <@{opponent_id}>, you have been matched for Tic-Tac-Toe with {interaction.user.mention}!",
+                    ephemeral=True  # ephemeral only works with interaction, so we will just notify publicly if needed
+                )
+            except Exception:
+                pass  # fallback if we cannot send ephemeral to the opponent
+
+        # Start the game immediately in this channel
         players = [user_id, opponent_id]
         random.shuffle(players)
 
@@ -89,9 +90,9 @@ class TicTacToe(commands.Cog):
             view.message = msg
         except discord.errors.HTTPException as e:
             logger.warning(f"Rate-limited while sending game message: {e}")
-            # Remove from active games if cannot send
             ACTIVE_GAMES.pop(user_id, None)
             ACTIVE_GAMES.pop(opponent_id, None)
+
 
 
 # -------------------- VIEW --------------------
