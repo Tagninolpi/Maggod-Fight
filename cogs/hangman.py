@@ -91,7 +91,7 @@ class PlayButton(discord.ui.Button):
 
     async def callback(self, interaction: discord.Interaction):
         user_id = interaction.user.id
-                # Prevent players who have not made a word from guessing
+        # Prevent players who have not made a word from guessing
         player_data = self.manager.get_balance(user_id)
         player_word = player_data.get("words") if isinstance(player_data, dict) else None
         if not player_word or player_word.lower() in ("none", ""):
@@ -273,6 +273,7 @@ class GuessWordButton(discord.ui.Button):
     async def callback(self, interaction: discord.Interaction):
         await interaction.response.send_modal(GuessWordModal(self.parent_view))
 
+
 class GuessWordModal(discord.ui.Modal, title="Guess the Word"):
     def __init__(self, parent_view):
         super().__init__()
@@ -332,14 +333,19 @@ class GuessWordModal(discord.ui.Modal, title="Guess the Word"):
 
         # ✅ CORRECT FULL WORD GUESS (same as normal win)
         manager.set_words(player_id, None)
-        all_users = manager.get_balance(all=True)
+        
+        player_times = manager.get_player_times(player_id)
+        player_ids = player_times.keys()
+
+
         participants = []
 
-        for u in all_users:
-            if u["user_id"] == user_id or (u["words"] and u["words"] not in ("none", "")):
-                manager.update_balance(u["user_id"], 10000)
-                user_obj = await self.parent_view.bot.fetch_user(u["user_id"])
-                participants.append(user_obj.display_name)
+        for pid in player_ids:
+            manager.update_balance(pid, 10000)
+            user_obj = await self.parent_view.bot.fetch_user(pid)
+            participants.append(user_obj.display_name)
+        manager.set_player_times(player_id, {})
+
 
         self.parent_view.stop()
         try:
@@ -445,14 +451,18 @@ class LetterInputModal(discord.ui.Modal, title="Guess a Letter"):
         # ✅ If the word is completed
         if "_" not in display_word:
             manager.set_words(player_id, None)
-            all_users = manager.get_balance(all=True)
+            player_times = manager.get_player_times(player_id)
+            player_ids = player_times.keys()
+
+
             participants = []
 
-            for u in all_users:
-                if u["user_id"] == user_id or (u["words"] and u["words"] not in ("none", "")):
-                    manager.update_balance(u["user_id"], 10000)
-                    user_obj = await self.parent_view.bot.fetch_user(u["user_id"])
-                    participants.append(user_obj.display_name)
+            for pid in player_ids:
+                manager.update_balance(pid, 10000)
+                user_obj = await self.parent_view.bot.fetch_user(pid)
+                participants.append(user_obj.display_name)
+            manager.set_player_times(player_id, {})
+
 
             # Stop the view and announce publicly
             self.parent_view.stop()
@@ -491,14 +501,6 @@ class LetterInputModal(discord.ui.Modal, title="Guess a Letter"):
                 f"🔤 Used letters: `{used_letters}`\n"
                 f"💰 {guesser_user.display_name} earned **+{reward}**"
             )
-
-
-        # DO NOT call original_response() here, just defer
-        try:
-            await interaction.response.defer()
-        except Exception:
-            pass
-
 
         # Save reference for deletion next time
         self.parent_view.cog.last_messages[user_id] = await interaction.original_response()
