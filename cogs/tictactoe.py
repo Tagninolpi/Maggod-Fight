@@ -29,33 +29,31 @@ class TicTacToe(commands.Cog):
 
         user_id = interaction.user.id
 
-        # If user is already in a game, remove opponent and let user rejoin queue
+        # If user is already in a game, remove opponent and stop old view
         if user_id in ACTIVE_GAMES:
             opponent_id = ACTIVE_GAMES.pop(user_id)
             if opponent_id in ACTIVE_GAMES:
                 ACTIVE_GAMES.pop(opponent_id, None)
-
-            # Optionally notify the opponent that they are removed
             try:
                 await interaction.channel.send(
                     f"⚠️ <@{opponent_id}> has been removed from the current game because <@{user_id}> rejoined the queue."
                 )
-            except Exception:
+            except:
                 pass
 
-        # If user already in queue, do nothing (or send ephemeral)
+        # If user already in queue, remove old entry so we can rejoin
         if user_id in TTT_QUEUE:
-            await interaction.response.send_message(
-                "❌ You are already in the Tic-Tac-Toe queue.", ephemeral=True
-            )
-            return
+            TTT_QUEUE.remove(user_id)
 
         async with MATCHMAKING_LOCK:
             if not TTT_QUEUE:
                 TTT_QUEUE.append(user_id)
-                await interaction.response.send_message(
-                    "⏳ You are now in the Tic-Tac-Toe queue. Waiting for an opponent...", ephemeral=True
-                )
+                try:
+                    await interaction.response.send_message(
+                        "⏳ You are now in the Tic-Tac-Toe queue. Waiting for an opponent...", ephemeral=True
+                    )
+                except discord.errors.HTTPException:
+                    pass
                 return
 
             # Match found
@@ -64,14 +62,17 @@ class TicTacToe(commands.Cog):
             ACTIVE_GAMES[opponent_id] = user_id
 
             # Notify both players
-            await interaction.response.send_message(
-                f"🎮 Match found! You are playing against <@{opponent_id}>", ephemeral=True
-            )
+            try:
+                await interaction.response.send_message(
+                    f"🎮 Match found! You are playing against <@{opponent_id}>", ephemeral=True
+                )
+            except:
+                pass
             try:
                 await interaction.channel.send(
-                    f"🎮 <@{opponent_id}>, you have been matched for Tic-Tac-Toe with <@{user_id}>!"
+                    f"🎮 <@{opponent_id}> and <@{user_id}>, your Tic-Tac-Toe game is starting!"
                 )
-            except Exception:
+            except:
                 pass
 
         # Start the game immediately
@@ -89,11 +90,9 @@ class TicTacToe(commands.Cog):
         try:
             msg = await interaction.channel.send(view.get_status_text(), view=view)
             view.message = msg
-        except discord.errors.HTTPException as e:
-            logger.warning(f"Rate-limited while sending game message: {e}")
+        except discord.errors.HTTPException:
             ACTIVE_GAMES.pop(user_id, None)
             ACTIVE_GAMES.pop(opponent_id, None)
-
 
 # -------------------- VIEW --------------------
 class TicTacToeView(discord.ui.View):
@@ -108,7 +107,6 @@ class TicTacToeView(discord.ui.View):
         self.board = [None] * 9
         self.message: discord.Message | None = None
 
-        # All buttons with label "-" to avoid Discord invalid form error
         for i in range(9):
             self.add_item(TTTButton(i, self, row=i // 3))
 
@@ -145,8 +143,8 @@ class TicTacToeView(discord.ui.View):
         try:
             if self.message:
                 await self.message.edit(content=text, view=self)
-        except discord.errors.HTTPException:
-            logger.warning("Rate-limited while editing end-game message")
+        except:
+            pass
 
         ACTIVE_GAMES.pop(p1, None)
         ACTIVE_GAMES.pop(p2, None)
@@ -155,7 +153,6 @@ class TicTacToeView(discord.ui.View):
     async def on_timeout(self):
         winner = self.players[1] if self.turn == self.players[0] else self.players[0]
         await self.end_game(winner=winner, timeout=True)
-
 
 # -------------------- BUTTON --------------------
 class TTTButton(discord.ui.Button):
