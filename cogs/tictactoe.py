@@ -9,14 +9,11 @@ from currency.money_manager import MoneyManager
 logger = logging.getLogger(__name__)
 
 # -------------------- GLOBAL STATE --------------------
-
 TTT_QUEUE: list[int] = []                 # waiting player IDs
 ACTIVE_GAMES: dict[int, int] = {}         # player_id -> opponent_id
 MATCHMAKING_LOCK = asyncio.Lock()         # serialize matchmaking notifications
 
-
 # -------------------- COG --------------------
-
 class TicTacToe(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -41,39 +38,29 @@ class TicTacToe(commands.Cog):
         async with MATCHMAKING_LOCK:
             if not TTT_QUEUE:
                 TTT_QUEUE.append(user_id)
-                try:
-                    await interaction.response.send_message(
-                        "⏳ You are now in the Tic-Tac-Toe queue. Waiting for an opponent...", ephemeral=True
-                    )
-                except discord.errors.HTTPException as e:
-                    logger.warning(f"Rate-limited while sending ephemeral queue: {e}")
+                await interaction.response.send_message(
+                    "⏳ You are now in the Tic-Tac-Toe queue. Waiting for an opponent...", ephemeral=True
+                )
                 return
 
             # Match found
             opponent_id = TTT_QUEUE.pop(0)
-
-            # Register active game
             ACTIVE_GAMES[user_id] = opponent_id
             ACTIVE_GAMES[opponent_id] = user_id
 
-            # Notify both players in the current channel (ephemeral)
-            try:
-                await interaction.response.send_message(
-                    f"🎮 Match found! You are playing against <@{opponent_id}>", ephemeral=True
-                )
-            except discord.errors.HTTPException as e:
-                logger.warning(f"Rate-limited while sending ephemeral match message: {e}")
+            # Notify both players
+            await interaction.response.send_message(
+                f"🎮 Match found! You are playing against <@{opponent_id}>", ephemeral=True
+            )
 
             try:
-                opponent_user = await self.bot.fetch_user(opponent_id)
                 await interaction.channel.send(
-                    f"🎮 <@{opponent_id}>, you have been matched for Tic-Tac-Toe with {interaction.user.mention}!",
-                    ephemeral=True  # ephemeral only works with interaction, so we will just notify publicly if needed
+                    f"🎮 <@{opponent_id}>, you have been matched for Tic-Tac-Toe with <@{user_id}>!"
                 )
             except Exception:
-                pass  # fallback if we cannot send ephemeral to the opponent
+                pass
 
-        # Start the game immediately in this channel
+        # Start game immediately
         players = [user_id, opponent_id]
         random.shuffle(players)
 
@@ -93,17 +80,13 @@ class TicTacToe(commands.Cog):
             ACTIVE_GAMES.pop(user_id, None)
             ACTIVE_GAMES.pop(opponent_id, None)
 
-
-
 # -------------------- VIEW --------------------
-
 class TicTacToeView(discord.ui.View):
     def __init__(self, bot, manager, channel, p1, p2):
         super().__init__(timeout=600)
         self.bot = bot
         self.manager = manager
         self.channel = channel
-
         self.players = [p1, p2]
         self.turn = p1
         self.colors = {p1: discord.ButtonStyle.primary, p2: discord.ButtonStyle.danger}
@@ -130,7 +113,6 @@ class TicTacToeView(discord.ui.View):
             child.disabled = True
 
         p1, p2 = self.players
-
         if winner == "draw":
             self.manager.update_balance(p1, 7500)
             self.manager.update_balance(p2, 7500)
@@ -158,12 +140,10 @@ class TicTacToeView(discord.ui.View):
         winner = self.players[1] if self.turn == self.players[0] else self.players[0]
         await self.end_game(winner=winner, timeout=True)
 
-
 # -------------------- BUTTON --------------------
-
 class TTTButton(discord.ui.Button):
     def __init__(self, index, view, row):
-        super().__init__(style=discord.ButtonStyle.secondary, label=" ", row=row)
+        super().__init__(style=discord.ButtonStyle.secondary, label="-", row=row)
         self.index = index
         self.view_ref: TicTacToeView = view
 
@@ -171,18 +151,17 @@ class TTTButton(discord.ui.Button):
         if interaction.user.id != self.view_ref.turn:
             try:
                 await interaction.response.send_message("❌ It is not your turn.", ephemeral=True)
-            except discord.errors.HTTPException:
+            except:
                 pass
             return
 
         if self.view_ref.board[self.index] is not None:
             try:
                 await interaction.response.send_message("❌ This cell is already taken.", ephemeral=True)
-            except discord.errors.HTTPException:
+            except:
                 pass
             return
 
-        # Place move
         player = interaction.user.id
         self.view_ref.board[self.index] = player
         self.style = self.view_ref.colors[player]
@@ -192,7 +171,7 @@ class TTTButton(discord.ui.Button):
         if result:
             try:
                 await interaction.response.defer()
-            except discord.errors.HTTPException:
+            except:
                 pass
             await self.view_ref.end_game(winner=None if result == "draw" else result)
             return
@@ -202,11 +181,9 @@ class TTTButton(discord.ui.Button):
 
         try:
             await interaction.response.edit_message(content=self.view_ref.get_status_text(), view=self.view_ref)
-        except discord.errors.HTTPException:
+        except:
             pass
 
-
 # -------------------- SETUP --------------------
-
 async def setup(bot):
     await bot.add_cog(TicTacToe(bot))
