@@ -9,9 +9,9 @@ from currency.money_manager import MoneyManager
 logger = logging.getLogger(__name__)
 
 # -------------------- GLOBAL STATE --------------------
-TTT_QUEUE: list[int] = []                 # waiting player IDs
-ACTIVE_GAMES: dict[int, int] = {}         # player_id -> opponent_id
-MATCHMAKING_LOCK = asyncio.Lock()         # serialize matchmaking notifications
+TTT_QUEUE: list[dict] = []  # List of dicts: {"user_id": int, "channel": TextChannel, "timeout_task": Task}
+ACTIVE_GAMES: dict[int, int] = {}  # player_id -> opponent_id
+MATCHMAKING_LOCK = asyncio.Lock()  # serialize matchmaking notifications
 
 # -------------------- COG --------------------
 class TicTacToe(commands.Cog):
@@ -29,7 +29,7 @@ class TicTacToe(commands.Cog):
 
         user_id = interaction.user.id
 
-        # If user is already in a game, remove opponent and stop old view
+        # Remove player from old game if needed
         if user_id in ACTIVE_GAMES:
             opponent_id = ACTIVE_GAMES.pop(user_id)
             if opponent_id in ACTIVE_GAMES:
@@ -41,23 +41,33 @@ class TicTacToe(commands.Cog):
             except:
                 pass
 
-        # If user already in queue, remove old entry so we can rejoin
-        if user_id in TTT_QUEUE:
-            TTT_QUEUE.remove(user_id)
+        # Remove player from queue if already waiting
+        for entry in TTT_QUEUE:
+            if entry["user_id"] == user_id:
+                TTT_QUEUE.remove(entry)
+                try:
+                    entry["timeout_task"].cancel()
+                except:
+                    pass
+                break
 
         async with MATCHMAKING_LOCK:
             if not TTT_QUEUE:
-                TTT_QUEUE.append(user_id)
+                # Add to queue with 2-minute timeout
+                timeout_task = asyncio.create_task(self.queue_timeout(user_id, interaction.channel))
+                TTT_QUEUE.append({"user_id": user_id, "channel": interaction.channel, "timeout_task": timeout_task})
                 try:
                     await interaction.response.send_message(
                         "⏳ You are now in the Tic-Tac-Toe queue. Waiting for an opponent...", ephemeral=True
                     )
-                except discord.errors.HTTPException:
+                except:
                     pass
                 return
 
             # Match found
-            opponent_id = TTT_QUEUE.pop(0)
+            entry = TTT_QUEUE.pop(0)
+            entry["timeout_task"].cancel()
+            opponent_id = entry["user_id"]
             ACTIVE_GAMES[user_id] = opponent_id
             ACTIVE_GAMES[opponent_id] = user_id
 
@@ -75,29 +85,32 @@ class TicTacToe(commands.Cog):
             except:
                 pass
 
-        # Start the game immediately
+        # Start the game
         players = [user_id, opponent_id]
         random.shuffle(players)
-
-        view = TicTacToeView(
-            bot=self.bot,
-            manager=self.manager,
-            channel=interaction.channel,
-            p1=players[0],
-            p2=players[1]
-        )
-
+        view = TicTacToeView(self.bot, self.manager, interaction.channel, players[0], players[1])
         try:
             msg = await interaction.channel.send(view.get_status_text(), view=view)
             view.message = msg
-        except discord.errors.HTTPException:
+        except:
             ACTIVE_GAMES.pop(user_id, None)
             ACTIVE_GAMES.pop(opponent_id, None)
+
+    async def queue_timeout(self, user_id, channel):
+        await asyncio.sleep(120)  # 2 minutes
+        for entry in TTT_QUEUE:
+            if entry["user_id"] == user_id:
+                TTT_QUEUE.remove(entry)
+                try:
+                    await channel.send(f"⌛ <@{user_id}> was removed from the queue due to inactivity.")
+                except:
+                    pass
+                break
 
 # -------------------- VIEW --------------------
 class TicTacToeView(discord.ui.View):
     def __init__(self, bot, manager, channel, p1, p2):
-        super().__init__(timeout=600)
+        super().__init__(timeout=600)  # 10 minutes
         self.bot = bot
         self.manager = manager
         self.channel = channel
