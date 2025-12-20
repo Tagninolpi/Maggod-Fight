@@ -21,7 +21,7 @@ class GridGame(commands.Cog):
         self.bot = bot
         self.manager = MoneyManager()
 
-    @app_commands.command(name="gridgame", description="Play the 5×5 button game")
+    @app_commands.command(name="ttt", description="Play the 5×5 button game")
     async def gridgame(self, interaction: discord.Interaction):
         if not interaction.channel or not isinstance(interaction.channel, discord.TextChannel):
             await interaction.response.send_message("❌ Use this in a text channel.", ephemeral=True)
