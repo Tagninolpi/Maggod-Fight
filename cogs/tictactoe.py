@@ -9,31 +9,30 @@ from currency.money_manager import MoneyManager
 logger = logging.getLogger(__name__)
 
 # -------------------- GLOBAL STATE --------------------
-TTT_QUEUE: list[dict] = []  # List of dicts: {"user_id": int, "channel": TextChannel, "timeout_task": Task}
+QUEUE: list[dict] = []  # {"user_id": int, "channel": TextChannel, "timeout_task": Task}
 ACTIVE_GAMES: dict[int, int] = {}  # player_id -> opponent_id
-MATCHMAKING_LOCK = asyncio.Lock()  # serialize matchmaking notifications
+MATCHMAKING_LOCK = asyncio.Lock()
 
-# -------------------- COG --------------------
-class TicTacToe(commands.Cog):
+# ======================================================
+#                        COG
+# ======================================================
+class GridGame(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.manager = MoneyManager()
 
-    @app_commands.command(name="ttt", description="Play Tic-Tac-Toe")
-    async def ttt(self, interaction: discord.Interaction):
+    @app_commands.command(name="gridgame", description="Play the 5×5 button game")
+    async def gridgame(self, interaction: discord.Interaction):
         if not interaction.channel or not isinstance(interaction.channel, discord.TextChannel):
-            await interaction.response.send_message(
-                "❌ Use this command in a text channel.", ephemeral=True
-            )
+            await interaction.response.send_message("❌ Use this in a text channel.", ephemeral=True)
             return
 
         user_id = interaction.user.id
 
-        # Remove player from old game if needed
+        # Remove from old game
         if user_id in ACTIVE_GAMES:
             opponent_id = ACTIVE_GAMES.pop(user_id)
-            if opponent_id in ACTIVE_GAMES:
-                ACTIVE_GAMES.pop(opponent_id, None)
+            ACTIVE_GAMES.pop(opponent_id, None)
             try:
                 await interaction.channel.send(
                     f"⚠️ <@{opponent_id}> has been removed from the current game because <@{user_id}> rejoined the queue."
@@ -41,175 +40,208 @@ class TicTacToe(commands.Cog):
             except:
                 pass
 
-        # Remove player from queue if already waiting
-        for entry in TTT_QUEUE:
+        # Remove from queue if already waiting
+        for entry in QUEUE:
             if entry["user_id"] == user_id:
-                TTT_QUEUE.remove(entry)
+                QUEUE.remove(entry)
                 try:
                     entry["timeout_task"].cancel()
                 except:
                     pass
                 break
 
+        # Queue logic
         async with MATCHMAKING_LOCK:
-            if not TTT_QUEUE:
-                # Add to queue with 2-minute timeout
+            if not QUEUE:
                 timeout_task = asyncio.create_task(self.queue_timeout(user_id, interaction.channel))
-                TTT_QUEUE.append({"user_id": user_id, "channel": interaction.channel, "timeout_task": timeout_task})
-                try:
-                    await interaction.response.send_message(
-                        "⏳ You are now in the Tic-Tac-Toe queue. Waiting for an opponent...", ephemeral=True
-                    )
-                except:
-                    pass
+                QUEUE.append({"user_id": user_id, "channel": interaction.channel, "timeout_task": timeout_task})
+                await interaction.response.send_message("⏳ Waiting for an opponent...", ephemeral=True)
                 return
 
             # Match found
-            entry = TTT_QUEUE.pop(0)
+            entry = QUEUE.pop(0)
             entry["timeout_task"].cancel()
-            opponent_id = entry["user_id"]
-            ACTIVE_GAMES[user_id] = opponent_id
-            ACTIVE_GAMES[opponent_id] = user_id
+            opponent = entry["user_id"]
 
-            # Notify both players
-            try:
-                await interaction.response.send_message(
-                    f"🎮 Match found! You are playing against <@{opponent_id}>", ephemeral=True
-                )
-            except:
-                pass
-            try:
-                await interaction.channel.send(
-                    f"🎮 <@{opponent_id}> and <@{user_id}>, your Tic-Tac-Toe game is starting!"
-                )
-            except:
-                pass
+            ACTIVE_GAMES[user_id] = opponent
+            ACTIVE_GAMES[opponent] = user_id
 
-        # Start the game
-        players = [user_id, opponent_id]
+            await interaction.response.send_message(
+                f"🎮 Match found! You're playing <@{opponent}>", ephemeral=True
+            )
+            await interaction.channel.send(
+                f"🎮 <@{opponent}> and <@{user_id}>, your 5×5 game is starting!"
+            )
+
+        # Start game
+        players = [user_id, opponent]
         random.shuffle(players)
-        view = TicTacToeView(self.bot, self.manager, interaction.channel, players[0], players[1])
-        try:
-            msg = await interaction.channel.send(view.get_status_text(), view=view)
-            view.message = msg
-        except:
-            ACTIVE_GAMES.pop(user_id, None)
-            ACTIVE_GAMES.pop(opponent_id, None)
+
+        view = GridGameView(self.bot, self.manager, interaction.channel, players[0], players[1])
+        msg = await interaction.channel.send(view.get_status_text(), view=view)
+        view.message = msg
 
     async def queue_timeout(self, user_id, channel):
-        await asyncio.sleep(120)  # 2 minutes
-        for entry in TTT_QUEUE:
+        await asyncio.sleep(120)
+        for entry in QUEUE:
             if entry["user_id"] == user_id:
-                TTT_QUEUE.remove(entry)
+                QUEUE.remove(entry)
                 try:
                     await channel.send(f"⌛ <@{user_id}> was removed from the queue due to inactivity.")
                 except:
                     pass
                 break
 
-# -------------------- VIEW --------------------
-class TicTacToeView(discord.ui.View):
+
+# ======================================================
+#                     GAME VIEW
+# ======================================================
+class GridGameView(discord.ui.View):
     def __init__(self, bot, manager, channel, p1, p2):
-        super().__init__(timeout=600)  # 10 minutes
+        super().__init__(timeout=600)
         self.bot = bot
         self.manager = manager
         self.channel = channel
         self.players = [p1, p2]
         self.turn = p1
+
         self.colors = {p1: discord.ButtonStyle.primary, p2: discord.ButtonStyle.danger}
-        self.board = [None] * 9
-        self.message: discord.Message | None = None
 
-        for i in range(9):
-            self.add_item(TTTButton(i, self, row=i // 3))
+        # 5×5 = 25 cells
+        self.board = [None] * 25
+        self.message = None
 
-    def get_status_text(self) -> str:
-        return f"🎮 **Tic-Tac-Toe**\n\n<@{self.turn}> it is your turn"
+        for i in range(25):
+            self.add_item(GridButton(i, self, row=i // 5))
 
-    def check_winner(self):
-        wins = [(0,1,2),(3,4,5),(6,7,8),(0,3,6),(1,4,7),(2,5,8),(0,4,8),(2,4,6)]
-        for a,b,c in wins:
-            if self.board[a] and self.board[a] == self.board[b] == self.board[c]:
-                return self.board[a]
-        if all(self.board):
-            return "draw"
-        return None
+    # -----------------------------------------
+    def get_status_text(self):
+        return f"🎮 **5×5 Button Game**\n<@{self.turn}> your turn."
 
-    async def end_game(self, winner=None, timeout=False):
+    # -----------------------------------------
+    def compute_score(self):
+        """Compute both players' points from all possible 3, 4, 5 aligned sequences (rows, cols, diagonals)."""
+        lines = []
+
+        # Rows
+        for r in range(5):
+            row = [r * 5 + c for c in range(5)]
+            lines.append(row)
+
+        # Columns
+        for c in range(5):
+            col = [r * 5 + c for r in range(5)]
+            lines.append(col)
+
+        # Diagonals
+        diag1 = [0, 6, 12, 18, 24]
+        diag2 = [4, 8, 12, 16, 20]
+        lines.append(diag1)
+        lines.append(diag2)
+
+        scores = {self.players[0]: 0, self.players[1]: 0}
+
+        # Check each line for sequences
+        for line in lines:
+            vals = [self.board[i] for i in line]
+
+            # Sliding windows (overlaps allowed — your choice B)
+            # length 3
+            for i in range(3):
+                if vals[i] and vals[i] == vals[i+1] == vals[i+2]:
+                    scores[vals[i]] += 3
+
+            # length 4
+            for i in range(2):
+                if vals[i] and vals[i] == vals[i+1] == vals[i+2] == vals[i+3]:
+                    scores[vals[i]] += 6
+
+            # length 5
+            if vals[0] and all(v == vals[0] for v in vals):
+                scores[vals[0]] += 10
+
+        return scores
+
+    # -----------------------------------------
+    async def end_game(self, timed_out=False):
         for child in self.children:
             child.disabled = True
 
         p1, p2 = self.players
-        if winner == "draw":
-            self.manager.update_balance(p1, 7500)
-            self.manager.update_balance(p2, 7500)
-            text = "🤝 **Draw!** Both players receive **+7,500**"
-        else:
-            loser = p2 if winner == p1 else p1
-            self.manager.update_balance(winner, 10000)
-            self.manager.update_balance(loser, 5000)
-            if timeout:
-                text = f"⏱️ <@{loser}> took too long!\n🏆 <@{winner}> wins **(+10,000)**"
-            else:
-                text = f"🏆 <@{winner}> wins **(+10,000)**\n💀 <@{loser}> gets **+5,000**"
 
-        try:
-            if self.message:
-                await self.message.edit(content=text, view=self)
-        except:
-            pass
+        if timed_out:
+            # no rewards if someone leaves or times out
+            text = "⏱️ Game ended due to timeout. Nobody receives rewards."
+        else:
+            scores = self.compute_score()
+            p1_money = scores[p1] * 150
+            p2_money = scores[p2] * 150
+
+            self.manager.update_balance(p1, p1_money)
+            self.manager.update_balance(p2, p2_money)
+
+            text = (
+                f"🏁 **Game Over!**\n\n"
+                f"<@{p1}> earns **{p1_money}**\n"
+                f"<@{p2}> earns **{p2_money}**"
+            )
 
         ACTIVE_GAMES.pop(p1, None)
         ACTIVE_GAMES.pop(p2, None)
+
+        if self.message:
+            await self.message.edit(content=text, view=self)
+
         self.stop()
 
+    # -----------------------------------------
     async def on_timeout(self):
-        winner = self.players[1] if self.turn == self.players[0] else self.players[0]
-        await self.end_game(winner=winner, timeout=True)
+        await self.end_game(timed_out=True)
 
-# -------------------- BUTTON --------------------
-class TTTButton(discord.ui.Button):
+
+# ======================================================
+#                     BUTTON
+# ======================================================
+class GridButton(discord.ui.Button):
     def __init__(self, index, view, row):
         super().__init__(style=discord.ButtonStyle.secondary, label="-", row=row)
         self.index = index
-        self.view_ref: TicTacToeView = view
+        self.view_ref: GridGameView = view
 
     async def callback(self, interaction: discord.Interaction):
         if interaction.user.id != self.view_ref.turn:
-            try:
-                await interaction.response.send_message("❌ It is not your turn.", ephemeral=True)
-            except:
-                pass
+            await interaction.response.send_message("❌ Not your turn.", ephemeral=True)
             return
 
         if self.view_ref.board[self.index] is not None:
-            try:
-                await interaction.response.send_message("❌ This cell is already taken.", ephemeral=True)
-            except:
-                pass
+            await interaction.response.send_message("❌ Already taken.", ephemeral=True)
             return
 
         player = interaction.user.id
+
+        # Place move
         self.view_ref.board[self.index] = player
         self.style = self.view_ref.colors[player]
         self.disabled = True
 
-        result = self.view_ref.check_winner()
-        if result:
-            try:
-                await interaction.response.defer()
-            except:
-                pass
-            await self.view_ref.end_game(winner=None if result == "draw" else result)
+        # Check if board is full → end game
+        if all(self.view_ref.board):
+            await interaction.response.defer()
+            await self.view_ref.end_game()
             return
 
-        self.view_ref.turn = self.view_ref.players[1] if self.view_ref.turn == self.view_ref.players[0] else self.view_ref.players[0]
+        # Next turn
+        p1, p2 = self.view_ref.players
+        self.view_ref.turn = p2 if self.view_ref.turn == p1 else p1
 
-        try:
-            await interaction.response.edit_message(content=self.view_ref.get_status_text(), view=self.view_ref)
-        except:
-            pass
+        await interaction.response.edit_message(
+            content=self.view_ref.get_status_text(),
+            view=self.view_ref
+        )
 
-# -------------------- SETUP --------------------
+
+# ======================================================
+#                     SETUP
+# ======================================================
 async def setup(bot):
-    await bot.add_cog(TicTacToe(bot))
+    await bot.add_cog(GridGame(bot))
