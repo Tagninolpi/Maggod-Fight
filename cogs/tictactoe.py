@@ -120,47 +120,70 @@ class GridGameView(discord.ui.View):
 
     # -----------------------------------------
     def compute_score(self):
-        """Compute both players' points from all possible 3, 4, 5 aligned sequences (rows, cols, diagonals)."""
+        """
+        Compute both players' money from all sequences:
+        rows, columns, diagonals (both directions), length >= 3.
+        Only longest contiguous segment per sequence is counted, no overlaps.
+        """
+        SIZE = 5
+        reward = {3: 450, 4: 1800, 5: 4650}
+
+        money = {self.players[0]: 0, self.players[1]: 0}
+
         lines = []
 
-        # Rows
-        for r in range(5):
-            row = [r * 5 + c for c in range(5)]
-            lines.append(row)
+        # --- Rows ---
+        for r in range(SIZE):
+            lines.append([r * SIZE + c for c in range(SIZE)])
 
-        # Columns
-        for c in range(5):
-            col = [r * 5 + c for r in range(5)]
-            lines.append(col)
+        # --- Columns ---
+        for c in range(SIZE):
+            lines.append([r * SIZE + c for r in range(SIZE)])
 
-        # Diagonals
-        diag1 = [0, 6, 12, 18, 24]
-        diag2 = [4, 8, 12, 16, 20]
-        lines.append(diag1)
-        lines.append(diag2)
+        # --- Diagonals ↘ (top-left → bottom-right) ---
+        for r in range(SIZE):
+            for c in range(SIZE):
+                diag = []
+                rr, cc = r, c
+                while rr < SIZE and cc < SIZE:
+                    diag.append(rr * SIZE + cc)
+                    rr += 1
+                    cc += 1
+                if len(diag) >= 3:
+                    lines.append(diag)
 
-        scores = {self.players[0]: 0, self.players[1]: 0}
+        # --- Diagonals ↙ (top-right → bottom-left) ---
+        for r in range(SIZE):
+            for c in range(SIZE):
+                diag = []
+                rr, cc = r, c
+                while rr < SIZE and cc >= 0:
+                    diag.append(rr * SIZE + cc)
+                    rr += 1
+                    cc -= 1
+                if len(diag) >= 3:
+                    lines.append(diag)
 
-        # Check each line for sequences
+        # --- Evaluate all lines ---
         for line in lines:
             vals = [self.board[i] for i in line]
 
-            # Sliding windows (overlaps allowed — your choice B)
-            # length 3
-            for i in range(3):
-                if vals[i] and vals[i] == vals[i+1] == vals[i+2]:
-                    scores[vals[i]] += 3
+            current = None
+            length = 0
 
-            # length 4
-            for i in range(2):
-                if vals[i] and vals[i] == vals[i+1] == vals[i+2] == vals[i+3]:
-                    scores[vals[i]] += 6
+            for v in vals + [None]:  # sentinel to flush last streak
+                if v == current and v is not None:
+                    length += 1
+                else:
+                    if current is not None and length >= 3:
+                        # only the longest contiguous sequence counts
+                        length = min(length, 5)
+                        money[current] += reward[length]
+                    current = v
+                    length = 1 if v is not None else 0
 
-            # length 5
-            if vals[0] and all(v == vals[0] for v in vals):
-                scores[vals[0]] += 10
+        return money
 
-        return scores
 
     # -----------------------------------------
     async def end_game(self, timed_out=False):
