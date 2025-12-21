@@ -197,8 +197,8 @@ class GridGameView(discord.ui.View):
             text = "⏱️ Game ended due to timeout. Nobody receives rewards."
         else:
             scores = self.compute_score()
-            p1_money = scores[p1] * 150
-            p2_money = scores[p2] * 150
+            p1_money = scores[p1]
+            p2_money = scores[p2]
 
             self.manager.update_balance(p1, p1_money)
             self.manager.update_balance(p2, p2_money)
