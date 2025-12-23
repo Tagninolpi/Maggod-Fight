@@ -34,7 +34,7 @@ def hephaestus(kwargs):
         god.add_effect("hep_shield", value=value, duration=duration)
         msg += f",{god.name.capitalize()} "
     return msg
- 
+  
 def aphrodite(kwargs):
     """Aphrodite's charm - Damages visible enemies or charms hidden ones."""
     target = kwargs["target"]
@@ -92,7 +92,7 @@ def zeus(kwargs):
             god.hp -= 1
             msg += f"{god.name.capitalize()}, "
     else:
-        msg += "takes 2 dmg and does 2 dmg to ✨gods : "
+        msg += "takes 1 dmg and does 2 dmg to ✨gods : "
         for god in alive_ennemy:
             god.hp -= 2
             msg += f"{god.name.capitalize()}, "
@@ -195,15 +195,11 @@ def hades_ow(kwargs):
 def thanatos(kwargs):
     """Thanatos's death touch - 50% chance to instantly kill target."""
     target = kwargs["target"]
-    if r.randint(0, 1):
-        target.hp = 0
-        self = kwargs["self"]
-        self.hp -= 5  # High cost for instant kill
-        self.reload = self.reload_max * 2 + 1
-        return (f"Thanatos instakills {target.name.capitalize()}, but takes 5 dmg.")
-        
-    else:
-        return(f"Thanatos failed to instakill {target.name.capitalize()}")
+    target.hp = 0
+    self = kwargs["self"]
+    self.hp -= 6  # High cost for instant kill
+    self.reload = self.reload_max * 2 + 1
+    return (f"Thanatos instakills {target.name.capitalize()}, but takes 6 dmg.")
  
 def cerberus(kwargs):
     """Cerberus's guard - Gains HP for each visible ally."""

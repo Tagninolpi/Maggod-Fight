@@ -25,7 +25,7 @@ abilities_ = {
     "megaera": abilities.megaera,
     "hecate": abilities.hecate,
 }
- 
+  
 # All available gods with their stats
 gods = {
     "poseidon": God("poseidon", 9, 5, abilities_["poseidon"],0),
@@ -39,7 +39,7 @@ gods = {
     "artemis": God("artemis", 9, 3, abilities_["artemis"],1),
     "hermes": God("hermes", 8, 2, abilities_["hermes"],4),
     "hades_ow": God("hades_ow", 9, 3, abilities_["hades_ow"],2),
-    "thanatos": God("thanatos", 11, 2, abilities_["thanatos"],1),
+    "thanatos": God("thanatos", 11, 3, abilities_["thanatos"],2),
     "cerberus": God("cerberus", 10, 3, abilities_["cerberus"],3),
     "charon": God("charon", 9, 4, abilities_["charon"],3),
     "persephone": God("persephone", 8, 3, abilities_["persephone"],1),
@@ -47,7 +47,7 @@ gods = {
     "tisiphone": God("tisiphone", 11, 3, abilities_["tisiphone"],3),
     "alecto": God("alecto", 9, 3, abilities_["alecto"],1),
     "megaera": God("megaera", 9, 4, abilities_["megaera"],3),
-    "hecate": God("hecate", 9, 3, abilities_["hecate"],1),
+    "hecate": God("hecate", 9, 3, abilities_["hecate"],2),
 }
 
 # Default teams for testing (not used in actual matches)

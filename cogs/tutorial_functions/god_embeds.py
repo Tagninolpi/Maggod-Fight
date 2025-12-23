@@ -1,6 +1,6 @@
 import discord
 from .create_god_tutorial_embeds import create_god_tutorial_embeds, simple_embed
-
+ 
 # ---------------- God Functions ----------------
 class GodTutorials:
     """All god tutorial functions, each returning its embed(s)."""
@@ -203,7 +203,7 @@ class GodTutorials:
                 "visible": True,"hp":7,"reload":8}
                 }
         )
-        msg7 = simple_embed("When there are 2 or less ennemies alive he does 2 dmg to all ennemy and takes 2 dmg")
+        msg7 = simple_embed("When there are 2 or less ennemies alive he does 2 dmg to all ennemy and takes 1 dmg")
         msg8 = create_god_tutorial_embeds(
             ["athena", "thanatos", "ares", "alecto", "persephone"], success=False,
             overrides={
@@ -352,7 +352,7 @@ class GodTutorials:
         return [msg1,msg2,msg3,msg4,msg5,msg6,msg7]
 
     def thanatos(self):
-        msg1 = simple_embed("Thanatos has a 50% chance to instakill ennemy,if succesfull takes 5 dmg (can attakc with hermes)")
+        msg1 = simple_embed("Thanatos has a 100% chance to instakill ennemy,if succesfull takes 6 dmg (can attakc with hermes)")
         msg2 = create_god_tutorial_embeds(
             ["athena","hephaestus" , "ares", "alecto", "persephone"], success=False,
             overrides={"ares":{"hp":0,"visible":True,"alive":False}}
@@ -360,7 +360,7 @@ class GodTutorials:
         msg3 = create_god_tutorial_embeds(
             ["zeus","thanatos" , "aphrodite", "hermes", "hera"], success=True,
             overrides={
-                "thanatos":{"visible": True,"hp":6,"reload":2}}
+                "thanatos":{"visible": True,"hp":5,"reload":3}}
         )
         return [msg1,msg2,msg3]
 
@@ -490,7 +490,7 @@ class GodTutorials:
                 "alecto":{"visible": True,"reload":2}}
         )
         return [msg1,msg2,msg3]
-
+ 
     def megaera(self):
         msg1 = simple_embed("Megaera - 4 dmg reduction 💚 for 2 turn when attacking alone and 1 turns when attacking wiht hermes")
         msg2 = create_god_tutorial_embeds(

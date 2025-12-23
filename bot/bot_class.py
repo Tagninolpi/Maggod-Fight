@@ -38,7 +38,7 @@ def charon(ally,ennemy,visible,reload,attacking):
 def megaera(ally,ennemy,visible,reload,attacking):
     if reload<1:
         return 8/len(get_alive(ennemy))
-    else:
+    else: 
         return 0  
 def tisiphone(ally,ennemy,visible,reload,attacking):
     if reload<1:
@@ -88,7 +88,7 @@ def alecto(ally,ennemy,visible,reload,attacking):
         return 0 
 def hecate(ally,ennemy,visible,reload,attacking):
     if reload<1:
-        return 4
+        return 3
     else:
         return 0 
 def hephaestus(ally,ennemy,visible,reload,attacking):
