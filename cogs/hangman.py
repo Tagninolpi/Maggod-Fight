@@ -324,10 +324,8 @@ class GuessWordModal(discord.ui.Modal, title="Guess the Word / Sentence"):
             manager.set_words(player_id, f"{word}:{''.join(self.parent_view.guessed_letters)}")
 
             # Update display word
-            display_word = " ".join(
-                ch if ch == " " or normalize_letter(ch) in self.parent_view.guessed_letters else "_"
-                for ch in word
-            )
+            display_word = self.parent_view.get_display_word()
+
         else:
             # Incorrect guess, no letters added
             display_word = self.parent_view.get_display_word()
