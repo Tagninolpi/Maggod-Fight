@@ -347,13 +347,37 @@ class GuessWordModal(discord.ui.Modal, title="Guess the Word / Sentence"):
         # Check if the full word is now revealed
         if "_" not in display_word:
             manager.set_words(player_id, None)
-            participants = [guesser_user.display_name]
+
+            # Get all participants
+            player_times = manager.get_player_times(player_id)
+            player_ids = player_times.keys()
+
+            participants = []
+
+            for pid in player_ids:
+                manager.update_balance(pid, 10000)
+                user_obj = await self.parent_view.bot.fetch_user(pid)
+                participants.append(user_obj.display_name)
+
+            manager.set_player_times(player_id, {})
+
+            # Stop the game UI
+            self.parent_view.stop()
+
+            # Public win message
             await interaction.channel.send(
                 f"🎉 **{player_user.display_name}'s word was `{word}`!**\n"
-                f"🏆 Guessed by **{guesser_user.display_name}**!\n"
-                f"💰 Winners: {', '.join(participants)}"
+                f"👏 Congratulations to everyone who participated: {', '.join(participants)} 🎊\n"
+                f"💰 Each helper earned **+10,000**!"
             )
-            self.parent_view.stop()
+
+            # Reminder to create a new word
+            await interaction.channel.send(
+                f"📝 {player_user.mention}, please **create a new word or sentence** using `/hangman` ➕"
+            )
+
+            return
+
 
 
 

@@ -70,7 +70,7 @@ class Leave(commands.Cog):
             team2_survivors = sum(1 for god in match.teams[match.player2_id] if god.alive)
             p1_gain = (team1_survivors-team2_survivors)*1000
             if match.gamb_bet != 0:
-                p1_gain -= match.gamb_bet
+                p1_gain -= match.gamb_bet*0.7
             p2_gain = (team2_survivors-team1_survivors)*1000
             P1_new_bal = money.update_balance(match.player1_id,p1_gain)
             P2_new_bal = money.update_balance(match.player2_id,p2_gain)  

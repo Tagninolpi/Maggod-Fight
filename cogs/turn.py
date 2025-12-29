@@ -17,6 +17,15 @@ from currency.money_manager import MoneyManager
 
 logger = logging.getLogger(__name__)
 
+def apply_gambling_timeout_penalty(match, player_id: int):
+    if match.money_sys_type != "gambling":
+        return
+
+    penalty = match.gamb_bet // 2
+    MoneyManager().update_balance(player_id, -penalty)
+    return penalty
+
+
 def create_team_embeds(team1: list, team2: list, player1_name: str, player2_name: str,action_text: str,allowed,player1_id:int,compact: bool = False) -> list[discord.Embed]:
 
 
@@ -316,6 +325,13 @@ class Turn(commands.Cog):
             # Timeout occurred
             await channel.send("⏱️ Selection timed out. Match has been reset.")
             match = matchmaking_dict[channel.id]
+            if match.money_sys_type == "gambling":
+                timed_out_player = allowed_user  # the one who failed to pick
+                loss = apply_gambling_timeout_penalty(match, timed_out_player)
+
+                await channel.send(
+                    f"<@{timed_out_player}> lost {loss}{Config.coin} due to timeout."
+                )
             match.game_phase = "Waiting for first player"
             #asyncio.create_task(update_lobby_status_embed(self.bot))
             # Reset the match
