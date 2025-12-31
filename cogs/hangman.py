@@ -339,7 +339,7 @@ class GuessWordModal(discord.ui.Modal, title="Guess the Word / Sentence"):
         await interaction.response.send_message(
             f"🔠 **{guesser_user.display_name}** guessed `{guess}` in **{player_user.display_name}`'s word!\n"
             f"{'✅ Correct!' if correct else '❌ Incorrect!'}\n"
-            f"🧩 Current word: `{display_word}`\n"
+            f"🧩 Current word: ```\n{display_word}\n```"
             f"🔤 Used letters: `{used_letters}`\n"
             f"💰 {guesser_user.display_name} {'earned' if correct else 'lost'} **{abs(reward)}**"
         )
@@ -513,7 +513,8 @@ class LetterInputModal(discord.ui.Modal, title="Guess a Letter"):
                 f"🔠 **{guesser_user.display_name}** guessed `{letter.upper()}` "
                 f"in **{player_user.display_name}**'s word!\n"
                 f"{correctness}\n\n"
-                f"🧩 Current word: `{display_word}`\n"
+                f"🧩 Current word: ```\n{display_word}\n```"
+
                 f"🔤 Used letters: `{used_letters}`\n"
                 f"💰 {guesser_user.display_name} earned **+{reward}**"
             )
