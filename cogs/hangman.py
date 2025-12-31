@@ -208,7 +208,7 @@ class WordModal(discord.ui.Modal, title="Create Your Hangman Word"):
 
     async def on_submit(self, interaction: discord.Interaction):
         word = str(self.word_input.value).strip()
-        if not re.fullmatch(r"[A-Za-zÀ-ÖØ-öø-ÿẞß ]+", word):
+        if not re.fullmatch(r"[A-Za-zÀ-ÖØ-öø-ÿẞß ',]+", word):
             await interaction.response.send_message(
                 "❌ Invalid word! Use only standard or accented Latin letters (A-Z, é, ö, ß, etc.).",
                 ephemeral=True
@@ -234,7 +234,11 @@ class LetterGuessView(discord.ui.View):
         if ":" in data_text:
             word_part, guessed_part = data_text.split(":", 1)
             self.word = word_part.strip()
-            self.guessed_letters = list(guessed_part.strip().lower())
+            self.guessed_letters = [
+    ch for ch in guessed_part.lower()
+    if ch.isalpha()
+]
+
         else:
             self.word = data_text.strip()
             self.guessed_letters = []
@@ -244,10 +248,13 @@ class LetterGuessView(discord.ui.View):
 
 
     def get_display_word(self):
-         return "".join(
-        ch if normalize_letter(ch) in self.guessed_letters or ch == " " else "_"
-        for ch in self.word
-    )
+        return "".join(
+            ch if ch in {" ", "'", ","}
+            else ch if normalize_letter(ch) in self.guessed_letters
+            else "_"
+            for ch in self.word
+        )
+
 
 
     def get_used_letters(self):
@@ -287,7 +294,7 @@ class GuessWordModal(discord.ui.Modal, title="Guess the Word / Sentence"):
 
     async def on_submit(self, interaction: discord.Interaction):
         guess = self.guess_input.value.strip()
-        if not re.fullmatch(r"[A-Za-zÀ-ÖØ-öø-ÿẞß ]+", guess):
+        if not re.fullmatch(r"[A-Za-zÀ-ÖØ-öø-ÿẞß ',]+", guess):
             await interaction.response.send_message(
                 "❌ Invalid input! Use only letters and spaces.", ephemeral=True
             )
@@ -310,11 +317,10 @@ class GuessWordModal(discord.ui.Modal, title="Guess the Word / Sentence"):
         # Only proceed if the full guessed sequence exists at least once
         if guess_n in word_n:
             # Add any new letters from the guess to guessed_letters
-            new_letters_added = False
             for ch in guess_n:
-                if ch not in self.parent_view.guessed_letters:
+                if ch.isalpha() and ch not in self.parent_view.guessed_letters:
                     self.parent_view.guessed_letters.append(ch)
-                    new_letters_added = True
+
 
             correct = True
             reward = 1000 * len(guess_n)
@@ -339,7 +345,7 @@ class GuessWordModal(discord.ui.Modal, title="Guess the Word / Sentence"):
         await interaction.response.send_message(
             f"🔠 **{guesser_user.display_name}** guessed `{guess}` in **{player_user.display_name}`'s word!\n"
             f"{'✅ Correct!' if correct else '❌ Incorrect!'}\n"
-            f"🧩 Current word: ```\n{display_word}\n```"
+            f"🧩 Current word → ```{display_word}```\n"
             f"🔤 Used letters: `{used_letters}`\n"
             f"💰 {guesser_user.display_name} {'earned' if correct else 'lost'} **{abs(reward)}**"
         )
@@ -422,7 +428,7 @@ class LetterInputModal(discord.ui.Modal, title="Guess a Letter"):
         if not re.fullmatch(r"[A-Za-zÀ-ÖØ-öø-ÿẞß]", letter):
             await interaction.response.send_message("❌ Invalid input! Enter a single valid letter.", ephemeral=True)
             return
- 
+        
         letter_lower = normalize_letter(letter)
 
         if letter_lower in self.parent_view.guessed_letters:
@@ -444,10 +450,8 @@ class LetterInputModal(discord.ui.Modal, title="Guess a Letter"):
         new_text = f"{word}:{''.join(self.parent_view.guessed_letters)}"
         manager.set_words(player_id, new_text)
 
-        display_word = "".join(
-    ch if ch == " " or normalize_letter(ch) in self.parent_view.guessed_letters else "_"
-    for ch in word
-)
+        display_word = self.parent_view.get_display_word()
+
 
         used_letters = self.parent_view.get_used_letters()
         player_user = await self.parent_view.bot.fetch_user(player_id)
