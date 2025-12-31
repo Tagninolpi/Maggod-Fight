@@ -244,7 +244,7 @@ class LetterGuessView(discord.ui.View):
 
 
     def get_display_word(self):
-         return " ".join(
+         return "".join(
         ch if normalize_letter(ch) in self.guessed_letters or ch == " " else "_"
         for ch in self.word
     )
