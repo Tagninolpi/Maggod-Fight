@@ -197,7 +197,7 @@ class PlayerWordButton(discord.ui.Button):
 # ---------- Word Modal ----------
 class WordModal(discord.ui.Modal, title="Create Your Hangman Word"):
     word_input = discord.ui.TextInput(
-        label="Enter your word (max 100 letters)", placeholder="Example: magic forest", required=True, max_length=100
+        label="Enter your word (max 100 letters)", placeholder="Example: magic forest", required=True, max_length=3500
     )
 
     def __init__(self, manager, cog, user_id):
