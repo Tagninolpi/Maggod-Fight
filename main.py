@@ -80,6 +80,7 @@ class MaggodFightBot(commands.Bot):
     async def setup_hook(self):
         """Setup hook called when bot is starting."""
         logger.info("Bot is starting up...")
+        
     
         # Load all cogs
         cogs_to_load = [
@@ -106,6 +107,14 @@ class MaggodFightBot(commands.Bot):
         setup_events(self)
         #await setup_commands(self)
         logger.info("Commands loaded successfully")
+        if Config.SYNC_COMMANDS:
+            await asyncio.sleep(10)  # let websocket fully settle
+            if Config.SYNC_GUILD_ONLY:
+                for guild in self.guilds:
+                    await self.tree.sync(guild=guild)
+                    await asyncio.sleep(2)
+            else:
+                await self.tree.sync()
  
     async def on_ready(self):
         self.start_time = datetime.utcnow()
@@ -134,25 +143,6 @@ class MaggodFightBot(commands.Bot):
 
         except Exception as e:
             logger.error(f"Failed to send online message: {e}")
-
-
-
-        # Sync commands globally first (this fixes the unknown integration error)
-        try:
-            synced = await self.tree.sync()
-            logger.info(f"Synced {len(synced)} global commands")
-            all_commands = [cmd.name for cmd in self.tree.get_commands()]
-            logger.info(f"Available slash commands: {all_commands}")
-        except Exception as e:
-            logger.error(f"Failed to sync global commands: {e}")
-        
-        # Also sync for each guild for faster propagation
-        for guild in self.guilds:
-            try:
-                synced = await self.tree.sync(guild=guild)
-                logger.info(f"Synced {len(synced)} commands for guild {guild.name}")
-            except Exception as e:
-                logger.error(f"Failed to sync commands for guild {guild.name}: {e}")
 
 async def main():
     """Main function to run the bot."""
