@@ -115,7 +115,7 @@ class MaggodFightBot(commands.Bot):
         # Set bot status
         activity = discord.Game(name="Maggod Fight | /help")
         await self.change_presence(activity=activity)
-
+        await asyncio.sleep(5)
         # Announce bot online
         try:
             # Wait until bot is ready (self is already the bot)
