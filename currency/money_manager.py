@@ -106,19 +106,3 @@ class MoneyManager:
         """player_times is a dict {player_id: datetime}, stored as 'playerid/time!playerid/time'"""
         text = "!".join(f"{pid}/{t.isoformat()}" for pid, t in player_times.items())
         self.client.table("money").update({"player_time": text}).eq("user_id", user_id).execute()
-
-    def can_player_guess(self, word_owner_id, player_id, cooldown_minutes=5):
-        """Check if a player can guess another player’s word based on cooldown"""
-        player_times = self.get_player_times(word_owner_id)
-        now = datetime.now(timezone.utc)
-
-        last_time = player_times.get(player_id)
-        if last_time is None:
-            return True, 0
-
-        elapsed = (now - last_time).total_seconds() / 60
-        if elapsed >= cooldown_minutes:
-            return True, 0
-        else:
-            return False, round(cooldown_minutes - elapsed, 1)
-

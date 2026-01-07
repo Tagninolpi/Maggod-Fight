@@ -168,7 +168,7 @@ class PlayerWordButton(discord.ui.Button):
         if not data_text:
             await interaction.response.send_message("⚠️ That player has no word set.", ephemeral=True)
             return
-        can_play, remaining = self.manager.can_player_guess(self.player_id, self.user_id)
+        can_play, remaining = True,0
         if not can_play:
             await interaction.response.send_message(
                 f"⏳ You must wait **{remaining} more minutes** before guessing the word again.",
