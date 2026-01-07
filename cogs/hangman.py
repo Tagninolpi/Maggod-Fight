@@ -215,7 +215,6 @@ class WordModal(discord.ui.Modal, title="Create Your Hangman Word"):
             )
             return
 
-
         self.manager.set_words(self.user_id, f"{word} : ")
         self.manager.update_balance(self.user_id, 500)  # ✅ reward for creating a word
         await interaction.response.send_message(f"✅ Your word **'{word}'** has been saved! (+500💰)", ephemeral=True)

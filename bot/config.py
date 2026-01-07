@@ -21,7 +21,7 @@ class Config:
     MAX_GODS_PER_BUTTON_VIEW = 25  # Discord limit
     BUTTONS_PER_ROW = 5
     # Turn Settings
-    TURN_TIMEOUT = 300  # 5 minutes per turn
+    TURN_TIMEOUT = 1  # 5 minutes per turn
     TEAM_SIZE = 5
     SELECTION_TIMEOUT = 300  # 5 minutes
 
