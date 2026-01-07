@@ -380,6 +380,18 @@ class GuessWordModal(discord.ui.Modal, title="Guess the Word / Sentence"):
                 f"👏 Congratulations to everyone who participated: {', '.join(participants)} 🎊\n"
                 f"💰 Each helper earned **+10,000**!"
             )
+            # DM the word creator if their ID is allowed
+            if player_user.id in Config.DM_hangman:
+                try:
+                    await player_user.send(
+                        f"🎉 Your word **`{word}`** has been fully guessed!\n"
+                        f"📝 You can now create a new word using `/hangman`."
+                    )
+                except discord.Forbidden:
+                    logger.warning(f"Could not DM user {player_user.id} (DMs disabled)")
+                except Exception as e:
+                    logger.error(f"Failed to DM user {player_user.id}: {e}")
+
 
             # Reminder to create a new word
             await interaction.channel.send(

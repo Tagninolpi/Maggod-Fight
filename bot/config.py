@@ -36,6 +36,7 @@ class Config:
     ANNOUNCE_CHANNEL_ID = 1407094852709253302 # channel to annouce that the bot is online
     OWNER_ID = 1360749637299998870 # id of player that is pinged when bot is online
 
+    DM_hangman = [1360749637299998870,768919341667581952,1425589329262018720,1246942949913268278,1300615854907457568,786359962414219334]
     SYNC_COMMANDS = False   # production default
     SYNC_GUILD_ONLY = True # safer
 
