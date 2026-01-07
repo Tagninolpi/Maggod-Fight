@@ -14,8 +14,7 @@ class Hangman(commands.Cog):
         self.bot = bot
         self.manager = MoneyManager()
         self.last_messages = {}  # user_id -> discord.Message (to delete old ephemeral views)
-    
-    @commands.cooldown(rate=1, per=5.0, type=commands.BucketType.user)
+
     @app_commands.command(name="hangman", description="Open hangman menu")
     async def hangman(self, interaction: discord.Interaction):
         channel = interaction.channel
@@ -40,10 +39,9 @@ class Hangman(commands.Cog):
         # Delete previous ephemeral message
         if user_id in self.last_messages:
             try:
-                await self.last_messages[user_id].edit(view=None)  # just remove buttons
+                await self.last_messages[user_id].delete()
             except Exception:
                 pass
-
 
         await interaction.response.send_message(
             f"🎮 **Welcome to Hangman, {interaction.user.display_name}!**",
@@ -118,10 +116,9 @@ class PlayButton(discord.ui.Button):
         # Replace old ephemeral message
         if user_id in self.cog.last_messages:
             try:
-                await self.cog.last_messages[user_id].edit(view=None)
+                await self.cog.last_messages[user_id].delete()
             except Exception:
                 pass
-
 
         await interaction.response.send_message("🧩 **Choose a word to play!**", view=view, ephemeral=True)
         self.cog.last_messages[user_id] = await interaction.original_response()
@@ -141,7 +138,7 @@ class PlayWordSelectionView(discord.ui.View):
         for i, player in enumerate(self.valid_players[:25]):
             player_id = player["user_id"]
             try:
-                user = self.bot.get_user(player_id)
+                user = await self.bot.fetch_user(player_id)
                 label = user.display_name
             except Exception:
                 label = f"Player {player_id}"
@@ -181,14 +178,13 @@ class PlayerWordButton(discord.ui.Button):
         view = LetterGuessView(self.player_id, data_text, self.bot, self.manager, self.cog, self.user_id)
         display_word = view.get_display_word()
         used_letters = view.get_used_letters()
-        user = interaction.guild.get_member(self.player_id)
+        user = await self.bot.fetch_user(self.player_id)
 
         if self.user_id in self.cog.last_messages:
             try:
-                await self.cog.last_messages[self.user_id].edit(view=None)
+                await self.cog.last_messages[self.user_id].delete()
             except Exception:
                 pass
-
 
         await interaction.response.send_message(
             f"🎯 **Guessing {user.display_name}'s word!**\n\n`{display_word}`\n\nUsed letters: `{used_letters}`",
@@ -201,7 +197,7 @@ class PlayerWordButton(discord.ui.Button):
 # ---------- Word Modal ----------
 class WordModal(discord.ui.Modal, title="Create Your Hangman Word"):
     word_input = discord.ui.TextInput(
-        label="Enter your word (max 100 letters)", placeholder="Example: magic forest", required=True, max_length=1800
+        label="Enter your word (max 100 letters)", placeholder="Example: magic forest", required=True, max_length=100
     )
 
     def __init__(self, manager, cog, user_id):
@@ -315,8 +311,8 @@ class GuessWordModal(discord.ui.Modal, title="Guess the Word / Sentence"):
         player_id = self.parent_view.player_id
         manager = self.parent_view.manager
 
-        guesser_user = interaction.guild.get_member(user_id) or interaction.user
-        player_user = interaction.guild.get_member(player_id) or interaction.user
+        guesser_user = await self.parent_view.bot.fetch_user(user_id)
+        player_user = await self.parent_view.bot.fetch_user(player_id)
 
         # Only proceed if the full guessed sequence exists at least once
         if guess_n in word_n:
@@ -366,7 +362,7 @@ class GuessWordModal(discord.ui.Modal, title="Guess the Word / Sentence"):
 
             for pid in player_ids:
                 manager.update_balance(pid, 10000)
-                user_obj = interaction.guild.get_member(pid) or interaction.user
+                user_obj = await self.parent_view.bot.fetch_user(pid)
                 participants.append(user_obj.display_name)
 
             manager.set_player_times(player_id, {})
@@ -380,6 +376,11 @@ class GuessWordModal(discord.ui.Modal, title="Guess the Word / Sentence"):
                 f"👏 Congratulations to everyone who participated: {', '.join(participants)} 🎊\n"
                 f"💰 Each helper earned **+10,000**!"
             )
+
+            # Reminder to create a new word
+            await interaction.channel.send(
+                f"📝 {player_user.mention}, please **create a new word or sentence** using `/hangman` ➕"
+            )
             # DM the word creator if their ID is allowed
             if player_user.id in Config.DM_hangman:
                 try:
@@ -391,12 +392,6 @@ class GuessWordModal(discord.ui.Modal, title="Guess the Word / Sentence"):
                     logger.warning(f"Could not DM user {player_user.id} (DMs disabled)")
                 except Exception as e:
                     logger.error(f"Failed to DM user {player_user.id}: {e}")
-
-
-            # Reminder to create a new word
-            await interaction.channel.send(
-                f"📝 {player_user.mention}, please **create a new word or sentence** using `/hangman` ➕"
-            )
 
             return
 
@@ -429,13 +424,6 @@ def normalize_letter(letter: str) -> str:
         if letter.lower() in variants:
             return base
     return letter.lower()
-
-class FinishedHangmanView(discord.ui.View):
-    def __init__(self, message: str = "🎉 You succesfully hanged that man, who will be next ???"):
-        super().__init__(timeout=None)
-        # Add a single disabled button to show the message
-        self.add_item(discord.ui.Button(label=message, style=discord.ButtonStyle.secondary, disabled=True))
-
 
 class LetterInputModal(discord.ui.Modal, title="Guess a Letter"):
     letter_input = discord.ui.TextInput(
@@ -477,8 +465,8 @@ class LetterInputModal(discord.ui.Modal, title="Guess a Letter"):
 
 
         used_letters = self.parent_view.get_used_letters()
-        player_user = interaction.guild.get_member(player_id) or interaction.user
-        guesser_user = interaction.guild.get_member(user_id) or interaction.user
+        player_user = await self.parent_view.bot.fetch_user(player_id)
+        guesser_user = await self.parent_view.bot.fetch_user(user_id)
 
         # Record the guess in the cooldown system
         self.parent_view.manager.add_player_guess_time(player_id, user_id)
@@ -487,10 +475,9 @@ class LetterInputModal(discord.ui.Modal, title="Guess a Letter"):
         # Delete old ephemeral message (failsafe)
         if user_id in self.parent_view.cog.last_messages:
             try:
-                await self.parent_view.cog.last_messages[user_id].edit(view=None)
+                await self.parent_view.cog.last_messages[user_id].delete()
             except Exception:
                 pass
-
 
         # ✅ If the word is completed
         if "_" not in display_word:
@@ -510,13 +497,10 @@ class LetterInputModal(discord.ui.Modal, title="Guess a Letter"):
 
             # Stop the view and announce publicly
             self.parent_view.stop()
-            # Optional: replace with FinishedHangmanView to show message
-            if interaction.message:
-                try:
-                    await interaction.message.edit(view=FinishedHangmanView())
-                except Exception:
-                    pass
-
+            try:
+                await interaction.message.delete()
+            except Exception:
+                pass
 
             if interaction.channel:
                 await interaction.channel.send(
@@ -528,18 +512,27 @@ class LetterInputModal(discord.ui.Modal, title="Guess a Letter"):
                 await interaction.channel.send(
                     f"📝 {player_user.mention}, please **create a new word or sentence** using `/hangman` ➕"
                 )
+            # DM the word creator if their ID is allowed
+            if player_user.id in Config.DM_hangman:
+                try:
+                    await player_user.send(
+                        f"🎉 Your word **`{word}`** has been fully guessed!\n"
+                        f"📝 You can now create a new word using `/hangman`."
+                    )
+                except discord.Forbidden:
+                    logger.warning(f"Could not DM user {player_user.id} (DMs disabled)")
+                except Exception as e:
+                    logger.error(f"Failed to DM user {player_user.id}: {e}")
+
             return
 
         # ✅ Otherwise, announce the guess publicly instead of updating ephemeral
         # After sending the public message:
-        self.parent_view.stop()
-        # Replace with FinishedHangmanView
-        if interaction.message:
-            try:
-                await interaction.message.edit(view=FinishedHangmanView())
-            except Exception:
-                pass
-
+        self.parent_view.stop()  # close view
+        try:
+            await interaction.message.delete()
+        except Exception:
+            pass
 
         if interaction.channel:
             correctness = "✅ Correct!" if correct else "❌ Incorrect!"
