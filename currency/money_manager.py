@@ -54,6 +54,7 @@ class MoneyManager:
                 "words": "reset",
                 "player_time": "",
             }).eq("user_id", user["user_id"]).execute()
+
     # ----------------- WORDS -----------------
     def get_words(self, user_id):
         data = self.client.table("money").select("words").eq("user_id", user_id).execute()
@@ -68,6 +69,12 @@ class MoneyManager:
 
 
     # ----------------- PLAYER_TIME (rate limit) -----------------
+    def set_player_times(self, user_id, times):
+        text = "!".join(t.isoformat() for t in times)
+        self.client.table("money").update({
+            "player_time": text
+        }).eq("user_id", user_id).execute()
+
 
     def get_player_times(self, user_id):
         data = self.client.table("money").select("player_time").eq("user_id", user_id).execute()
@@ -96,6 +103,9 @@ class MoneyManager:
         """
         now = datetime.now(timezone.utc)
         times = self.get_player_times(user_id)
+        if not times : 
+            self.set_player_times(user_id, [])
+            return True, 0
 
         # Remove old timestamps
         valid_times = [

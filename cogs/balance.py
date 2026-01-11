@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 class Balance(commands.Cog):
     """Cog for seeing player balances in Maggod Fight lobbies."""
-
+ 
     def __init__(self, bot):
         self.bot = bot
         self.money_manager = MoneyManager()  # Initialize your MoneyManager

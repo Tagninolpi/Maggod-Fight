@@ -63,6 +63,7 @@ class HangmanMainView(discord.ui.View):
         self.add_item(MakeWordButton(manager, player_word, cog))
         self.add_item(PlayButton(manager, any_word_exists, bot, cog))
 
+### make words :
 
 # ---------- Word Creation ----------
 class MakeWordButton(discord.ui.Button):
@@ -79,6 +80,33 @@ class MakeWordButton(discord.ui.Button):
     async def callback(self, interaction: discord.Interaction):
         await interaction.response.send_modal(WordModal(self.manager, self.cog, interaction.user.id))
 
+# ---------- Word Modal ----------
+class WordModal(discord.ui.Modal, title="Create Your Hangman Word"):
+    word_input = discord.ui.TextInput(
+        label="Enter your word (max 100 letters)", placeholder="Example: magic forest", required=True, max_length=100
+    )
+
+    def __init__(self, manager, cog, user_id):
+        super().__init__()
+        self.manager = manager
+        self.cog = cog
+        self.user_id = user_id
+
+    async def on_submit(self, interaction: discord.Interaction):
+        word = str(self.word_input.value).strip()
+        if not re.fullmatch(r"[A-Za-zÀ-ÖØ-öø-ÿẞß ',]+", word):
+            await interaction.response.send_message(
+                "❌ Invalid word! Use only standard or accented Latin letters (A-Z, é, ö, ß, etc.).",
+                ephemeral=True
+            )
+            return
+
+        self.manager.set_words(self.user_id, f"{word} : ")
+        self.manager.update_balance(self.user_id, 500)  # ✅ reward for creating a word
+        await interaction.response.send_message(f"✅ Your word **'{word}'** has been saved! (+500💰)", ephemeral=True)
+
+
+### guess
 
 # ---------- Play Menu ----------
 class PlayButton(discord.ui.Button):
@@ -188,30 +216,6 @@ class PlayerWordButton(discord.ui.Button):
         self.cog.last_messages[self.user_id] = await interaction.original_response()
 
 
-# ---------- Word Modal ----------
-class WordModal(discord.ui.Modal, title="Create Your Hangman Word"):
-    word_input = discord.ui.TextInput(
-        label="Enter your word (max 100 letters)", placeholder="Example: magic forest", required=True, max_length=100
-    )
-
-    def __init__(self, manager, cog, user_id):
-        super().__init__()
-        self.manager = manager
-        self.cog = cog
-        self.user_id = user_id
-
-    async def on_submit(self, interaction: discord.Interaction):
-        word = str(self.word_input.value).strip()
-        if not re.fullmatch(r"[A-Za-zÀ-ÖØ-öø-ÿẞß ',]+", word):
-            await interaction.response.send_message(
-                "❌ Invalid word! Use only standard or accented Latin letters (A-Z, é, ö, ß, etc.).",
-                ephemeral=True
-            )
-            return
-
-        self.manager.set_words(self.user_id, f"{word} : ")
-        self.manager.update_balance(self.user_id, 500)  # ✅ reward for creating a word
-        await interaction.response.send_message(f"✅ Your word **'{word}'** has been saved! (+500💰)", ephemeral=True)
 
 
 # ---------- Guessing Logic ----------
@@ -262,133 +266,7 @@ class LetterGuessView(discord.ui.View):
         except Exception:
             pass
 
-class GuessWordButton(discord.ui.Button):
-    def __init__(self, parent_view):
-        self.parent_view = parent_view
-        super().__init__(
-            label="Guess Word",
-            style=discord.ButtonStyle.danger
-        )
-
-    async def callback(self, interaction: discord.Interaction):
-        await interaction.response.send_modal(GuessWordModal(self.parent_view))
-
-class GuessWordModal(discord.ui.Modal, title="Guess the Word / Sentence"):
-    def __init__(self, parent_view):
-        super().__init__()
-        self.parent_view = parent_view
-
-        self.guess_input = discord.ui.TextInput(
-            label="Enter your guess",
-            placeholder="Type any sequence of letters",
-            required=True,
-            max_length=len(parent_view.word)
-        )
-        self.add_item(self.guess_input)
-
-    async def on_submit(self, interaction: discord.Interaction):
-        guess = self.guess_input.value.strip()
-        if not re.fullmatch(r"[A-Za-zÀ-ÖØ-öø-ÿẞß ',]+", guess):
-            await interaction.response.send_message(
-                "❌ Invalid input! Use only letters and spaces.", ephemeral=True
-            )
-            return
-
-        def normalize(s):
-            return "".join(normalize_letter(c) for c in s)
-
-        word = self.parent_view.word
-        word_n = normalize(word)
-        guess_n = normalize(guess)
-
-        user_id = self.parent_view.user_id
-        player_id = self.parent_view.player_id
-        manager = self.parent_view.manager
-
-        guesser_user = await self.parent_view.bot.fetch_user(user_id)
-        player_user = await self.parent_view.bot.fetch_user(player_id)
-
-        # Only proceed if the full guessed sequence exists at least once
-        if guess_n in word_n:
-            # Add any new letters from the guess to guessed_letters
-            for ch in guess_n:
-                if ch.isalpha() and ch not in self.parent_view.guessed_letters:
-                    self.parent_view.guessed_letters.append(ch)
-
-
-            correct = True
-            reward = 1000 * len(guess_n)
-            manager.update_balance(user_id, reward)
-
-            # Update stored word with guessed letters
-            manager.set_words(player_id, f"{word}:{''.join(self.parent_view.guessed_letters)}")
-
-            # Update display word
-            display_word = self.parent_view.get_display_word()
-
-        else:
-            # Incorrect guess, no letters added
-            display_word = self.parent_view.get_display_word()
-            correct = False
-            reward = -2000 * len(guess_n)
-            manager.update_balance(user_id, reward)
-
-        used_letters = self.parent_view.get_used_letters()
-
-        # Public feedback
-        await interaction.response.send_message(
-            f"🔠 **{guesser_user.display_name}** guessed `{guess}` in **{player_user.display_name}`'s word!\n"
-            f"{'✅ Correct!' if correct else '❌ Incorrect!'}\n"
-            f"🧩 Current word → ```{display_word}```\n"
-            f"🔤 Used letters: `{used_letters}`\n"
-            f"💰 {guesser_user.display_name} {'earned' if correct else 'lost'} **{abs(reward)}**"
-        )
-
-        # Check if the full word is now revealed
-        if "_" not in display_word:
-            manager.set_words(player_id, None)
-
-            # Get all participants
-            player_times = manager.get_player_times(player_id)
-            player_ids = player_times.keys()
-
-            participants = []
-
-            for pid in player_ids:
-                manager.update_balance(pid, 10000)
-                user_obj = await self.parent_view.bot.fetch_user(pid)
-                participants.append(user_obj.display_name)
-
-            manager.set_player_times(player_id, {})
-
-            # Stop the game UI
-            self.parent_view.stop()
-
-            # Public win message
-            await interaction.channel.send(
-                f"🎉 **{player_user.display_name}'s word was `{word}`!**\n"
-                f"👏 Congratulations to everyone who participated: {', '.join(participants)} 🎊\n"
-                f"💰 Each helper earned **+10,000**!"
-            )
-
-            # Reminder to create a new word
-            await interaction.channel.send(
-                f"📝 {player_user.mention}, please **create a new word or sentence** using `/hangman` ➕"
-            )
-            # DM the word creator if their ID is allowed
-            if player_user.id in Config.DM_hangman:
-                try:
-                    await player_user.send(
-                        f"🎉 Your word **`{word}`** has been fully guessed!\n"
-                        f"📝 You can now create a new word using `/hangman`."
-                    )
-                except discord.Forbidden:
-                    logger.warning(f"Could not DM user {player_user.id} (DMs disabled)")
-                except Exception as e:
-                    logger.error(f"Failed to DM user {player_user.id}: {e}")
-
-            return
-
+### letter guess
 
 
 class ChooseLetterButton(discord.ui.Button):
@@ -561,6 +439,139 @@ class LetterInputModal(discord.ui.Modal, title="Guess a Letter"):
             await interaction.response.defer()  # mark as responded
         except Exception:
             pass
+
+
+### word guess
+
+class GuessWordButton(discord.ui.Button):
+    def __init__(self, parent_view):
+        self.parent_view = parent_view
+        super().__init__(
+            label="Guess Word",
+            style=discord.ButtonStyle.danger
+        )
+
+    async def callback(self, interaction: discord.Interaction):
+        await interaction.response.send_modal(GuessWordModal(self.parent_view))
+
+class GuessWordModal(discord.ui.Modal, title="Guess the Word / Sentence"):
+    def __init__(self, parent_view):
+        super().__init__()
+        self.parent_view = parent_view
+
+        self.guess_input = discord.ui.TextInput(
+            label="Enter your guess",
+            placeholder="Type any sequence of letters",
+            required=True,
+            max_length=len(parent_view.word)
+        )
+        self.add_item(self.guess_input)
+
+    async def on_submit(self, interaction: discord.Interaction):
+        guess = self.guess_input.value.strip()
+        if not re.fullmatch(r"[A-Za-zÀ-ÖØ-öø-ÿẞß ',]+", guess):
+            await interaction.response.send_message(
+                "❌ Invalid input! Use only letters and spaces.", ephemeral=True
+            )
+            return
+
+        def normalize(s):
+            return "".join(normalize_letter(c) for c in s)
+
+        word = self.parent_view.word
+        word_n = normalize(word)
+        guess_n = normalize(guess)
+
+        user_id = self.parent_view.user_id
+        player_id = self.parent_view.player_id
+        manager = self.parent_view.manager
+
+        guesser_user = await self.parent_view.bot.fetch_user(user_id)
+        player_user = await self.parent_view.bot.fetch_user(player_id)
+
+        # Only proceed if the full guessed sequence exists at least once
+        if guess_n in word_n:
+            # Add any new letters from the guess to guessed_letters
+            for ch in guess_n:
+                if ch.isalpha() and ch not in self.parent_view.guessed_letters:
+                    self.parent_view.guessed_letters.append(ch)
+
+
+            correct = True
+            reward = 1000 * len(guess_n)
+            manager.update_balance(user_id, reward)
+
+            # Update stored word with guessed letters
+            manager.set_words(player_id, f"{word}:{''.join(self.parent_view.guessed_letters)}")
+
+            # Update display word
+            display_word = self.parent_view.get_display_word()
+
+        else:
+            # Incorrect guess, no letters added
+            display_word = self.parent_view.get_display_word()
+            correct = False
+            reward = -2000 * len(guess_n)
+            manager.update_balance(user_id, reward)
+
+        used_letters = self.parent_view.get_used_letters()
+
+        # Public feedback
+        await interaction.response.send_message(
+            f"🔠 **{guesser_user.display_name}** guessed `{guess}` in **{player_user.display_name}`'s word!\n"
+            f"{'✅ Correct!' if correct else '❌ Incorrect!'}\n"
+            f"🧩 Current word → ```{display_word}```\n"
+            f"🔤 Used letters: `{used_letters}`\n"
+            f"💰 {guesser_user.display_name} {'earned' if correct else 'lost'} **{abs(reward)}**"
+        )
+
+        # Check if the full word is now revealed
+        if "_" not in display_word:
+            manager.set_words(player_id, None)
+
+            # Get all participants
+            player_times = manager.get_player_times(player_id)
+            player_ids = player_times.keys()
+
+            participants = []
+
+            for pid in player_ids:
+                manager.update_balance(pid, 10000)
+                user_obj = await self.parent_view.bot.fetch_user(pid)
+                participants.append(user_obj.display_name)
+
+            manager.set_player_times(player_id, {})
+
+            # Stop the game UI
+            self.parent_view.stop()
+
+            # Public win message
+            await interaction.channel.send(
+                f"🎉 **{player_user.display_name}'s word was `{word}`!**\n"
+                f"👏 Congratulations to everyone who participated: {', '.join(participants)} 🎊\n"
+                f"💰 Each helper earned **+10,000**!"
+            )
+
+            # Reminder to create a new word
+            await interaction.channel.send(
+                f"📝 {player_user.mention}, please **create a new word or sentence** using `/hangman` ➕"
+            )
+            # DM the word creator if their ID is allowed
+            if player_user.id in Config.DM_hangman:
+                try:
+                    await player_user.send(
+                        f"🎉 Your word **`{word}`** has been fully guessed!\n"
+                        f"📝 You can now create a new word using `/hangman`."
+                    )
+                except discord.Forbidden:
+                    logger.warning(f"Could not DM user {player_user.id} (DMs disabled)")
+                except Exception as e:
+                    logger.error(f"Failed to DM user {player_user.id}: {e}")
+
+            return
+
+
+
 
 async def setup(bot):
     await bot.add_cog(Hangman(bot))
