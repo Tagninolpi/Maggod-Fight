@@ -55,7 +55,16 @@ class MoneyManager:
                 "player_time": "",
             }).eq("user_id", user["user_id"]).execute()
     # ----------------- WORDS -----------------
+    def get_words(self, user_id):
+        data = self.client.table("money").select("words").eq("user_id", user_id).execute()
+        if data.data:
+            return data.data[0]["words"]
+        return None
 
+    def set_words(self, user_id, words):
+        self.client.table("money").update({
+            "words": words,
+        }).eq("user_id", user_id).execute()
 
 
     # ----------------- PLAYER_TIME (rate limit) -----------------
