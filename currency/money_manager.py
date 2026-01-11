@@ -70,39 +70,58 @@ class MoneyManager:
             "time": datetime.now(timezone.utc).isoformat()
         }).eq("user_id", user_id).execute()
 
-    # ----------------- PLAYER_TIME -----------------
-
-    def add_player_guess_time(self, target_user_id, guesser_id):
-        """
-        Update or add a 'guesser/timestamp' entry in target user's player_time.
-        If the player already exists, update the timestamp. Otherwise, add a new entry.
-        Stored format: playerid/time!playerid/time...
-        """
-        player_times = self.get_player_times(target_user_id)
-        player_times[guesser_id] = datetime.now(timezone.utc)
-        self.set_player_times(target_user_id, player_times)
+    # ----------------- PLAYER_TIME (rate limit) -----------------
 
     def get_player_times(self, user_id):
-        """
-        Return dict of {player_id: datetime} for the given user's word.
-        Expects storage format: "playerid/time!playerid/time!..."
-        """
         data = self.client.table("money").select("player_time").eq("user_id", user_id).execute()
         if not data.data or not data.data[0].get("player_time"):
-            return {}
-        text = data.data[0]["player_time"]
-        pairs = [p for p in text.split("!") if p.strip()]
-        result = {}
-        for pair in pairs:
+            return []
+
+        times = []
+        for t in data.data[0]["player_time"].split("!"):
             try:
-                pid, t = pair.split("/")
-                t = t.replace("Z", "+00:00")  # ensure UTC parsing works
-                result[int(pid)] = datetime.fromisoformat(t)
+                times.append(datetime.fromisoformat(t))
             except Exception:
                 continue
-        return result
+        return times
 
-    def set_player_times(self, user_id, player_times):
-        """player_times is a dict {player_id: datetime}, stored as 'playerid/time!playerid/time'"""
-        text = "!".join(f"{pid}/{t.isoformat()}" for pid, t in player_times.items())
-        self.client.table("money").update({"player_time": text}).eq("user_id", user_id).execute()
+
+    def set_player_times(self, user_id, times):
+        text = "!".join(t.isoformat() for t in times)
+        self.client.table("money").update({
+            "player_time": text,
+            "time": datetime.now(timezone.utc).isoformat()
+        }).eq("user_id", user_id).execute()
+
+
+    def add_player_guess_time(self, user_id):
+        times = self.get_player_times(user_id)
+        times.append(datetime.now(timezone.utc))
+        self.set_player_times(user_id, times)
+
+
+    def check_guess_rate_limit(self, user_id, max_guesses=10, window_seconds=600):
+        """
+        Returns:
+        (can_play: bool, wait_seconds: int)
+        """
+        now = datetime.now(timezone.utc)
+        times = self.get_player_times(user_id)
+
+        # Remove old timestamps
+        valid_times = [
+            t for t in times
+            if (now - t).total_seconds() <= window_seconds
+        ]
+
+        # Save cleaned list
+        self.set_player_times(user_id, valid_times)
+
+        if len(valid_times) >= max_guesses:
+            oldest = min(valid_times)
+            wait_seconds = int(
+                window_seconds - (now - oldest).total_seconds()
+            )
+            return False, max(wait_seconds, 1)
+
+        return True, 0

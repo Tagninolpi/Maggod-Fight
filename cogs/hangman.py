@@ -168,13 +168,7 @@ class PlayerWordButton(discord.ui.Button):
         if not data_text:
             await interaction.response.send_message("⚠️ That player has no word set.", ephemeral=True)
             return
-        can_play, remaining = True,0
-        if not can_play:
-            await interaction.response.send_message(
-                f"⏳ You must wait **{remaining} more minutes** before guessing the word again.",
-                ephemeral=True
-            )
-            return
+
         view = LetterGuessView(self.player_id, data_text, self.bot, self.manager, self.cog, self.user_id)
         display_word = view.get_display_word()
         used_letters = view.get_used_letters()
@@ -278,6 +272,7 @@ class GuessWordButton(discord.ui.Button):
 
     async def callback(self, interaction: discord.Interaction):
         await interaction.response.send_modal(GuessWordModal(self.parent_view))
+
 class GuessWordModal(discord.ui.Modal, title="Guess the Word / Sentence"):
     def __init__(self, parent_view):
         super().__init__()
@@ -396,14 +391,26 @@ class GuessWordModal(discord.ui.Modal, title="Guess the Word / Sentence"):
 
 
 
-
-
 class ChooseLetterButton(discord.ui.Button):
     def __init__(self, parent_view):
         self.parent_view = parent_view
         super().__init__(label="Choose Letter", style=discord.ButtonStyle.primary)
 
     async def callback(self, interaction: discord.Interaction):
+        user_id = self.parent_view.user_id
+        manager = self.parent_view.manager
+
+        can_play, wait_seconds = manager.check_guess_rate_limit(user_id)
+
+        if not can_play:
+            await interaction.response.send_message(
+                f"⏳ You guessed too many letters.\n"
+                f"Please wait **{wait_seconds} seconds** before guessing again.",
+                ephemeral=True
+            )
+            return
+
+        # ✅ Allowed → open modal
         await interaction.response.send_modal(LetterInputModal(self.parent_view))
 
 def normalize_letter(letter: str) -> str:
@@ -468,7 +475,8 @@ class LetterInputModal(discord.ui.Modal, title="Guess a Letter"):
         guesser_user = await self.parent_view.bot.fetch_user(user_id)
 
         # Record the guess in the cooldown system
-        self.parent_view.manager.add_player_guess_time(player_id, user_id)
+        self.parent_view.manager.add_player_guess_time(self.parent_view.user_id)
+
 
 
         # Delete old ephemeral message (failsafe)
