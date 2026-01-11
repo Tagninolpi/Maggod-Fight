@@ -366,21 +366,10 @@ class LetterInputModal(discord.ui.Modal, title="Guess a Letter"):
 
         # ✅ If the word is completed
         if "_" not in display_word:
+            # Mark the word as done
             manager.set_words(player_id, None)
-            player_times = manager.get_player_times(player_id)
-            player_ids = player_times.keys()
 
-
-            participants = []
-
-            for pid in player_ids:
-                manager.update_balance(pid, 10000)
-                user_obj = await self.parent_view.bot.fetch_user(pid)
-                participants.append(user_obj.display_name)
-            manager.set_player_times(player_id, {})
-
-
-            # Stop the view and announce publicly
+            # Stop the view
             self.parent_view.stop()
             try:
                 await interaction.message.delete()
@@ -390,14 +379,15 @@ class LetterInputModal(discord.ui.Modal, title="Guess a Letter"):
             if interaction.channel:
                 await interaction.channel.send(
                     f"🎉 **{player_user.display_name}'s word was `{word}`!**\n"
-                    f"👏 Congratulations to everyone who participated: {', '.join(participants)} 🎊\n"
-                    f"💰 Each helper earned **+10,000**!"
+                    f"📝 The word has been fully guessed!"
                 )
-                   # 🧩 Follow-up reminder for the player to make a new word
+
+                # Reminder to create a new word
                 await interaction.channel.send(
                     f"📝 {player_user.mention}, please **create a new word or sentence** using `/hangman` ➕"
                 )
-            # DM the word creator if their ID is allowed
+
+            # DM the word creator if allowed
             if player_user.id in Config.DM_hangman:
                 try:
                     await player_user.send(
@@ -410,6 +400,8 @@ class LetterInputModal(discord.ui.Modal, title="Guess a Letter"):
                     logger.error(f"Failed to DM user {player_user.id}: {e}")
 
             return
+
+        
 
         # ✅ Otherwise, announce the guess publicly instead of updating ephemeral
         # After sending the public message:
@@ -529,34 +521,21 @@ class GuessWordModal(discord.ui.Modal, title="Guess the Word / Sentence"):
         if "_" not in display_word:
             manager.set_words(player_id, None)
 
-            # Get all participants
-            player_times = manager.get_player_times(player_id)
-            player_ids = player_times.keys()
-
-            participants = []
-
-            for pid in player_ids:
-                manager.update_balance(pid, 10000)
-                user_obj = await self.parent_view.bot.fetch_user(pid)
-                participants.append(user_obj.display_name)
-
-            manager.set_player_times(player_id, {})
-
             # Stop the game UI
             self.parent_view.stop()
 
             # Public win message
             await interaction.channel.send(
                 f"🎉 **{player_user.display_name}'s word was `{word}`!**\n"
-                f"👏 Congratulations to everyone who participated: {', '.join(participants)} 🎊\n"
-                f"💰 Each helper earned **+10,000**!"
+                f"📝 The word has been fully guessed!"
             )
 
             # Reminder to create a new word
             await interaction.channel.send(
                 f"📝 {player_user.mention}, please **create a new word or sentence** using `/hangman` ➕"
             )
-            # DM the word creator if their ID is allowed
+
+            # DM the word creator if allowed
             if player_user.id in Config.DM_hangman:
                 try:
                     await player_user.send(
@@ -569,6 +548,7 @@ class GuessWordModal(discord.ui.Modal, title="Guess the Word / Sentence"):
                     logger.error(f"Failed to DM user {player_user.id}: {e}")
 
             return
+
 
 
 
