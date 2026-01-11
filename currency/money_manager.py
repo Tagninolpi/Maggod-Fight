@@ -12,26 +12,24 @@ class MoneyManager:
     # ----------------- BALANCE -----------------
     def get_balance(self, user_id=None, all=False):
         if all:
-            data = self.client.table("money").select("user_id, balance, time, words, player_time").execute()
+            data = self.client.table("money").select("user_id, balance, words, player_time").execute()
             return data.data
 
-        data = self.client.table("money").select("balance, time, words, player_time").eq("user_id", user_id).execute()
+        data = self.client.table("money").select("balance, words, player_time").eq("user_id", user_id).execute()
         if not data.data:
             self.client.table("money").insert({
                 "user_id": user_id,
                 "balance": 0,
-                "time": datetime.now(timezone.utc).isoformat(),
                 "words": "none",
                 "player_time": ""
             }).execute()
-            return {"balance": 0, "time": datetime.now(timezone.utc).isoformat(), "words": "none", "player_time": ""}
+            return {"balance": 0, "words": "none", "player_time": ""}
         return data.data[0]
 
     def set_balance(self, user_id, value, words=None):
         update_data = {
             "user_id": user_id,
             "balance": value,
-            "time": datetime.now(timezone.utc).isoformat()
         }
         if words is not None:
             update_data["words"] = words
@@ -55,20 +53,10 @@ class MoneyManager:
                 "balance": 0,
                 "words": "reset",
                 "player_time": "",
-                "time": datetime.now(timezone.utc).isoformat()
             }).eq("user_id", user["user_id"]).execute()
     # ----------------- WORDS -----------------
-    def get_words(self, user_id):
-        data = self.client.table("money").select("words").eq("user_id", user_id).execute()
-        if data.data:
-            return data.data[0]["words"]
-        return None
 
-    def set_words(self, user_id, words):
-        self.client.table("money").update({
-            "words": words,
-            "time": datetime.now(timezone.utc).isoformat()
-        }).eq("user_id", user_id).execute()
+
 
     # ----------------- PLAYER_TIME (rate limit) -----------------
 
@@ -84,14 +72,6 @@ class MoneyManager:
             except Exception:
                 continue
         return times
-
-
-    def set_player_times(self, user_id, times):
-        text = "!".join(t.isoformat() for t in times)
-        self.client.table("money").update({
-            "player_time": text,
-            "time": datetime.now(timezone.utc).isoformat()
-        }).eq("user_id", user_id).execute()
 
 
     def add_player_guess_time(self, user_id):
