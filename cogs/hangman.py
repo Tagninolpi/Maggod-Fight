@@ -379,7 +379,7 @@ class LetterInputModal(discord.ui.Modal, title="Guess a Letter"):
             if interaction.channel:
                 await interaction.channel.send(
                     f"🎉 **{player_user.display_name}'s word was `{word}`!**\n"
-                    f"📝 The word has been fully guessed!"
+                    f"Congratulation to everyone that helped to hang that man"
                 )
 
                 # Reminder to create a new word
@@ -527,7 +527,7 @@ class GuessWordModal(discord.ui.Modal, title="Guess the Word / Sentence"):
             # Public win message
             await interaction.channel.send(
                 f"🎉 **{player_user.display_name}'s word was `{word}`!**\n"
-                f"📝 The word has been fully guessed!"
+                f"📝 Congratulation to everyone that helped to hang that man"
             )
 
             # Reminder to create a new word
