@@ -35,12 +35,12 @@ class Join(commands.Cog):
             )
             return
 
-        if not channel.name.startswith("⚔️-maggo"):
-            await interaction.response.send_message(
-                "❌ You must use this command in a Maggod lobby channel.",
-                ephemeral=True
-            )
-            return
+        # if not channel.name.startswith("⚔️-maggo"):
+        #     await interaction.response.send_message(
+        #         "❌ You must use this command in a Maggod lobby channel.",
+        #         ephemeral=True
+        #     )
+        #     return
         
         if join_in_progress:
             await interaction.response.send_message(
