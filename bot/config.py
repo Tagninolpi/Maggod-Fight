@@ -34,7 +34,7 @@ class Config:
     ALLOWED_PLAYER_IDS = [1360749637299998870,1126876428915449958,1314290931314200690] # allowed to use /create /delete (lobby)
     allowed_channel_id = [1407094327573872723,1444237869492207668,1445081294190153769,1464293487254962178]# channel to use /create /delete (lobby) tutorial
     ANNOUNCE_CHANNEL_ID = 1407094852709253302 # channel to annouce that the bot is online
-    OWNER_ID = 1360749637299998870 # id of player that is pinged when bot is online
+    OWNER_ID = 1360749637299998870 # id of player that is pinged when bot is online 
 
     DM_hangman = [1360749637299998870,768919341667581952,1425589329262018720,1246942949913268278,1300615854907457568,786359962414219334]
     SYNC_COMMANDS = False   # production default
