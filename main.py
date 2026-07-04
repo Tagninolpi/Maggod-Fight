@@ -131,6 +131,12 @@ class MaggodFightBot(commands.Bot):
             try:
                 if Config.SYNC_GUILD_ONLY:
                     for guild in self.guilds:
+                        # All our commands are registered globally (no @app_commands.guilds(...)),
+                        # so a plain guild sync uploads that guild's own (empty) local command
+                        # list and wipes visible commands. copy_global_to() copies the global
+                        # commands into the guild's local list first, so the sync actually
+                        # includes them and updates almost instantly instead of waiting ~1h.
+                        self.tree.copy_global_to(guild=guild)
                         synced = await self.tree.sync(guild=guild)
                         logger.info(f"Synced {len(synced)} commands to guild '{guild.name}' ({guild.id})")
                         await asyncio.sleep(2)
