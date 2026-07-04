@@ -76,6 +76,10 @@ class MaggodFightBot(commands.Bot):
         # Bot statistics
         self.stats = BotStats()
         self.start_time = datetime.now(timezone.utc)
+
+        # Guard so we only sync commands once, even if on_ready fires again
+        # (e.g. after a reconnect), since resyncing repeatedly wastes rate limit.
+        self._commands_synced = False
         
     async def setup_hook(self):
         """Setup hook called when bot is starting."""
@@ -109,19 +113,32 @@ class MaggodFightBot(commands.Bot):
         setup_events(self)
         #await setup_commands(self)
         logger.info("Commands loaded successfully")
-        if Config.SYNC_COMMANDS:
-            await asyncio.sleep(10)  # let websocket fully settle
-            if Config.SYNC_GUILD_ONLY:
-                for guild in self.guilds:
-                    await self.tree.sync(guild=guild)
-                    await asyncio.sleep(2)
-            else:
-                await self.tree.sync()
+
+        # NOTE: command tree syncing has been moved to on_ready().
+        # setup_hook() runs before the gateway connection is established,
+        # so self.guilds is still empty here - a guild-only sync attempted
+        # in this method silently syncs to zero guilds and new/updated
+        # slash commands never reach Discord.
  
     async def on_ready(self):
-        self.start_time = datetime.utcnow()
+        self.start_time = datetime.now(timezone.utc)
         logger.info(f"{self.user} has connected to Discord!")
         logger.info(f"Bot is in {len(self.guilds)} guilds")
+
+        # Sync the command tree now that guild data has actually arrived.
+        if Config.SYNC_COMMANDS and not self._commands_synced:
+            self._commands_synced = True
+            try:
+                if Config.SYNC_GUILD_ONLY:
+                    for guild in self.guilds:
+                        synced = await self.tree.sync(guild=guild)
+                        logger.info(f"Synced {len(synced)} commands to guild '{guild.name}' ({guild.id})")
+                        await asyncio.sleep(2)
+                else:
+                    synced = await self.tree.sync()
+                    logger.info(f"Synced {len(synced)} global commands")
+            except Exception as e:
+                logger.error(f"Command sync failed: {e}")
 
         # Set bot status
         activity = discord.Game(name="Maggod Fight | /help")
