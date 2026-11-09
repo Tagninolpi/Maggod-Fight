@@ -735,13 +735,13 @@ class Turn(commands.Cog):
                 ephemeral=True
             )
             return
-
-        if not channel.category or not(channel.category.id in Config.LOBBY_CATEGORY_ID):
-            await interaction.response.send_message(
-                f"❌ You must use this command in a `{Config.LOBBY_CATEGORY_NAME}` channel.",
-                ephemeral=True
-            )
-            return
+# 
+#         if not channel.category or not(channel.category.id in Config.LOBBY_CATEGORY_ID):
+#             await interaction.response.send_message(
+#                 f"❌ You must use this command in a `{Config.LOBBY_CATEGORY_NAME}` channel.",
+#                 ephemeral=True
+#             )
+#             return
 
         # if not channel.name.startswith("⚔️-maggo"):
         #     await interaction.response.send_message(

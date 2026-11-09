@@ -22,11 +22,11 @@ class Hangman(commands.Cog):
             await interaction.response.send_message("❌ Use this command in a text channel.", ephemeral=True)
             return
 
-        if not channel.category or not(channel.category.id in Config.LOBBY_CATEGORY_ID):
-            await interaction.response.send_message(
-                f"❌ Use this in `{Config.LOBBY_CATEGORY_NAME}` channel.", ephemeral=True
-            )
-            return
+        # if not channel.category or not(channel.category.id in Config.LOBBY_CATEGORY_ID):
+        #     await interaction.response.send_message(
+        #         f"❌ Use this in `{Config.LOBBY_CATEGORY_NAME}` channel.", ephemeral=True
+        #     )
+        #     return
 
         user_id = interaction.user.id
         player_data = self.manager.get_balance(user_id)
